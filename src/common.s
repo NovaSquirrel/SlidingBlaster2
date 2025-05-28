@@ -1,25 +1,19 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
-
 .include "snes.inc"
 .include "global.inc"
 .smart
@@ -129,54 +123,6 @@ Temp    = BlockTemp
   ; Save block number in X specifically, for 24-bit Absolute Indexed
   tax
   ; Now the accumulator is free to do other things
-
-  ; -----------------------------------
-
-  ; First, make sure the block is actually onscreen (Horizontally)
-  jsl GetBlockX
-  seta8
-  sta Temp ; Store column so it can be compared against
-
-  lda ScrollX+1
-  sub #1
-  bcc @FineLeft
-  cmp Temp
-  bcc @FineLeft
-  jmp Exit
-@FineLeft:
-
-  lda ScrollX+1
-  add #16+1
-  bcs @FineRight
-  cmp Temp
-  bcs @FineRight
-  jmp Exit
-@FineRight:
-  seta16
-
-  ; -----------------------------------
-
-  ; Second, make sure the block is actually onscreen (Vertically)
-  jsl GetBlockY
-  seta8
-  sta Temp ; Store row so it can be compared against
-
-  lda ScrollY+1
-  sub #1
-  bcc @FineUp
-  cmp Temp
-  bcc @FineUp
-  jmp Exit
-@FineUp:
-
-  lda ScrollY+1
-  add #14+1
-  bcs @FineDown
-  cmp Temp
-  bcs @FineDown
-  jmp Exit
-@FineDown:
-  seta16
 
   ; -----------------------------------
 

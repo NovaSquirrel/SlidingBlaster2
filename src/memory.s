@@ -1,24 +1,19 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
 
 ; Format for 16-bit X and Y positions and speeds:
 ; HHHHHHHH LLLLSSSS
@@ -34,9 +29,6 @@
   keydown:  .res 2
   keylast:  .res 2
   keynew:   .res 2
-
-  ScrollX:  .res 2   ; Primary foreground
-  ScrollY:  .res 2
 
   random1:  .res 2
   random2:  .res 2
@@ -55,7 +47,6 @@
 
   PlayerVX:        .res 2 ; \
   PlayerVY:        .res 2 ; /
-  PlayerFrame:     .res 1 ; Player animation frame
 
   ; Precomputed hitbox edges to speed up collision detection with the player
   PlayerPXLeft:    .res 2 ; 
@@ -65,22 +56,12 @@
   ForceControllerBits: .res 2
   ForceControllerTime: .res 1
 
-  PlayerWasRunning: .res 1     ; was the player running when they jumped?
-  PlayerDir:        .res 1     ; currently facing left?
-  PlayerJumping:    .res 1     ; true if jumping (not falling)
-  PlayerOnGround:   .res 1     ; true if on ground
-  PlayerOnGroundLast: .res 1   ; true if on ground last frame - used to display the landing particle
-  PlayerWalkLock:   .res 1     ; timer for the player being unable to move left/right
-  PlayerDownTimer:  .res 1     ; timer for how long the player has been holding down
-                               ; (used for fallthrough platforms)
   PlayerHealth:     .res 1     ; current health, measured in half hearts
 
   OamPtr:           .res 2 ; Current index into OAM and OAMHI
   TempVal:          .res 4
   TouchTemp:        .res 8
 
-  LevelColumnSize:  .res 2 ; for moving left and right in a level buffer
-  LevelColumnMask:  .res 2 ; LevelColumnSize-1
   LevelHeaderPointer: .res 3 ; For starting the same level from a checkpoint, or other purposes
   LevelDataPointer:  .res 3 ; pointer to the actual level data
   LevelActorPointer: .res 3 ; actor pointer for this level
@@ -125,8 +106,6 @@
 
   NeedLevelReload:       .res 1 ; If set, decode LevelNumber again
   NeedLevelRerender:     .res 1 ; If set, rerender the level again
-  RerenderInitEntities:  .res 1 ; If set, init entity lists for next rerender;
-                                ; if $80 (RERENDER_INIT_ENTITIES_TELEPORT), preserve certain entity types
   OAM:   .res 512
   OAMHI: .res 512
   ; OAMHI contains bit 8 of X (the horizontal position) and the size
@@ -137,13 +116,6 @@
 
   ScrollXLimit: .res 2
   ScrollYLimit: .res 2
-
-  JumpGracePeriod: .res 1
-  PlayerJumpCancelLock: .res 1 ; timer for the player being unable to cancel a jump
-  PlayerJumpCancel: .res 1
-  PlayerWantsToJump: .res 1    ; true if player pressed the jump button
-  PlayerWantsToAttack: .res 1  ; true if player pressed the attack button
-  PlayerRidingSomething: .res 1 ; if 1, player is treated to be standing on a solid and can jump
 
   PlayerDrawX: .res 1
   PlayerDrawY: .res 1
@@ -177,17 +149,6 @@ LevelZeroWhenLoad_Start:
 
   PlayerCameraTargetY: .res 2 ; Y position to target with the camera
 
-  ; Video updates from scrolling
-  ColumnUpdateAddress: .res 2     ; Address to upload to, or zero for none
-  RowUpdateAddress:    .res 2     ; Address to upload to, or zero for none
-  ; Found in bank 7F:
-  ; ColumnUpdateBuffer:  .res 32*2  ; 32 tiles vertically
-  ; RowUpdateBuffer:     .res 64*2  ; 64 tiles horizontally
-
-  ; Second layer
-  ColumnUpdateAddress2: .res 2     ; Address to upload to, or zero for none
-  RowUpdateAddress2:    .res 2     ; Address to upload to, or zero for none
-
   ; List of tilemap changes to make in vblank (for ChangeBlock)
   ScatterUpdateLength: .res 2
   ScatterUpdateBuffer: .res SCATTER_BUFFER_LENGTH ; Alternates between 2 bytes for a VRAM address, 2 bytes for VRAM data
@@ -206,29 +167,9 @@ LevelZeroWhenLoad_Start:
   YellowKeys: .res 1
 LevelZeroWhenLoad_End:
 
-  ; For speeding up actor spawning
-  ; (keeps track of which actor index is the first one on a particular screen)
-  ; Multiply by 4 to use it.
-  FirstActorOnScreen:     .res 16
-
-
   CursorX:       .res 2
   CursorY:       .res 2
   AutoRepeatTimer: .res 1
-
-GameStateStart:
-  YourInventory:    .res InventoryLen*2 ; Type, Amount pairs
-  LevelInventory:   .res InventoryLen*2
-  InventoryEnd:
-GameStateEnd:
-SaveDataStart:
-  SavedGameState:   .res GameStateEnd-GameStateStart
-  MoneyAmount:      .res 3   ; 5 BCD digits
-SaveDataEnd:
-
-CheckpointState:    .res GameStateEnd-GameStateStart
-CheckpointX:        .res 1
-CheckpointY:        .res 1
 
 .segment "BSS7E"
 
@@ -237,6 +178,3 @@ CheckpointY:        .res 1
   LevelBuf_End:
 
   DecompressBuffer: .res 8192
-
-  ColumnUpdateBuffer:   .res 32*2  ; 32 tiles vertically
-  RowUpdateBuffer:      .res 64*2  ; 64 tiles horizontally

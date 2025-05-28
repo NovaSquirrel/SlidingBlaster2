@@ -6,37 +6,10 @@ run RunWalker
 draw DrawWalker
 size 16x16
 
-+LedgeWalker
-run RunLedgeWalker
-draw DrawLedgeWalker
-size 16x16
-
-+Shooter
-run RunShooter
-draw DrawShooter
-size 16x16
-
-+Jumper
-run RunJumper
-draw DrawJumper
-size 16x16
-
 +EnemyBullet
 run RunEnemyBullet
 draw DrawEnemyBullet
 size 8x8
-
-+MovingPlatformHorizontal
-essential
-run RunMovingPlatformHorizontal
-draw DrawMovingPlatform
-size 32x12
-
-+MovingPlatformVertical
-essential
-run RunMovingPlatformVertical
-draw DrawMovingPlatform
-size 32x12
 
 +PlayerProjectile
 run RunPlayerProjectile

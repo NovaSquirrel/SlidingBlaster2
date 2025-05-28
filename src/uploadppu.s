@@ -1,25 +1,19 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
-
 .include "snes.inc"
 .include "global.inc"
 .include "graphicsenum.s"
@@ -60,6 +54,85 @@ doonedma:
   stz DMAADDRBANK
   lda #$01
   sta COPYSTART
+  rtl
+.endproc
+
+;;
+; Converts high OAM (sizes and X sign bits) to the packed format
+; expected by the S-PPU, and clears the next 3 sprites' high OAM
+; bits for use with ppu_copy_oam_partial. Skips unused sprites.
+.proc ppu_pack_oamhi_partial
+  ldx OamPtr
+  ldy #3
+  seta8
+  stz 1 ; Because of the 16-bit "dec 0" later
+
+: cpx #512 ; Don't go past the end of OAM
+  bcs Exit
+  lda #1   ; High X bit set
+  sta OAMHI+1,x
+  lda #$f0 ; Y position if offscreen
+  sta OAM+1,x
+  inx
+  inx
+  inx
+  inx
+  dey
+  bne :-
+Exit:
+  stx OamPtr
+
+  ; -----------------------------------
+  ; Counter for how many times to do this
+  seta16
+  txa
+  lsr
+  lsr
+  lsr
+  lsr
+  sta 0
+
+  setxy16
+  ldx #0
+  txy
+packloop:
+  ; Pack four sprites' size+xhi bits from OAMHI
+  sep #$20
+  lda OAMHI+13,y
+  asl a
+  asl a
+  ora OAMHI+9,y
+  asl a
+  asl a
+  ora OAMHI+5,y
+  asl a
+  asl a
+  ora OAMHI+1,y
+  sta OAMHI,x
+  rep #$21  ; seta16 + clc for following addition
+
+  ; Move to the next set of 4 OAM entries
+  inx
+  tya
+  adc #16
+  tay
+
+  ; Done yet?
+  dec 0
+  bne packloop
+
+  ; -----------------------------------
+  ; Skip over the unused sprites and just
+  ; put in high X bits set to 1 instead of
+  ; trying to pack them
+  seta8
+  lda #%01010101
+: cpx #32
+  beq done
+  sta OAMHI,x
+  inx
+  bra :-
+done:
   rtl
 .endproc
 
@@ -116,6 +189,79 @@ lowoamloop:
   cpx #512  ; 128 sprites times 4 bytes per sprite
   bcc lowoamloop
   rtl
+.endproc
+
+; Calculates some of the math ahead of time to use in ppu_copy_oam_partial
+.proc prepare_ppu_copy_oam_partial
+OamPartialCopy512Sub        = 10
+OamPartialCopyDivide16      = 12
+OamPartialCopyDivide16Rsb32 = 14
+  seta16
+  lda #512
+  sub OamPtr
+  sta OamPartialCopy512Sub
+  lda OamPtr
+  lsr
+  lsr
+  lsr
+  lsr
+  sta OamPartialCopyDivide16
+  rsb #32
+  sta OamPartialCopyDivide16Rsb32
+  rtl
+.endproc
+
+;;
+; Copies packed OAM data to the S-PPU using DMA channel 0
+; and hides unused sprites using DMA channel 1
+.proc ppu_copy_oam_partial
+OamPartialCopy512Sub        = 10
+OamPartialCopyDivide16      = 12
+OamPartialCopyDivide16Rsb32 = 14
+  .a8
+  .i16
+  ldx OamPtr                     ; If OAM is actually completely full (somehow),
+  cpx #512                       ; then don't use this routine because it'll break
+  bcs ppu_copy_oam               ; (because a DMA length of "zero" is actually 64KB)
+
+  ldx #DMAMODE_OAMDATA           ; Actually copy in OAM
+  stx DMAMODE+$00
+  ldx #DMAMODE_OAMDATA|DMA_CONST ; Copy in a fixed source byte
+  stx DMAMODE+$10
+
+  ldx OamPtr                     ; Copy in the used part of the OAM buffer
+  stx DMALEN+$00
+  ldx OamPartialCopy512Sub
+  stx DMALEN+$10
+
+  ldx #OAM
+  stx DMAADDR+$00
+  ldx #.loword(oam_source)
+  stx DMAADDR+$10
+
+  lda #^oam_source
+  sta DMAADDRBANK+$00
+  sta DMAADDRBANK+$10
+
+  lda #3
+  sta COPYSTART
+  ; ---------------------------
+
+  ldx OamPartialCopyDivide16
+  stx DMALEN+$00
+  ldx OamPartialCopyDivide16Rsb32
+  stx DMALEN+$10
+  ldx #OAMHI
+  stx DMAADDR+$00
+  ldx #.loword(hi_source)
+  stx DMAADDR+$10
+  lda #3
+  sta COPYSTART
+  rtl
+oam_source:
+  .byt $f0
+hi_source:
+  .byt %01010101 ; upper bit on all X positions set
 .endproc
 
 ;;
@@ -375,7 +521,7 @@ Compressed:
   stz CGADSUB_Mirror
 
   setaxy16
-  jml RenderLevelScreens
+  jml RenderLevelScreen
 .endproc
 
 ; Write increasing values to VRAM

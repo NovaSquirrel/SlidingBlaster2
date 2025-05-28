@@ -1,27 +1,21 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
 
-
-; This file mostly contains
+; This file mostly contains generic routines for actors to build their behaviors out of
 
 .include "snes.inc"
 .include "global.inc"
@@ -31,12 +25,6 @@
 .smart
 
 .segment "C_ActorCommon"
-
-; Two comparisons to make to determine if something is a slope
-SlopeBCC = Block::SlopeLeft
-SlopeBCS = Block::SlopeRightBelow+1
-.export SlopeBCC, SlopeBCS
-SlopeY = 2
 
 .export RunAllActors
 .proc RunAllActors
@@ -106,21 +94,12 @@ CallDraw:
   jml [0]
 .endproc
 
-.export SharedEnemyCommon, SharedRemoveIfFar
+.export SharedEnemyCommon
 .a16
 .i16
 SharedEnemyCommon:
   jsl PlayerActorCollisionHurt
   jsl ActorGetShot
-SharedRemoveIfFar:
-  lda ActorPX,x
-  sub ScrollX
-  cmp #.loword(-24*256)
-  bcs @Good
-  cmp #(16+24)*256
-  bcc @Good
-  jsl ActorSafeRemoveX
-@Good:
   rtl
 
 .pushseg
@@ -256,49 +235,6 @@ Found:
   rtl
 .endproc
 
-; Just flip the LSB of ActorDirection
-.export ActorTurnAround
-.a16
-.proc ActorTurnAround
-  ; No harm in using it as a 16-bit value here, it's just written back
-  lda ActorDirection,x
-  eor #1
-  sta ActorDirection,x
-  rtl
-.endproc
-
-.export ActorLookAtPlayer
-.a16
-.proc ActorLookAtPlayer
-  lda ActorPX,x
-  cmp PlayerPX
-
-  ; No harm in using it as a 16-bit value here, it's just written back
-  lda ActorDirection,x
-  and #$fffe
-  adc #0
-  sta ActorDirection,x
-
-  rtl
-.endproc
-
-; Takes a speed in the accumulator, and negates it if Actor facing left
-.a16
-.export ActorNegIfLeft
-.proc ActorNegIfLeft
-  pha
-  lda ActorDirection,x ; Ignore high byte
-  lsr
-  bcs Left
-Right:
-  pla ; No change
-  rtl
-Left:
-  pla ; Negate
-  neg
-  rtl
-.endproc
-
 .export ActorApplyVelocity, ActorApplyXVelocity, ActorApplyYVelocity
 .proc ActorApplyVelocity
   lda ActorPX,x
@@ -315,33 +251,6 @@ Left:
   lda ActorPX,x
   add ActorVX,x
   sta ActorPX,x
-  rtl
-.endproc
-
-
-; Walks forward, and turns around if walking farther
-; would cause the Actor to fall off the edge of a platform
-; input: A (walk speed), X (Actor slot)
-.export ActorWalkOnPlatform
-.proc ActorWalkOnPlatform
-  jsl ActorWalk
-  jsl ActorAutoBump
-.endproc
-; fallthrough
-.a16
-.export ActorStayOnPlatform
-.proc ActorStayOnPlatform
-  ; Check forward a bit
-  ldy ActorPY,x
-  lda #8*16
-  jsl ActorNegIfLeft
-  add ActorPX,x
-  jsl ActorTryDownInteraction
-
-  cmp #$4000 ; Test for solid on top
-  bcs :+
-    jsl ActorTurnAround
-  :
   rtl
 .endproc
 
@@ -394,288 +303,6 @@ Left:
   rtl
 .endproc
 
-.a16
-.export ActorWalk
-.proc ActorWalk
-WalkDistance = 0
-  jsl ActorNegIfLeft
-  sta WalkDistance
-
-  ; Look up if the wall is solid
-  lda ActorPY,x
-  sub #1<<7
-  tay
-  lda ActorPX,x
-  add WalkDistance
-  jsl ActorTrySideInteraction
-  bpl NotSolid
-  Solid:
-     sec
-     rtl
-  NotSolid:
-
-  ; Apply the walk
-  lda ActorPX,x
-  add WalkDistance
-  sta ActorPX,x
-  ; Fall into ActorDownhillFix
-.endproc
-
-.a16
-.proc ActorDownhillFix
-  ; Going downhill requires special help
-  seta8
-  lda ActorOnGround,x ; Need to have been on ground last frame
-  beq NoSlopeDown
-  lda ActorVY+1,x
-  bmi NoSlopeDown
-  seta16
-    jsr ActorGetSlopeYPos
-    bcs :+
-      ; Try again one block below
-      inc LevelBlockPtr
-      inc LevelBlockPtr
-      lda [LevelBlockPtr]
-      jsr ActorGetSlopeYPosBelow
-      bcc NoSlopeDown
-    :
-
-    lda SlopeY
-    sta ActorPY,x
-    stz ActorVY,x
-  NoSlopeDown:
-  seta16_clc
-
-  ; Reset carry to indicate not bumping into something
-  ; because ActorWalk falls into this
-  ;clc
-  rtl
-.endproc
-
-.a16
-.export ActorGravity
-.proc ActorGravity
-  lda ActorVY,x
-  bmi OK
-  cmp #$60
-  bcs Skip
-OK:
-  add #4
-  sta ActorVY,x
-Skip:
-  jmp ActorApplyYVelocity
-.endproc
-
-; Calls ActorGravity and then fixes things if they land on a solid block
-; input: X (Actor pointer)
-; output: carry (standing on platform)
-.a16
-.export ActorFall, ActorFallOnlyGroundCheck
-.proc ActorFall
-  jsl ActorGravity
-::ActorFallOnlyGroundCheck:
-  ; Remove if too far off the bottom
-  lda ActorPY,x
-  bmi :+
-    cmp #32*256
-    bcc :+
-    cmp #$ffff - 2*256
-    bcs :+
-      jml ActorSafeRemoveX
-  :
-
-  jmp ActorCheckStandingOnSolid
-.endproc
-
-.a16
-.export ActorBumpAgainstCeiling
-.proc ActorBumpAgainstCeiling
-  lda ActorHeight,x
-  ; Reverse subtraction
-  eor #$ffff
-  sec
-  adc ActorPY,x
-  tay
-  lda ActorPX,x
-  jsl ActorTryUpInteraction
-  asl
-  bcc :+
-    lda #$ffff
-    sta 0 ; Did hit the ceiling - communicate this a different way?
-    lda #$20
-    sta ActorVY,x
-    clc
-  :
-  rtl
-.endproc
-
-; Checks if an Actor is on top of a solid block
-; input: X (Actor slot)
-; output: Zero flag (not zero if on top of a solid block)
-; locals: 0, 1
-; Currently 0 is set to $ffff if it bumps against the ceiling, but that's sort of flimsy
-.a16
-.export ActorCheckStandingOnSolid
-.proc ActorCheckStandingOnSolid
-  seta8
-  stz ActorOnGround,x
-  seta16
-
-  ; If going upwards, bounce against ceilings
-  lda ActorVY,x
-  bmi ActorBumpAgainstCeiling
-
-  ; Check for slope interaction
-  jsr ActorGetSlopeYPos
-  bcc :+
-    lda SlopeY
-    cmp ActorPY,x
-    bcs :+
-    sta ActorPY,x
-    stz ActorVY,x
-
-    seta8_sec
-    inc ActorOnGround,x
-    seta16
-    ; Don't do the normal ground check
-    ;sec - SEC above
-    rtl
-  :
-
-  ; Maybe add checks for the sides
-  ldy ActorPY,x
-  lda ActorPX,x
-  jsl ActorTryDownInteraction
-  cmp #$4000
-  lda #0
-  rol
-  seta8
-  sta ActorOnGround,x
-  ; React to touching the ground
-  beq NotSnapToGround
-    stz ActorPY,x ; Clear the low byte
-    seta16
-    stz ActorVY,x
-    sec
-    rtl
-  NotSnapToGround:
-  seta16_clc
-  ;clc
-  rtl
-.endproc
-
-; Get the Y position of the slope under the player's hotspot (SlopeY)
-; and also return if they're on a slope at all (carry)
-.a16
-.proc ActorGetSlopeYPos
-  phb
-  ldy ActorPY,x
-  lda ActorPX,x
-  jsl GetLevelPtrXY
-  jsr ActorIsSlope
-  bcc NotSlope
-    assert_same_banks ActorGetSlopeYPos, SlopeHeightTable
-    phk
-    plb
-    lda ActorPY,x
-    and #$ff00
-    ora SlopeHeightTable,y
-    sta SlopeY
-
-    lda SlopeHeightTable,y
-    bne :+
-      ; Move the level pointer up and reread
-      dec LevelBlockPtr
-      dec LevelBlockPtr
-      lda [LevelBlockPtr]
-      jsr ActorIsSlope
-      bcc :+
-        lda ActorPY,x
-        sbc #$0100 ; assert((PS & 1) == 1) Carry already set
-        ora SlopeHeightTable,y
-        sta SlopeY
-    :
-  sec
-NotSlope:
-  plb
-  rts
-.endproc
-
-.a16
-; Similar but for checking one block below
-.proc ActorGetSlopeYPosBelow
-  phb
-  jsr ActorIsSlope
-  bcc NotSlope
-    assert_same_banks ActorGetSlopeYPosBelow, SlopeHeightTable
-    phk
-    plb
-    lda ActorPY,x
-    add #$0100
-    and #$ff00
-    ora SlopeHeightTable,y
-    sta SlopeY
-
-    lda SlopeHeightTable,y
-    bne :+
-      ; Move the level pointer up and reread
-      dec LevelBlockPtr
-      dec LevelBlockPtr
-      lda [LevelBlockPtr]
-      jsr ActorIsSlope
-      bcc :+
-        lda ActorPY,x
-        ora SlopeHeightTable,y
-        sta SlopeY
-    :
-  sec
-NotSlope:
-  plb
-  rts
-.endproc
-
-.a16
-.proc ActorIsSlope
-  cmp #SlopeBCC
-  bcc :+
-  cmp #SlopeBCS
-  bcs :+
-  sub #SlopeBCC
-  ; Now we have the block ID times 2
-
-  ; Multiply by 16 to get the index into the slope table
-  asl
-  asl
-  asl
-  asl
-  sta 0
-
-  ; Select the column
-  lda ActorPX,x
-  and #$f0 ; Get the pixels within a block
-  lsr
-  lsr
-  lsr
-  ora 0
-  tay
-
-  sec ; Success
-  rts
-: clc ; Failure
-  rts
-.endproc
-
-; Automatically turn around when bumping
-; into something during ActorWalk
-.a16
-.export ActorAutoBump
-.proc ActorAutoBump
-  bcc NoBump
-  jmp ActorTurnAround
-NoBump:
-  rtl
-.endproc
-
 ; Calculate the position of the 16x16 Actor on-screen
 ; and whether it's visible in the first place
 .a16
@@ -685,7 +312,6 @@ NoBump:
   lsr
   lsr
   lsr
-  sub FGScrollXPixels
   sub #8
   cmp #.loword(-1*16)
   bcs :+
@@ -699,7 +325,6 @@ NoBump:
   lsr
   lsr
   adc #0 ; Why do I need to round Y and not X?
-  sub FGScrollYPixels
   sub #17
   cmp #.loword(-1*16)
   bcs :+
@@ -722,7 +347,6 @@ Invalid:
   lsr
   lsr
   lsr
-  sub FGScrollXPixels
   sub #4
   cmp #.loword(-1*16)
   bcs :+
@@ -736,7 +360,6 @@ Invalid:
   lsr
   lsr
   adc #0 ; Why do I need to round Y and not X?
-  sub FGScrollYPixels
   sub #9
   cmp #.loword(-1*16)
   bcs :+
@@ -768,7 +391,6 @@ Invalid:
   lsr
   lsr
   add 0
-  sub FGScrollXPixels
   sub #4
   cmp #.loword(-1*16)
   bcs :+
@@ -790,7 +412,6 @@ Invalid:
   lsr
   adc #0 ; Why do I need to round Y and not X?
   add 2
-  sub FGScrollYPixels
   sub #9
   cmp #.loword(-1*16)
   bcs :+
@@ -929,7 +550,6 @@ CustomOffset:
 .a16
 .proc ParticleDrawPosition
   lda ParticlePX,x
-  sub ScrollX
   cmp #.loword(-1*256)
   bcs :+
   cmp #16*256
@@ -942,7 +562,6 @@ CustomOffset:
   sta 0
 
   lda ParticlePY,x
-  sub ScrollY
   cmp #15*256
   bcs Invalid
   lsr

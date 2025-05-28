@@ -17,6 +17,11 @@ PlayerHeight = 28*16
 PlayerCollideWidth = 8*16
 
 ; ------------------------------------
+; Palettes
+COMMON_PALETTE = 0
+PLAYER_PALETTE = 1
+
+; ------------------------------------
 
 ; Include handy macros
 .include "macros.s"
@@ -28,15 +33,13 @@ PlayerCollideWidth = 8*16
 ; uploadppu.s
 .global ppu_copy_oam, ppu_pack_oamhi, ppu_clear_oam
 .global ppu_copy, ppu_clear_nt, ppu_vsync, WaitVblank
+.global prepare_ppu_copy_oam_partial, ppu_copy_oam_partial, ppu_pack_oamhi_partial
 .global DoGraphicUpload, DoPaletteUpload
 .global WritePPUIncreasing, WritePPURepeated, SkipPPUWords
 
 ; Common
 .global GetLevelColumnPtr, GetLevelPtrXY, GetBlockFlag
-.global RenderLevelScreens
-.global RenderLevelColumnUpload, RenderLevelColumnLeft, RenderLevelColumnRight
-.global RenderLevelRowUpload, RenderLevelRowTop, RenderLevelRowBottom
-.global PlayerFrameUpload
+.global RenderLevelScreen
 .global FadeIn, FadeOut, WaitKeysReady
 .global MemClear, MemClear7F
 

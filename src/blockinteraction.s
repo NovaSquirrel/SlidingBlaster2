@@ -1,24 +1,19 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
 
 ; This file covers code to handle interacting with level blocks
 ; in different ways. These interactions are listed in blocks.txt
@@ -33,10 +28,8 @@
 
 .segment "C_BlockInteraction"
 
-.export BlockHeart, BlockSmallHeart
-.export BlockMoney, BlockPrize, BlockBricks
-.export BlockSpikes, BlockSpring, BlockLadder, BlockLadderTop
-.export BlockFallthrough, BlockDoor
+.export BlockBricks
+.export BlockSpikes
 
 ; Export the interaction runners
 .export BlockRunInteractionAbove, BlockRunInteractionBelow
@@ -201,18 +194,7 @@ Skip:
   rtl
 .endproc
 
-
-
-
 ; -------------------------------------
-
-.proc BlockAutoItem
-  rts
-.endproc
-
-.proc BlockInventoryItem
-  rts
-.endproc
 
 .proc BlockHeart
   seta8
@@ -251,48 +233,6 @@ Skip:
   rts
 .endproc
 
-.export GetOneCoin
-.proc GetOneCoin
-  ; Don't add coins if you have the maximum amount already
-  seta8
-  ; Play the sound effect
-  lda #SFX::collect_coin
-  jsl PlaySoundEffect
-
-  lda MoneyAmount+2
-  cmp #$09
-  bcc OK
-  lda #$99
-  cmp MoneyAmount+1
-  bne OK
-  cmp MoneyAmount+0
-  beq Skip
-OK:
-  sed
-  lda MoneyAmount
-  add #1
-  sta MoneyAmount
-  lda MoneyAmount+1
-  adc #0
-  sta MoneyAmount+1
-  lda MoneyAmount+2
-  adc #0
-  sta MoneyAmount+2
-  cld
-Skip:
-  seta16
-  rtl
-.endproc
-
-.proc BlockMoney
-  jsl GetOneCoin
-
-  lda #Block::Empty
-  jsl ChangeBlock
-
-  rts
-.endproc
-
 .a16
 .proc PoofAtBlock
   ; Need a free slot first
@@ -316,33 +256,6 @@ Skip:
   rts
 .endproc
 
-
-.a16
-.proc BlockPrize
-  jsl GetOneCoin
-
-  lda #Block::PrizeAnimation
-  jsl ChangeBlock
-
-  lda #5
-  sta BlockTemp
-  lda #Block::UsedPrize
-  jsl DelayChangeBlock
-
-  jsl FindFreeParticleY
-  bcc :+
-    lda #Particle::PrizeParticle
-    sta ParticleType,y
-    lda #30
-    sta ParticleTimer,y
-    lda #.loword(-$30)
-    sta ParticleVY,y
-
-    jmp ParticleAtBlock
-  :
-  rts
-.endproc
-
 .proc BlockBricks
   seta8
   ; Play the sound effect
@@ -362,138 +275,6 @@ Skip:
   rts
 .endproc
 
-.proc BlockSpring
-  ; Start sending the player upward
-  lda #.loword(-$70)
-  sta PlayerVY
-
-  ; Move the player up a bit so that they're not stuck in the ground
-  lda PlayerPY
-  sub #4*16
-  sta PlayerPY
-
-  lda PlayerPY
-  sub #4*256
-  cmp PlayerCameraTargetY
-  bcs :+
-    sta PlayerCameraTargetY
-  :
-
-  seta8
-  ; Play the sound effect
-  lda #SFX::spring
-  jsl PlaySoundEffect
-
-  lda #30
-  sta PlayerJumpCancelLock
-  sta PlayerJumping
-  seta16
-
-  ; Animate the spring changing
-  ; but only if the spring isn't scheduled to disappear before it'd pop back up
-  jsr FindDelayedEditForBlock
-  bcc :+
-    lda DelayedBlockEditTime,x
-    cmp #6
-    bcc DontSpringUp
-  :
-
-  ; No problems? Go ahead and schedule it
-  lda #5
-  sta BlockTemp
-  lda #Block::Spring
-  jsl DelayChangeBlock
-
-  lda #2
-  sta BlockTemp
-  lda #Block::SpringPressedHalf
-  jsl DelayChangeBlock
-
-DontSpringUp:
-
-  lda #Block::SpringPressed
-  jsl ChangeBlock
-
-  stz BlockFlag
-  rts
-.endproc
-
-.a16
-.proc BlockLadder
-  seta8
-  lda PlayerOnLadder
-  beq :+
-    inc PlayerOnLadder
-  :
-  lda PlayerRidingSomething
-  bne Exit
-  seta16
-
-  lda keydown
-  and #KEY_UP|KEY_DOWN
-  beq :+
-GetOnLadder:
-    ; Snap onto the ladder
-    lda PlayerPX
-    and #$ff00
-    ora #$0080
-    sta PlayerPX
-    stz PlayerVX
-
-    seta8
-    lda #2
-    sta PlayerOnLadder
-Exit:
-    seta16
-  :
-  rts
-.endproc
-
-.a16
-.proc BlockLadderTop
-  ; Make sure you're standing on it
-  jsl GetBlockXCoord
-  xba
-  seta8
-  cmp PlayerPX+1
-  seta16
-  beq :+
-    rts
-  :
-
-  seta8
-  lda PlayerDownTimer
-  cmp #4
-  bcc :+
-    lda #2
-    sta ForceControllerTime
-    seta16
-    lda #KEY_DOWN
-    sta ForceControllerBits
-    stz BlockFlag
-    jmp BlockLadder::GetOnLadder
-  :
-  seta16
-  rts
-.endproc
-
-.a16
-.proc BlockFallthrough
-  seta8
-  lda PlayerDownTimer
-  cmp #16
-  bcc :+
-    lda #2
-    sta ForceControllerTime
-    seta16
-    lda #KEY_DOWN
-    sta ForceControllerBits
-    stz BlockFlag
-  :
-  seta16
-  rts
-.endproc
-
 .a16
 .proc ParticleAtBlock
   jsl GetBlockXCoord
@@ -503,235 +284,6 @@ Exit:
   jsl GetBlockYCoord
   ora #$80
   sta ParticlePY,y
-  rts
-.endproc
-
-.a16
-.export BlockRedKey
-.proc BlockRedKey
-  seta8
-  inc RedKeys
-  lda #SFX::collect_item
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-  rts
-.endproc
-
-.a16
-.export BlockRedLock
-.proc BlockRedLock
-  lda RedKeys
-  beq NoKeys
-  seta8
-  dec RedKeys
-  lda #SFX::menu_select
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-NoKeys:
-  rts
-.endproc
-
-.a16
-.export BlockGreenKey
-.proc BlockGreenKey
-  seta8
-  inc GreenKeys
-  lda #SFX::collect_item
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-  rts
-.endproc
-
-.a16
-.export BlockGreenLock
-.proc BlockGreenLock
-  lda GreenKeys
-  beq NoKeys
-  seta8
-  dec GreenKeys
-  lda #SFX::menu_select
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-NoKeys:
-  rts
-.endproc
-
-.a16
-.export BlockBlueKey
-.proc BlockBlueKey
-  seta8
-  inc BlueKeys
-  lda #SFX::collect_item
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-  rts
-.endproc
-
-.a16
-.export BlockBlueLock
-.proc BlockBlueLock
-  lda BlueKeys
-  beq NoKeys
-  seta8
-  dec BlueKeys
-  lda #SFX::menu_select
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-NoKeys:
-  rts
-.endproc
-
-.a16
-.export BlockYellowKey
-.proc BlockYellowKey
-  seta8
-  inc YellowKeys
-  lda #SFX::collect_item
-  jsl PlaySoundEffect
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-  rts
-.endproc
-
-.a16
-.export BlockYellowLock
-.proc BlockYellowLock
-  lda YellowKeys
-  beq NoKeys
-  seta8
-  dec YellowKeys
-  seta16
-  lda #Block::Empty
-  jsl ChangeBlock
-NoKeys:
-  rts
-.endproc
-
-
-
-.a16
-.i16
-.proc BlockDoor
-.if 0
-  lda keynew
-  and #KEY_UP
-  bne Up
-  rts
-Up:
-  dec LevelBlockPtr
-  dec LevelBlockPtr
-  lda [LevelBlockPtr]
-  cmp #Block::DoorExit
-  beq DoorExit
-DoorNormal:
-  jsl GetBlockX
-  bra TeleportAtColumn
-DoorExit:
-  .import ExitToOverworld
-  jsr DoorFade
-  jsl WaitVblank
-  rts
-;  jml ExitToOverworld
-.endif
-  rts
-.endproc
-
-.a16
-.i16
-.proc TeleportAtColumn
-  rts
-.if 0
-  asl
-  tax
-  seta8
-  lda f:ColumnWords+0,x
-  cmp #$20
-  beq LevelDoor
-    sta PlayerPY+1
-    lda f:ColumnWords+1,x
-    sta PlayerPX+1
-    lda #$80        ; Horizontally centered
-    sta PlayerPX
-    stz PlayerPY
-    stz LevelFadeIn ; Start fading in after the transition
-
-    jsr DoorFade
-
-    lda #RERENDER_INIT_ENTITIES_TELEPORT
-    sta RerenderInitEntities
-
-    seta16
-
-    jsl RenderLevelScreens
-    rts
-LevelDoor:
-  lda f:ColumnWords+1,x
-  pha
-  jsr DoorFade
-  pla
-
-  ; Find the level header pointer
-  setaxy16
-  and #255 ; Multiply by 3
-  sta 0
-  asl
-  adc 0 ; assert((PS & 1) == 0) Carry will be clear
-  tax
-  seta8
-;  .import DoorLevelTeleportList
-;  ; Use DoorLevelTeleportList to find the header
-;  lda DoorLevelTeleportList+0,x
-;  sta LevelHeaderPointer+0
-;  lda DoorLevelTeleportList+1,x
-;  sta LevelHeaderPointer+1
-;  lda DoorLevelTeleportList+2,x
-;  sta LevelHeaderPointer+2
-  setaxy16
-
-  .import StartLevelFromDoor
-  jml StartLevelFromDoor
-.endif
-.endproc
-
-.proc DoorFade
-  seta8
-  ; Fade the screen out and then disable rendering once it's black
-  lda #$0e
-  sta 15
-FadeOut:
-  inc framecount
-  lda PlayerDrawX
-  sta 0
-  lda PlayerDrawY
-  sub #16
-  sta 1
-  lda 15
-  jsl WaitVblank
-  seta8
-  lda HDMASTART_Mirror
-  sta HDMASTART
-
-  lda 15
-  sta PPUBRIGHT
-  dec
-  sta 15
-  bne FadeOut
-
-  lda #FORCEBLANK
-  sta PPUBRIGHT
   rts
 .endproc
 

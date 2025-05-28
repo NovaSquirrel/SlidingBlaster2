@@ -1,25 +1,19 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
-
 .include "snes.inc"
 .include "global.inc"
 .include "audio_enum.inc"
@@ -164,7 +158,7 @@ forever:
   lda NeedLevelRerender
   lsr
   bcc :+
-    jsl RenderLevelScreens
+    jsl RenderLevelScreen
     seta8
     stz NeedLevelRerender
     seta16
@@ -192,31 +186,6 @@ DelayedBlockLoop:
   sta OamPtr
 
   jsl RunPlayer
-  jsl AdjustCamera
-
-  ; Calculate the scroll positions ahead of time so their integer values are ready
-  lda ScrollX
-  lsr
-  lsr
-  lsr
-  lsr
-  sta FGScrollXPixels
-  lsr
-  sta BGScrollXPixels
-  ; ---
-  lda ScrollY
-  lsr
-  lsr
-  lsr
-  lsr
-  adc #0
-  dec a ; SNES displays lines 1-224 so shift it up to 0-223
-  sta FGScrollYPixels
-  lsr
-  add #128
-  sta BGScrollYPixels
-
-  .a16
 
   jsl DrawPlayerStatus
 
@@ -224,26 +193,6 @@ DelayedBlockLoop:
   jsl DrawPlayer
   .a16
   .i16
-
-  setaxy16
-
-  ; Going past the bottom of the screen results in dying
-  lda PlayerPY
-  cmp #(512+32)*16
-  bcs Die
-    ; So does running out of health
-    lda PlayerHealth
-    and #255
-    bne NotDie
-  Die:
-    ; Wait and turn off the screen
-    jsl WaitVblank
-    seta8
-    lda #FORCEBLANK
-    sta PPUBRIGHT
-    seta16
-    jml ResumeLevelFromCheckpoint
-  NotDie:
 
   ; Include code for handling the vblank
   ; and updating PPU memory.
@@ -257,6 +206,8 @@ DelayedBlockLoop:
   beq :+
     inc LevelFadeIn
   :
+  lda HDMASTART_Mirror
+  sta HDMASTART
 
   ; Wait for control reading to finish
   lda #$01
@@ -264,32 +215,6 @@ padwait:
   bit VBLSTATUS
   bne padwait
 
-  ; Update scroll registers
-  ; ---Primary foreground---
-  seta8
-  lda FGScrollXPixels+0
-  sta BGSCROLLX
-  lda FGScrollXPixels+1
-  sta BGSCROLLX
-  lda FGScrollYPixels+0
-  sta BGSCROLLY
-  lda FGScrollYPixels+1
-  sta BGSCROLLY
-
-  lda BGScrollXPixels+0
-  sta BGSCROLLX+2
-  lda BGScrollXPixels+1
-  sta BGSCROLLX+2
-  lda BGScrollYPixels+0
-  sta BGSCROLLY+2
-  lda BGScrollYPixels+1
-  sta BGSCROLLY+2
-
-  seta8
-  lda HDMASTART_Mirror
-  sta HDMASTART
-
-  ; Now that we're done with vblank tasks, clean up after vblank
   seta16
   stz ScatterUpdateLength
 

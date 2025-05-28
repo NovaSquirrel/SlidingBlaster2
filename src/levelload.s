@@ -1,24 +1,19 @@
-; SNES platformer example
+; Sliding Blaster 2
+; Copyright (C) 2025 NovaSquirrel
 ;
-; Copyright (c) 2022 NovaSquirrel
+; This program is free software: you can redistribute it and/or
+; modify it under the terms of the GNU General Public License as
+; published by the Free Software Foundation; either version 3 of the
+; License, or (at your option) any later version.
 ;
-; Permission is hereby granted, free of charge, to any person obtaining a copy
-; of this software and associated documentation files (the "Software"), to deal
-; in the Software without restriction, including without limitation the rights
-; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-; copies of the Software, and to permit persons to whom the Software is
-; furnished to do so, subject to the following conditions:
+; This program is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
 ;
-; The above copyright notice and this permission notice shall be included in all
-; copies or substantial portions of the Software.
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
-; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-; SOFTWARE.
 
 .include "snes.inc"
 .include "global.inc"
@@ -39,30 +34,7 @@
   txs ; Reset the stack pointer so no cleanup is needed
   jsr StartLevelCommon
   jsl UploadLevelGraphics
-  jsl MakeCheckpoint
   jml GameMainLoop
-.endproc
-
-; Called both when starting a level normally and when making a checkpoint through other means
-.export MakeCheckpoint
-.proc MakeCheckpoint
-  php
-
-  seta8
-  ; Y instead of X so an actor can call it easily
-  ldy #GameStateSize-1
-: lda GameStateStart,y
-  sta CheckpointState,y
-  dey
-  bpl :-
-
-  lda PlayerPX+1
-  sta CheckpointX
-  lda PlayerPY+1
-  sta CheckpointY
-
-  plp
-  rtl
 .endproc
 
 ; Stuff that's done whether a level is started from scratch or resumed
@@ -70,34 +42,7 @@
   jsl DecompressLevel
   phk ; Change the data bank back to something with the first 8KB of RAM visible
   plb
-  inc RerenderInitEntities
   rts
-.endproc
-
-.a16
-.i16
-.export ResumeLevelFromCheckpoint
-.proc ResumeLevelFromCheckpoint
-  jsr StartLevelCommon
-
-  ; Restore saved state
-  seta8
-  ldy #GameStateSize-1
-: lda CheckpointState,y
-  sta GameStateStart,y
-  dey
-  bpl :-
-
-  lda CheckpointX
-  sta PlayerPX+1
-  lda CheckpointY
-  sta PlayerPY+1
-
-  ; Wait until here to do this, because it renders the screen and we're overriding the player start position
-  jsl UploadLevelGraphics
-
-  ; Don't need to restore register size because GameMainLoop does setaxy16
-  jml GameMainLoop
 .endproc
 
 ; .----------------------------------------------------------------------------
@@ -117,16 +62,6 @@
   ldy #LevelBuf_End - LevelBuf
   jsl MemClear7F
 
-  lda #32*2 ; 32 blocks tall
-  sta LevelColumnSize
-  dea
-  sta LevelColumnMask
-
-  lda #(15*16)*256 ; 15 screens of 16 tiles, each containing 256 subpixels
-  sta ScrollXLimit
-  lda #(16+2)*256  ; 1 screen of 16 tiles, each containing 256 subpixels. Add 2 tiles because (224 - 256) = 32 pixels.
-  sta ScrollYLimit
-
   seta8
   ; ------------ Initialize variables ------------
   ; Clear a bunch of stuff in one go that's in contiguous space in memory
@@ -137,14 +72,6 @@
   ; Health
   lda #3
   sta PlayerHealth
-  sta VerticalScrollEnabled
-
-  ; Clear FirstActorOnScreen list too
-  ldy #15
-  lda #255
-: sta FirstActorOnScreen,y
-  dey
-  bpl :-
 
   ; Set the high byte of the level pointer
   ; so later accesses work correctly.
@@ -216,8 +143,6 @@
   sta LevelDataPointer+2
 
   ; -----------------------------------
-  jsr IndexActorList
-
   ; Decompress the data
 
   setaxy16
@@ -262,43 +187,4 @@ DecompressLoop:
 Exit:
 
   rtl
-.endproc
-
-.a8
-.i16
-.proc IndexActorList
-  setaxy8
-  ldy #0
-@Loop:
-  lda [LevelActorPointer],y
-  cmp #255 ; 255 marks the end of the list
-  beq @Exit
-  ; Get screen number
-  lsr
-  lsr
-  lsr
-  lsr
-  tax
-  ; Write actor number to the list, if the
-  ; screen doesn't already have an actor set for it
-  lda FirstActorOnScreen,x
-  cmp #255
-  bne :+
-  seta16
-  tya
-  ; Divide by 4 to fit a bigger range into 255 bytes
-  lsr
-  lsr
-  seta8
-  sta FirstActorOnScreen,x
-:
-  ; Actors entries are four bytes long
-  iny
-  iny
-  iny
-  iny
-  bra @Loop
-@Exit:
-  setxy16
-  rts
 .endproc

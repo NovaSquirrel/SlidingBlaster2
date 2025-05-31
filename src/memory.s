@@ -66,30 +66,33 @@
   LevelDataPointer:  .res 3 ; pointer to the actual level data
   LevelActorPointer: .res 3 ; actor pointer for this level
 
+  ActorIterationLimit:    .res 2 ; Ending point for RunAllActors
+  ParticleIterationLimit: .res 2 ; Ending point for RunAllParticles
+
 .segment "BSS" ; First 8KB of RAM
-  ActorSize = 11*2+5
+  ActorType         = 0 ; Actor type ID
+  ActorPX           = ActorType+2 ; 12.12
+  ActorPY           = ActorPX+3   ; 12.12
+  ActorVX           = ActorPY+3   ; 12.12
+  ActorVY           = ActorVX+3   ; 12.12
+  ActorAngle        = ActorVY+3   ; 0-510, even numbers only
+  ActorTimer        = ActorAngle+2
+  ActorHealth       = ActorTimer+2
+  ActorVarA         = ActorHealth+2
+  ActorVarB         = ActorVarA+2
+  ActorVarC         = ActorVarB+2
+  ActorVarD         = ActorVarC+2
+  ActorWidth        = ActorVarD+2
+  ActorHeight       = ActorWidth+2
+  ActorFlips        = ActorHeight+2 ; OAM attribute bits to toggle; store 0 or OAM_XFLIP or OAM_YFLIP
+
+  ActorSize         = ActorFlips+2
+  ActorProjectileType = ActorHealth ; Reuse this since player projectiles don't get damaged
+
   ActorStart: .res ActorLen*ActorSize
   ActorEnd:
-  ; Must be contiguous
   ProjectileStart: .res ProjectileLen*ActorSize
   ProjectileEnd:
-
-  ActorType         = 0 ; Actor type ID
-  ActorPX           = 2 ; Positions
-  ActorPY           = 4 ;
-  ActorVX           = 6 ; Speeds
-  ActorVY           = 8 ;
-  ActorTimer        = 10 ; General purpose
-  ActorVarA         = 12 ; 
-  ActorVarB         = 14 ; 
-  ActorVarC         = 16 ; 
-  ActorIndexInLevel = 18 ; Actor's index in level list, prevents Actor from being respawned until it's despawned
-  ActorDirection    = 20 ; 0 (Right) or 1 (Left). Other bits may be used later. Good place for parameters from level?
-  ActorOnGround     = 21 ; Nonzero means on ground
-  ActorOnScreen     = 22 ; Nonzero means on screen - only maintained for 16x16 actors
-  ActorWidth        = 23 ; Width in subpixels
-  ActorHeight       = 25 ; Height in subpixels
-  ActorProjectileType = ActorIndexInLevel ; Safe to reuse, since this is only checked on normal actor slots
 
   ; For less important, light entities
   ParticleSize = 7*2
@@ -103,6 +106,8 @@
   ParticleVY         = 8
   ParticleTimer      = 10
   ParticleVariable   = 12
+
+  LastNonEmpty:          .res 2 ; For actor iteration
 
   NeedLevelReload:       .res 1 ; If set, decode LevelNumber again
   NeedLevelRerender:     .res 1 ; If set, rerender the level again

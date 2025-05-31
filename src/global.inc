@@ -1,17 +1,12 @@
-; Probably use LevelColumnSize instead of these
-LEVEL_WIDTH = 256
-LEVEL_HEIGHT = 32
-MAX_LEVEL_HEIGHT = 256
 LEVEL_TILE_SIZE = 2
 
-ForegroundBG  = $5800
-BackgroundBG  = $5000
-ExtraBG       = $4c00 ; Used for layer 3
-ExtraBGWide   = $4800 ; Used for a bigger layer 3 background
+ForegroundBG  = $5c00
+BackgroundBG  = $5800
+ExtraBG       = $5400 ; Used for layer 3
 SpriteCHRBase = $6000
 BG1CHRBase    = $0000
 BG2CHRBase    = $2000
-BG3CHRBase    = $2000
+BG3CHRBase    = $4000
 
 PlayerHeight = 28*16
 PlayerCollideWidth = 8*16

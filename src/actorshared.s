@@ -31,7 +31,31 @@
   setaxy16
 
   ldx #ActorStart
+  stx LastNonEmpty
 ActorLoop:
+  ; Don't do anything if it's an empty slot
+  lda ActorType,x
+  beq @SkipEntity
+    stx LastNonEmpty
+    jsr ProcessOneActor
+@SkipEntity:
+  ; Next actor
+  txa
+  add #ActorSize
+  tax
+  cpx ActorIterationLimit
+  bcc ActorLoop
+
+  ; Decrease the limit if needed
+  ; Data bank should point somewhere in banks $80-$BF so LastNonEmpty
+  lda LastNonEmpty
+  adc #ActorSize-1 ; Carry set here
+  sta ActorIterationLimit
+
+  ;------------------------------------
+
+  ldx #ProjectileStart
+ProjectileLoop:
   ; Don't do anything if it's an empty slot
   lda ActorType,x
   beq @SkipEntity
@@ -41,8 +65,8 @@ ActorLoop:
   txa
   add #ActorSize
   tax
-  cpx #ProjectileEnd ; Do the projectiles too
-  bcc ActorLoop
+  cpx #ProjectileEnd
+  bcc ProjectileLoop
 
   ;------------------------------------
 
@@ -139,9 +163,13 @@ SkipEntity:
   txa
   add #ParticleSize
   tax
-  cpx #ParticleEnd
+  cpx ParticleIterationLimit
   bcc Loop
 
+  ; Decrease the limit if needed
+  lda LastNonEmpty
+  adc #ParticleSize-1 ; Carry set here
+  sta ParticleIterationLimit
   rtl
 .endproc
 .popseg
@@ -166,12 +194,13 @@ NotFound:
   rtl
 Found:
   ply
-
-  ; Initialize certain variables on newly claimed actors to avoid causing problems
-  lda #$ffff
-  sta ActorIndexInLevel,x
+  ; Increase the portion of the actor list that should be iterated
+  adc #ActorSize ; Should still be carry clear here since it was clear in loop
+  cmp ActorIterationLimit
+  bcc :+
+    sta ActorIterationLimit
+  :
   seta16
-  sta ActorOnGround,x ; Also zeros ActorOnScreen
   sec
   rtl
 .endproc
@@ -195,13 +224,13 @@ NotFound:
   rtl
 Found:
   plx
-
-  ; Initialize certain variables on newly claimed actors to avoid causing problems
-  lda #$ffff
-  sta ActorIndexInLevel,y
+  ; Increase the portion of the actor list that should be iterated
+  adc #ActorSize ; Should still be carry clear here since it was clear in loop
+  cmp ActorIterationLimit
+  bcc :+
+    sta ActorIterationLimit
+  :
   seta16
-  tdc ; A = 0
-  sta ActorOnGround,y ; Also zeros ActorOnScreen
   sec
   rtl
 .endproc
@@ -227,6 +256,12 @@ NotFound:
 Found:
   plx
 
+  ; Increase the portion of the particle list that should be iterated
+  adc #ParticleSize ; Should still be carry clear here since it was clear in loop
+  cmp ParticleIterationLimit
+  bcc :+
+    sta ParticleIterationLimit
+  :
   lda #0
   sta ParticleTimer,y
   sta ParticleVX,y
@@ -429,27 +464,17 @@ Invalid:
 .a16
 .export DispActor16x16
 .proc DispActor16x16
-  sta 4
+  sta 4 ; Tile number, including the attributes
 
   ldy OamPtr
 
   jsr ActorDrawPosition16x16
   bcs :+
-    seta8
-    stz ActorOnScreen,x
-    seta16
     rtl
   :  
 
-  ; If facing left, set the X flip bit
-  lda ActorDirection,x ; Ignore high byte
-  lsr
-  bcc :+
-    lda #OAM_XFLIP
-    tsb 4
-  :
-
   lda 4
+  eor ActorFlips,x
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
   seta8
@@ -462,7 +487,6 @@ Invalid:
   lda 1
   cmp #%00000001
   lda #1 ; 16x16 sprites
-  sta ActorOnScreen,x
   rol
   sta OAMHI+1,y
   seta16_clc
@@ -480,13 +504,6 @@ Invalid:
   sta 4
 
   stz SpriteXYOffset
-  ; If facing left, set the X flip bit
-  lda ActorDirection,x ; Ignore high byte
-  lsr
-  bcc :+
-    lda #OAM_XFLIP
-    tsb 4
-  :
 
   jsr ActorDrawPosition8x8
   bcs :+
@@ -496,6 +513,7 @@ CustomOffset:
   ldy OamPtr
 
   lda 4
+  eor ActorFlips,x
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
   seta8
@@ -523,21 +541,6 @@ CustomOffset:
 .a16
 .proc DispActor8x8WithOffset
   sta 4
-
-  ; If facing left, set the X flip bit
-  lda ActorDirection,x ; Ignore high byte
-  lsr
-  bcc :+
-    lda 4
-    eor #OAM_XFLIP
-    sta 4
-    seta8 ; Flip X offset
-    lda SpriteXYOffset
-    eor #255
-    ina
-    sta SpriteXYOffset
-    seta16
-  :
 
   jsr ActorDrawPositionWithOffset8x8
   bcs :+
@@ -814,11 +817,13 @@ Exit:
   stz ActorVarA,x
   stz ActorVarB,x
   stz ActorVarC,x
+  stz ActorVarD,x
   stz ActorVX,x
+  stz ActorVX+1,x ; 24-bit variable
   stz ActorVY,x
+  stz ActorVY+1,x ; 24-bit variable
   stz ActorTimer,x
-  stz ActorDirection,x
-  stz ActorOnGround,x
+  stz ActorFlips,x
   rtl
 .endproc
 

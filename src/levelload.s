@@ -78,7 +78,7 @@
   lda #^LevelBuf
   sta LevelBlockPtr+2
 
-  ; Initialize variables related to optimizations
+  ; TODO
   .import level_demo
   lda #<level_demo
   sta LevelHeaderPointer+0
@@ -185,6 +185,12 @@ DecompressLoop:
   tax
   bra DecompressLoop
 Exit:
+
+  ; Initialize variables for optimizations
+  lda #ActorEnd
+  sta ActorIterationLimit
+  lda #ParticleEnd
+  sta ParticleIterationLimit
 
   rtl
 .endproc

@@ -62,14 +62,12 @@ ProjectileLen = 8
 .globalzp ActorVarA
 .globalzp ActorVarB
 .globalzp ActorVarC
-.globalzp ActorDirection
-.globalzp ActorIndexInLevel
+.globalzp ActorVarD
 .globalzp ActorTimer
-.globalzp ActorOnGround
-.globalzp ActorOnScreen
 .globalzp ActorProjectileType
 .globalzp ActorWidth
 .globalzp ActorHeight
+.globalzp ActorFlips
 .global ProjectileStart
 .global ProjectileEnd
 
@@ -88,6 +86,10 @@ ParticleLen = 20
 .globalzp ParticleVY
 .globalzp ParticleTimer
 .globalzp ParticleVariable
+
+.globalzp ActorIterationLimit
+.globalzp ParticleIterationLimit
+.global LastNonEmpty
 
 .global NeedLevelReload
 .global NeedLevelRerender

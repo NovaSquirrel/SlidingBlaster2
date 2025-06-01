@@ -8,9 +8,6 @@ BG1CHRBase    = $0000
 BG2CHRBase    = $2000
 BG3CHRBase    = $4000
 
-PlayerHeight = 28*16
-PlayerCollideWidth = 8*16
-
 ; ------------------------------------
 ; Palettes
 COMMON_PALETTE = 0
@@ -38,7 +35,7 @@ PLAYER_PALETTE = 1
 .global FadeIn, FadeOut, WaitKeysReady
 .global MemClear, MemClear7F
 
-.global RunPlayer, DrawPlayer, DrawPlayerStatus, AdjustCamera
+.global RunPlayer, DrawPlayer, AdjustCamera
 .global BlockFlags
 
 .global ChangeBlock, DelayChangeBlock

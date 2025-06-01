@@ -37,7 +37,7 @@ imgdir2 := tilesets2
 bgdir := backgrounds
 
 ifndef SNESEMU
-SNESEMU := ./mesen-s
+SNESEMU := $(MESEN)
 endif
 
 lz4_flags    := -f -9

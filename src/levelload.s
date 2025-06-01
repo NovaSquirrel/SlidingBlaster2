@@ -55,23 +55,26 @@
 .proc DecompressLevel
   ; Clear out some buffers before the level loads stuff into them
 
-  ; Don't clear any entities, that'll be done when rendering
+  ; Init player, actor, particle memory
+  ldx #Player1
+  ldy #ParticleEnd-Player1
+  jsl MemClear
 
   ; Clear level buffer
   ldx #.loword(LevelBuf)
   ldy #LevelBuf_End - LevelBuf
   jsl MemClear7F
 
-  seta8
   ; ------------ Initialize variables ------------
   ; Clear a bunch of stuff in one go that's in contiguous space in memory
   ldx #LevelZeroWhenLoad_Start
   ldy #LevelZeroWhenLoad_End-LevelZeroWhenLoad_Start
   jsl MemClear
 
+  seta8
   ; Health
   lda #3
-  sta PlayerHealth
+  sta Player1+PlayerHealth
 
   ; Set the high byte of the level pointer
   ; so later accesses work correctly.
@@ -97,14 +100,16 @@
   ldy #1
   ; Starting X position
   lda [LevelHeaderPointer],y
-  sta PlayerPX+1
-  stz PlayerPX+0
+  sta Player1+PlayerPX+1
+  stz Player1+PlayerPX+0
+  stz Player1+PlayerPXSub
 
   iny ; Y = 2
   ; Starting Y position
   lda [LevelHeaderPointer],y
-  sta PlayerPY+1
-  stz PlayerPY+0
+  sta Player1+PlayerPY+1
+  stz Player1+PlayerPY+0
+  stz Player1+PlayerPYSub
 
   ; Unused, a good place to put flags
   iny ; Y = 3
@@ -186,11 +191,18 @@ DecompressLoop:
   bra DecompressLoop
 Exit:
 
+  phk
+  plb
+
   ; Initialize variables for optimizations
   lda #ActorEnd
   sta ActorIterationLimit
   lda #ParticleEnd
   sta ParticleIterationLimit
+
+  ; Initialize gameplay variables
+  lda #2
+  sta Player1+PlayerSpeed
 
   rtl
 .endproc

@@ -16,196 +16,155 @@
 ;
 .include "snes.inc"
 .include "global.inc"
+.include "actorframedefine.inc"
 .smart
 
-CommonTileBase = $40
-
 .segment "C_Player"
+
+.import DispActor16x16, DispActorMeta, MathCosTable, MathSinTable
+
+SHOOT_CURSOR_TILE_ID = 0
+NORMAL_CURSOR_TILE_ID = 2
+PLAYER1_TILE_ID = 4
+PLAYER2_TILE_ID = 6
+CANNON_TILE_ID = 8
+FAN_TILE_ID    = 12
+
 
 .a16
 .i16
 .export DrawPlayer
 .proc DrawPlayer
-  ldx #0 ; OAM index
+BaseX = 0
+BaseY = 2
+FanTile = 4
+FanXOffset = 6
+CannonX = 8
+CannonY = 10
+CannonTile = 12
+  phk
+  plb
 
-  jsr XToPixels
-
-  ; Keep the player within bounds horizontally
-  ; and fix it if they're out of bounds.
-  lda 0
-  cmp #$10
-  bcs :+
-    stz PlayerVX
-    seta8
-    lda #$00
-    sta PlayerPX+0
-    inc PlayerPX+1
-    seta16
-    jsr XToPixels
-  :
-  lda 0
-  cmp #$f0+1
-  bcc :+
-    stz PlayerVX
-    ; Push back exactly as many pixels as needed to stop being over the limit
-    sub #$f0+1
-    asl
-    asl
-    asl
-    asl
-    rsb PlayerPX
-    sta PlayerPX
-    seta16
-    jsr XToPixels
-  :
-
-  ; Y coordinate to pixels
-  lda PlayerPY
+  lda PlayerPX,x
   lsr
   lsr
   lsr
   lsr
-  cmp #224+32 ; Put the player offscreen if needed
-  bcc :+
-    lda #255
-  :
-HaveY:
-  sta 2
+  sub #8
+  sta BaseX
 
-
-  lda #$0200  ; Use 16x16 sprites
-  sta OAMHI+(4*0),x
-  sta OAMHI+(4*1),x
-  sta OAMHI+(4*2),x
-  sta OAMHI+(4*3),x
-  sta OAMHI+(4*4),x
-
-  seta8
-  lda 0
-  sta PlayerDrawX
-  sta OAM_XPOS+(4*1),x
-  sta OAM_XPOS+(4*3),x
-  sub #16
-  sta OAM_XPOS+(4*0),x
-  sta OAM_XPOS+(4*2),x
-
-  lda 2
-  sta PlayerDrawY
-  sub #17
-  sta OAM_YPOS+(4*2),x
-  sta OAM_YPOS+(4*3),x
-  sub #16
-  sta OAM_YPOS+(4*0),x
-  sta OAM_YPOS+(4*1),x
-
-  ; Icon
-  lda #15
-  sta OAM_XPOS+(4*4),x
-  lda #8
-  sta OAM_YPOS+(4*4),x
-
-  ; Tile numbers
-  lda #0
-  sta OAM_TILE+(4*0),x
-  lda #2
-  sta OAM_TILE+(4*1),x
-  lda #4
-  sta OAM_TILE+(4*2),x
-  lda #6
-  sta OAM_TILE+(4*3),x
-  lda #8 ; Icon
-  sta OAM_TILE+(4*4),x
-
-  lda #>(OAM_PRIORITY_2|OAM_COLOR_0) ; priority
-  sta OAM_ATTR+(4*0),x
-  sta OAM_ATTR+(4*1),x
-  sta OAM_ATTR+(4*2),x
-  sta OAM_ATTR+(4*3),x
-
-  ; Icon has top priority
-  lda #>(OAM_PRIORITY_3|OAM_COLOR_0)
-  sta OAM_ATTR+(4*4),x
-
-  ; Invincibility effect
-  lda PlayerInvincible
-  lsr
-  bcc :+
-    lda #225 ; Move offscreen every other frame
-    sta OAM_YPOS+(4*0),x
-    sta OAM_YPOS+(4*1),x
-    sta OAM_YPOS+(4*2),x
-    sta OAM_YPOS+(4*3),x
-  :
-
-  seta8
-
-Exit:
-  setaxy16
-  rtl
-
-XToPixels:
-  ; X coordinate to pixels
-  lda PlayerPX
+  lda PlayerPY,x
   lsr
   lsr
   lsr
   lsr
-  sta 0
-  rts
-.endproc
+  sub #8
+  sta BaseY
 
-.export DrawPlayerStatus
-.proc DrawPlayerStatus
-  ldx OamPtr
-  ; -----------------------------------
-  ; Draw the health meter
-  HealthCount = 0
-  HealthX = 1
-  seta8
-  lda #15
-  sta HealthX
-
-  lda PlayerHealth
+  lda framecount
   lsr
+  lsr
+  and #%11
+  asl
+  tay
+  lda FanAnimationTile,y
+  sta FanTile
+  lda FanAnimationXOffset,y
+  sta FanXOffset
+
+  phx
+  lda PlayerShootAngle,x
+  tax
+  lda f:MathCosTable,x
   php
-  sta HealthCount
-HealthLoop:
-  lda HealthCount
-  beq HealthLoopEnd
-  lda #$6e
-  jsr MakeHealthIcon
-  dec HealthCount
-  bne HealthLoop
-HealthLoopEnd:
-  plp 
-  bcc :+
-    lda #$6f
-    jsr MakeHealthIcon
+  lsr
+  lsr
+  xba
+  and #%00111111
+  plp
+  bpl :+
+    ora #%11000000
+  :
+  sta CannonX
+  lda f:MathSinTable,x
+  php
+  lsr
+  lsr
+  xba
+  and #%00111111
+  plp
+  bpl :+
+    ora #%11000000
+  :
+  sta CannonY
+  plx
+
+  lda PlayerShootAngle,x ; .......n nnnnnnn0
+  add #32
+  asl                    ; ......nn nnnnnn00
+  asl                    ; .....nnn nnnnn000
+  xba
+  pha
+  and #3
+  add #CANNON_TILE_ID
+  sta CannonTile
+  pla
+  and #4
+  beq :+
+    lda #OAM_XFLIP | OAM_YFLIP
+    tsb CannonTile
   :
 
-  ; -----------------------------------
-  stx OamPtr
-  setaxy16
+  ldy OamPtr
+  lda #PLAYER1_TILE_ID | OAM_PRIORITY_2
+  sta OAM_TILE+(4*2),y ; 16-bit, combined with attribute
+  lda FanTile
+  sta OAM_TILE+(4*0),y
+  sta OAM_TILE+(4*1),y
+  lda CannonTile
+  sta OAM_TILE+(4*3),y ; Cannon
+
+  seta8
+  lda BaseX
+  sta OAM_XPOS+(4*2),y
+  add FanXOffset
+  sta OAM_XPOS+(4*0),y
+  add #8+3
+  sta OAM_XPOS+(4*1),y
+  lda BaseX
+  add #4
+  add CannonX
+  sta OAM_XPOS+(4*3),y
+
+  lda BaseY
+  sta OAM_YPOS+(4*2),y
+  sta OAM_YPOS+(4*0),y
+  sta OAM_YPOS+(4*1),y
+  sta OAM_YPOS+(4*3),y ; Cannon
+  lda BaseY
+  add #4
+  add CannonY
+  sta OAM_YPOS+(4*3),y
+
+  lda #2 ; 16x16
+  sta OAMHI+1+(4*2),y
+  tdc ; 8x8
+  sta OAMHI+1+(4*0),y
+  sta OAMHI+1+(4*1),y
+  sta OAMHI+1+(4*3),y ; Cannon
+  seta16_clc
+
+  tya
+  adc #4*4 ; Carry cleared above
+  sta OamPtr
+
   rtl
 
-.a8
-MakeHealthIcon:
-  sta OAM_TILE,x
-  lda HealthX
-  sta OAM_XPOS,x
-  add #8
-  sta HealthX
-  lda #>(OAM_PRIORITY_3|OAM_COLOR_0)
-  sta OAM_ATTR,x
-  lda #16+8
-  sta OAM_YPOS,x
-  stz OAMHI+0,x
-  stz OAMHI+1,x
-
-  ; Next sprite
-  inx
-  inx
-  inx
-  inx
-  rts
+FanAnimationTile:
+  .word FAN_TILE_ID + OAM_PRIORITY_2
+  .word FAN_TILE_ID + OAM_PRIORITY_2 + 1
+  .word FAN_TILE_ID + OAM_PRIORITY_2 + 2
+  .word FAN_TILE_ID + OAM_PRIORITY_2 + 1 + OAM_XFLIP
+FanAnimationXOffset:
+  .word 0, 0, 0, .loword(-3)
 .endproc

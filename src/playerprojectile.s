@@ -108,7 +108,7 @@ Loop:
 
 NotProjectile:
   tya
-  add #ActorSize
+  add #ActorStructSize
   tay
   cpy #ProjectileEnd
   bne Loop

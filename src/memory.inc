@@ -9,25 +9,10 @@
 .globalzp BlockRealY
 .globalzp BlockTemp
 
-.globalzp PlayerPX
-.globalzp PlayerPXLeft
-.globalzp PlayerPXRight
-.globalzp PlayerPY
-.globalzp PlayerPYTop
-.globalzp PlayerVX
-.globalzp PlayerVY
-.globalzp PlayerHealth
-.global PlayerInvincible
 .globalzp OamPtr
 .globalzp TempVal
 .globalzp TouchTemp
 .globalzp LevelDataPointer, LevelHeaderPointer
-.globalzp ForceControllerBits
-.globalzp ForceControllerTime
-
-.global PlayerDrawX
-.global PlayerDrawY
-.global PlayerOAMIndex
 
 SCATTER_BUFFER_LENGTH = 128
 .global ScatterUpdateLength
@@ -49,43 +34,104 @@ OAM_YPOS = OAM+1
 OAM_TILE = OAM+2
 OAM_ATTR = OAM+3
 
-ActorLen = 32
-ProjectileLen = 8
+; ---------------------------------------------------------
+
+ActorCount = 32
+ProjectileCount = 8
+ParticleCount = 20
+PlayerCount = 2
+
+.struct
+	ParticleType     .word
+	ParticlePXSub    .res 1   ; 12.12
+	ParticlePX       .res 2
+	ParticlePXUnused .res 1
+	ParticlePYSub    .res 1   ; 12.12
+	ParticlePY       .res 2
+	ParticlePYUnused .res 1
+	ParticleVXSub    .res 1   ; 12.12
+	ParticleVX       .res 2
+	ParticleVXUnused .res 1
+	ParticleVYSub    .res 1   ; 12.12
+	ParticleVY       .res 2
+	ParticleVYUnused .res 1
+	ParticleTimer    .word
+	ParticleVariable .word
+; The "Unused" position bytes allow doing 32-bit adds instead of having to drop down to an 8-bit accumulator to do 24-bit adds
+.endstruct
+ParticleStructSize = ParticleVariable+.sizeof(ParticleVariable)
+
+ActorType = ParticleType
+ActorPXSub = ParticlePXSub
+ActorPX    = ParticlePX
+ActorPYSub = ParticlePYSub
+ActorPY    = ParticlePY
+ActorVXSub = ParticleVXSub
+ActorVX    = ParticleVX
+ActorVYSub = ParticleVYSub
+ActorVY    = ParticleVY
+ActorTimer = ParticleTimer
+ActorVarA = ParticleVariable
+.struct
+	.res ParticleStructSize
+	ActorVarB   .word
+	ActorVarC   .word 
+	ActorVarD   .word
+	ActorAngle  .word ; 256 angles; always multiplied by 2 here
+	ActorWidth  .word
+	ActorHeight .word
+	ActorHealth .word
+	ActorSpeed  .word
+	ActorFlips  .word ; OAM attribute bits to toggle; store 0 or OAM_XFLIP or OAM_YFLIP
+.endstruct
+ActorStructSize = ActorFlips+.sizeof(ActorFlips)
+ActorProjectileType = ActorHealth ; Reuse this since player projectiles don't get damaged
+
+PlayerType       = ActorType
+PlayerPXSub      = ActorPXSub
+PlayerPX         = ActorPX
+PlayerPYSub      = ActorPYSub
+PlayerPY         = ActorPY
+PlayerVXSub      = ActorVXSub
+PlayerVX         = ActorVX
+PlayerVYSub      = ActorVYSub
+PlayerVY         = ActorVY
+PlayerBoostTimer = ActorTimer
+PlayerAmmo       = ActorVarA
+PlayerCursorPX   = ActorVarB
+PlayerCursorPY   = ActorVarC
+PlayerShootAngle = ActorVarD
+PlayerMoveAngle  = ActorAngle
+PlayerWidth      = ActorWidth
+PlayerHeight     = ActorHeight
+PlayerHealth     = ActorHealth
+PlayerSpeed      = ActorSpeed
+PlayerFlips      = ActorFlips
+.struct
+	.res ActorStructSize
+	PlayerUsingAMouse  .byte
+	PlayerControlStyle .byte ; 0 for simple, 1 for cursor
+	PlayerCursorVX     .word
+	PlayerCursorVY     .word
+.endstruct
+PlayerStructSize = PlayerCursorVY+.sizeof(PlayerCursorVY)
+
+; Storage
 .global ActorStart
-.globalzp ActorSize
 .global ActorEnd
-.globalzp ActorType
-.globalzp ActorPX
-.globalzp ActorPY
-.globalzp ActorVX
-.globalzp ActorVY
-.globalzp ActorVarA
-.globalzp ActorVarB
-.globalzp ActorVarC
-.globalzp ActorVarD
-.globalzp ActorTimer
-.globalzp ActorProjectileType
-.globalzp ActorWidth
-.globalzp ActorHeight
-.globalzp ActorFlips
 .global ProjectileStart
 .global ProjectileEnd
+.global ParticleStart
+.global ParticleEnd
+.global Player1, Player2
+
+; ---------------------------------------------------------
 
 .enum PlayerProjectileType
   Bullet
 .endenum
 
-ParticleLen = 20
-.global ParticleStart
-.globalzp ParticleSize
-.global ParticleEnd
-.globalzp ParticleType
-.globalzp ParticlePX
-.globalzp ParticlePY
-.globalzp ParticleVX
-.globalzp ParticleVY
-.globalzp ParticleTimer
-.globalzp ParticleVariable
+; ---------------------------------------------------------
 
 .globalzp ActorIterationLimit
 .globalzp ParticleIterationLimit
@@ -113,7 +159,10 @@ ParticleLen = 20
 .global AutoRepeatTimer
 
 .global SpriteXYOffset
+.global SpriteTileBase
 
 .global DecompressBuffer
 
 .global RedKeys, GreenKeys, BlueKeys, YellowKeys
+
+.global PlayerInvincible

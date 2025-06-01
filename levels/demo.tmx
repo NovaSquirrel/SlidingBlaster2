@@ -42,7 +42,7 @@
   <object id="25" gid="46" x="160" y="160" width="16" height="16"/>
  </objectgroup>
  <objectgroup id="3" name="Meta">
-  <object id="20" name="PlayerStart" x="87" y="219">
+  <object id="20" name="PlayerStart" x="57" y="76">
    <point/>
   </object>
  </objectgroup>

@@ -32,18 +32,6 @@
 .a16
 .i16
 .proc RenderLevelScreen
-  ; Init actors
-  ldx #ActorStart
-  ldy #ProjectileEnd-ActorStart
-  jsl MemClear
-
-  ; Init particles by clearing them out
-  ldx #ParticleStart
-  ldy #ParticleEnd-ParticleStart
-  jsl MemClear
-
-  ; TODO: Spawn actors here
-
   ; TODO: Actually render the level
   rtl
 .endproc

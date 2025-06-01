@@ -27,6 +27,8 @@
 .import BlockRunInteractionInsideBody
 .import InitActorX
 
+.import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16
+
 .segment "ZEROPAGE"
 
 .segment "C_Player"
@@ -36,8 +38,133 @@
 .proc RunPlayer
   phk
   plb
-  ; TODO
+
+  ; -------------------------------------------------------
+  ; Change shoot direction when you press a direction
+
+TargetAngle = 0
+AbsDifference = 2
+  ; Calculate target angle
+  lsr PlayerShootAngle,x
+  seta8
+  tdc ; Clear accumulator, for the TAY
+  lda keydown+1
+  and #>(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)
+  beq NoTarget
+    tay
+    seta16 ; Switch to 16-bit to make the math easier
+    lda TargetAngleTable,y
+    and #255
+    cmp #255
+    beq NoTarget
+    sta TargetAngle
+
+    ; Implement the retargeting here
+    lda PlayerShootAngle,x
+    sub TargetAngle
+    abs
+    sta AbsDifference
+
+    ; If the difference is small enough, just snap
+    cmp #4
+    bcs :+
+      lda TargetAngle
+      sta PlayerShootAngle,x
+      bra NoTarget
+    :
+
+    cmp #128
+    bcs :+
+      lda PlayerShootAngle,x
+      cmp TargetAngle
+      bcc :+
+        lda PlayerShootAngle,x
+        sub #4
+        sta PlayerShootAngle,x
+        bra NoTarget
+    :
+
+    lda AbsDifference
+    cmp #128
+    bne :+
+      lda PlayerShootAngle,x
+      eor #128
+      sta PlayerShootAngle,x
+      bra NoTarget
+    :
+    bcc :+
+      lda PlayerShootAngle,x
+      cmp TargetAngle
+      bcs :+
+        lda PlayerShootAngle,x
+        sub #4
+        sta PlayerShootAngle,x
+        bra NoTarget
+    :
+
+    lda PlayerShootAngle,x
+    add #3
+    sta PlayerShootAngle,x
+NoTarget:
+  seta16
+
+  lda PlayerShootAngle,x
+  and #255
+  asl
+  sta PlayerShootAngle,x
+
+  ; -------------------------------------------------------
+  ; Boosting
+
+  lda keydown
+  and #KEY_B
+  beq :+
+    lda PlayerBoostTimer,x
+    bne :+
+      lda PlayerShootAngle,x
+      sta PlayerMoveAngle,x
+      lda #5
+      sta PlayerSpeed,x
+      asl
+      sta PlayerBoostTimer,x
+  :
+
+  lda PlayerBoostTimer,x
+  beq :+
+    dec PlayerBoostTimer,x
+    bne :+
+      dec PlayerSpeed,x
+      lda PlayerSpeed,x
+      cmp #2
+      beq :+
+        lda #10
+        sta PlayerBoostTimer,x
+  :
+
+  ; -------------------------------------------------------
+
+  jsl CalculateActorVelocityFromAngleAndSpeed
+  jsl DivideActorVelocityBy16
+  jsl ActorApplyVelocity
   rtl
+
+TargetAngleTable:
+  .byt 255 ; udlr
+  .byt 0   ; udlR East
+  .byt 128 ; udLr West
+  .byt 255 ; udLR
+  .byt 64  ; uDlr South
+  .byt 32  ; uDlR Southeast
+  .byt 96  ; uDLr Southwest
+  .byt 255 ; uDLR
+  .byt 192 ; Udlr North
+  .byt 224 ; UdlR Northeast
+  .byt 160 ; UdLr Northwest
+  .byt 255 ; UdLR
+  .byt 255 ; UDlr
+  .byt 255 ; UDlR
+  .byt 255 ; UDLr
+  .byt 255 ; UDLR
 .endproc
 
 ; Damages the player
@@ -72,7 +199,7 @@ Loop:
   tax
   ldy ActorType,x ; Don't care what gets loaded into Y, but it will set flags
   beq Found
-  adc #ActorSize
+  adc #ActorStructSize
   cmp #ProjectileEnd ; Carry should always be clear at this point
   bcc Loop
 NotFound:

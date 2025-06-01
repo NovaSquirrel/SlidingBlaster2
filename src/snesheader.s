@@ -51,7 +51,7 @@ REGION_PAL = $02
 .segment "SNESHEADER"
 romname:
   ; The ROM name must be no longer than 21 characters.
-  .byte "PLATFORMER EXAMPLE"
+  .byte "SLIDING BLASTER 2"
   .assert * - romname <= 21, error, "ROM name too long"
   .if * - romname < 21
     .res romname + 21 - *, $20  ; space padding

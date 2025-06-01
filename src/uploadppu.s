@@ -451,11 +451,11 @@ Compressed:
   lda #GraphicsUpload::Red
   jsl DoGraphicUpload
 
-  lda #GraphicsUpload::Enemy
+  lda #GraphicsUpload::CommonSprites
   jsl DoGraphicUpload
 
-  lda #GraphicsUpload::Enemy2
-  jsl DoGraphicUpload
+;  lda #GraphicsUpload::Enemy2
+;  jsl DoGraphicUpload
 
   ; Upload palettes
   lda #Palette::GreenBrown
@@ -470,7 +470,7 @@ Compressed:
   ldy #2
   jsl DoPaletteUpload
 
-  lda #Palette::Player
+  lda #Palette::PlayerToy
   ldy #8
   jsl DoPaletteUpload
 

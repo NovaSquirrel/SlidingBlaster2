@@ -135,7 +135,6 @@ forever:
   jsl Tad_Process
 
   seta16
-
   inc framecount
 
   ; Update keys
@@ -182,15 +181,18 @@ DelayedBlockLoop:
   dex
   bpl DelayedBlockLoop
 
-  lda #5*4 ; Reserve 5 sprites at the start
-  sta OamPtr
+  stz OamPtr
 
+  ldx #Player1
   jsl RunPlayer
 
-  jsl DrawPlayerStatus
-
   jsl RunAllActors
+
+  ldx #Player1
   jsl DrawPlayer
+
+  lda OamPtr
+  setaxy16
   .a16
   .i16
 
@@ -216,6 +218,7 @@ padwait:
   bne padwait
 
   seta16
+  ; Clean up now that the code that needs to happen in vblank is over
   stz ScatterUpdateLength
 
   ; Go on with game logic again

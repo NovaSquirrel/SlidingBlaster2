@@ -25,7 +25,7 @@
 .import BlockRunInteractionAbove, BlockRunInteractionBelow
 .import BlockRunInteractionSide,  BlockRunInteractionInsideHead
 .import BlockRunInteractionInsideBody
-.import InitActorX
+.import InitActorX, InitActorY
 
 .import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16
 
@@ -128,20 +128,67 @@ NoTarget:
       asl
       sta PlayerBoostTimer,x
   :
-
   lda PlayerBoostTimer,x
-  beq :+
+  bne :+
+    lda PlayerSpeed,x
+    cmp #3
+    bcs @SlowDown
+    bra NoBoostSlowDown
+  :
     dec PlayerBoostTimer,x
-    bne :+
+    bne NoBoostSlowDown
+@SlowDown:
       dec PlayerSpeed,x
       lda PlayerSpeed,x
       cmp #2
-      beq :+
+      beq NoBoostSlowDown
         lda #10
         sta PlayerBoostTimer,x
-  :
+  NoBoostSlowDown:
 
   ; -------------------------------------------------------
+  ; Shooting
+
+  lda keynew
+  and #KEY_Y
+  beq NoShoot
+    jsl FindFreeProjectileY
+    bcc NoShoot
+      lda #Actor::PlayerProjectile*2
+      sta ActorType,y
+      jsl InitActorY
+
+      lda #0
+      sta ActorProjectileType,y
+      sta ActorTimer,y
+
+      lda PlayerShootAngle,x
+      sta ActorAngle,y
+      lda #1
+      sta ActorSpeed,y
+
+      phx
+      phy
+      tyx
+      jsl CalculateActorVelocityFromAngleAndSpeed
+      .import DivideActorVelocityBy2
+      jsl DivideActorVelocityBy2
+      ply
+      plx
+      lda ActorVX,y
+      asl
+      asl
+      asl
+      add PlayerPX,x
+      sta ActorPX,y
+
+      lda ActorVY,y
+      asl
+      asl
+      asl
+      add PlayerPY,x
+      sta ActorPY,y
+  NoShoot:
 
   jsl CalculateActorVelocityFromAngleAndSpeed
   jsl DivideActorVelocityBy16
@@ -190,24 +237,24 @@ TargetAngleTable:
 
 .a16
 .i16
-.export FindFreeProjectileX
-.proc FindFreeProjectileX
-  phy
+.export FindFreeProjectileY
+.proc FindFreeProjectileY
+  phx
   lda #ProjectileStart
   clc
 Loop:
-  tax
-  ldy ActorType,x ; Don't care what gets loaded into Y, but it will set flags
+  tay
+  ldx ActorType,y ; Don't care what gets loaded into Y, but it will set flags
   beq Found
   adc #ActorStructSize
   cmp #ProjectileEnd ; Carry should always be clear at this point
   bcc Loop
 NotFound:
-  ply
+  plx
   clc
   rtl
 Found:
-  ply
+  plx
   sec
   rtl
 .endproc

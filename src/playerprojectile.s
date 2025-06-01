@@ -43,6 +43,7 @@ CommonTileBase = $40
 
 RunPlayerProjectileTable:
   .word .loword(RunProjectileBullet-1)
+
 .a16
 .i16
 .export DrawPlayerProjectile
@@ -57,10 +58,11 @@ RunPlayerProjectileTable:
 
 DrawPlayerProjectileTable:
   .word .loword(DrawProjectileBullet-1)
+
 .a16
 .i16
 .proc RunProjectileBullet
-  jsl ActorApplyXVelocity
+  jsl ActorApplyVelocity
 
   inc ActorTimer,x
   lda ActorTimer,x
@@ -74,7 +76,7 @@ DrawPlayerProjectileTable:
 .a16
 .i16
 .proc DrawProjectileBullet
-  lda #$56|OAM_PRIORITY_2|OAM_COLOR_1
+  lda #$1F|OAM_PRIORITY_2|OAM_COLOR_0
   jml DispActor8x8
 .endproc
 

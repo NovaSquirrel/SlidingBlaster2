@@ -1208,34 +1208,60 @@ Loop:
 
 .a16
 .i16
+.export DivideActorVelocityBy2
+.proc DivideActorVelocityBy2
+  lda PlayerVX,x
+  php
+  lsr PlayerVX+1,x
+  ror PlayerVXSub,x
+  plp
+  bpl :+
+    lda PlayerVX,x
+    ora #$8000
+    sta PlayerVX,x
+  :
+
+  lda PlayerVY,x
+  php
+  lsr PlayerVY+1,x
+  ror PlayerVYSub,x
+  plp
+  bpl :+
+    lda PlayerVY,x
+    ora #$8000
+    sta PlayerVY,x
+  :
+  rtl
+.endproc
+
+.a16
+.i16
 .export DivideActorVelocityBy8
 .proc DivideActorVelocityBy8
   lda PlayerVX,x
-  asl
   php
   .repeat 3
   lsr PlayerVX+1,x
   ror PlayerVXSub,x
   .endrep
   plp
-  bcc :+
-    lda PlayerVX+1,x
+  bpl :+
+    lda PlayerVX,x
     ora #$e000
-    sta PlayerVX+1
+    sta PlayerVX,x
   :
 
   lda PlayerVY,x
-  asl
   php
   .repeat 3
   lsr PlayerVY+1,x
   ror PlayerVYSub,x
   .endrep
   plp
-  bcc :+
-    lda PlayerVY+1,x
+  bpl :+
+    lda PlayerVY,x
     ora #$e000
-    sta PlayerVY+1
+    sta PlayerVY,x
   :
   rtl
 .endproc
@@ -1245,31 +1271,29 @@ Loop:
 .export DivideActorVelocityBy16
 .proc DivideActorVelocityBy16
   lda PlayerVX,x
-  asl
   php
   .repeat 4
   lsr PlayerVX+1,x
   ror PlayerVXSub,x
   .endrep
   plp
-  bcc :+
-    lda PlayerVX+1,x
+  bpl :+
+    lda PlayerVX,x
     ora #$f000
-    sta PlayerVX+1
+    sta PlayerVX,x
   :
 
   lda PlayerVY,x
-  asl
   php
   .repeat 4
   lsr PlayerVY+1,x
   ror PlayerVYSub,x
   .endrep
   plp
-  bcc :+
-    lda PlayerVY+1,x
+  bpl :+
+    lda PlayerVY,x
     ora #$f000
-    sta PlayerVY+1
+    sta PlayerVY,x
   :
   rtl
 .endproc

@@ -21,6 +21,25 @@
 VblankHandler:
   seta16
 
+  lda Player1+PlayerFrameID
+  cmp Player1+PlayerFrameIDLast
+  sta Player1+PlayerFrameIDLast
+  beq :+
+    xba ; * 256
+    asl ; * 512
+    adc #.loword(Player1CharacterGraphics)
+    sta Player1+PlayerFrameAddress
+  :
+  lda Player2+PlayerFrameID
+  cmp Player2+PlayerFrameIDLast
+  sta Player2+PlayerFrameIDLast
+  beq :+
+    xba ; * 256
+    asl ; * 512
+    adc #.loword(Player2CharacterGraphics)
+    sta Player2+PlayerFrameAddress
+  :
+
   ; Pack the second OAM table together into the format the PPU expects
   jsl ppu_pack_oamhi_partial
   .a8 ; (does seta8)
@@ -34,9 +53,102 @@ VblankHandler:
   jsl ppu_copy_oam_partial
   setaxy16
 
+  lda Player1+PlayerStatusRedraw
+  beq :+
+    lda #ForegroundBG + 25*32 + 4
+    sta PPUADDR
+    .repeat 5, I
+      lda Player1+PlayerStatusTop+2*I
+      sta PPUDATA
+    .endrep
+    lda #ForegroundBG + 26*32 + 4
+    sta PPUADDR
+    .repeat 5, I
+      lda Player1+PlayerStatusBottom+2*I
+      sta PPUDATA
+    .endrep
+    stz Player1+PlayerStatusRedraw
+  :
+
+  lda Player2+PlayerStatusRedraw
+  beq :+
+    lda #ForegroundBG + 25*32 + 23
+    sta PPUADDR
+    .repeat 5, I
+      lda Player2+PlayerStatusTop+2*I
+      sta PPUDATA
+    .endrep
+    lda #ForegroundBG + 26*32 + 23
+    sta PPUADDR
+    .repeat 5, I
+      lda Player2+PlayerStatusBottom+2*I
+      sta PPUDATA
+    .endrep
+    stz Player2+PlayerStatusRedraw
+  :
+
   ; Set up faster access to DMA registers
   lda #DMAMODE
   tcd
+  lda #DMAMODE_PPUDATA
+  sta <DMAMODE+$00
+  sta <DMAMODE+$10
+
+  ; Player frame uploads
+  lda Player1+PlayerFrameAddress
+  beq :+
+    sta <DMAADDR+$00
+    ora #256
+    sta <DMAADDR+$10
+
+    lda #32*8 ; 8 tiles for each DMA
+    sta <DMALEN+$00
+    sta <DMALEN+$10
+
+    lda #SpriteCHRBase + (SP_TILE_BASE_PLAYER) * 32 / 2
+    sta PPUADDR
+    seta8
+    lda #^Player1CharacterGraphics
+    sta <DMAADDRBANK+$00
+    sta <DMAADDRBANK+$10
+
+    lda #%00000001
+    sta COPYSTART
+
+    ; Bottom row -------------------
+    ldx #SpriteCHRBase + (SP_TILE_BASE_PLAYER + 16) * 32 / 2
+    stx PPUADDR
+    lda #%00000010
+    sta COPYSTART
+    seta16
+  :
+  lda Player2+PlayerFrameAddress
+  beq :+
+    sta <DMAADDR+$00
+    ora #256
+    sta <DMAADDR+$10
+
+    lda #32*8 ; 8 tiles for each DMA
+    sta <DMALEN+$00
+    sta <DMALEN+$10
+
+    lda #SpriteCHRBase + (SP_TILE_BASE_PLAYER + 8) * 32 / 2
+    sta PPUADDR
+    seta8
+    lda #^Player2CharacterGraphics
+    sta <DMAADDRBANK+$00
+    sta <DMAADDRBANK+$10
+
+    lda #%00000001
+    sta COPYSTART
+
+    ; Bottom row -------------------
+    ldx #SpriteCHRBase + (SP_TILE_BASE_PLAYER + 16 + 8) * 32 / 2
+    stx PPUADDR
+    lda #%00000010
+    sta COPYSTART
+    seta16
+  :
 
   ; ----------------
   ; Do block updates (or any other tilemap updates that are needed)

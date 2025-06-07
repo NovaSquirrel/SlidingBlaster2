@@ -1,5 +1,6 @@
 ; libSFX LZ4 Decompression
 ; David Lindecrantz <optiroc@gmail.com>
+; Original ( https://github.com/Optiroc/libSFX ) is available under MIT license
 ; Modified by NovaSquirrel
 
 .include "snes.inc"

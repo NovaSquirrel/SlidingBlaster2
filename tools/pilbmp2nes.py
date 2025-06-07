@@ -194,7 +194,7 @@ def main(argv=None):
 
     im = Image.open(infilename)
 
-	# Rearrange rows for the purpose of displaying a 32x32 metasprite out of 16x16 sprites on SNES
+    # Rearrange rows for the purpose of displaying a 32x32 metasprite out of 16x16 sprites on SNES
     if rearrange16x16:
         rearranged = im.copy()
         if im.height%32 != 0:

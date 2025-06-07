@@ -30,7 +30,6 @@ PLAYER2_TILE_ID = 6
 CANNON_TILE_ID = 8
 FAN_TILE_ID    = 12
 
-
 .a16
 .i16
 .export DrawPlayer
@@ -106,7 +105,7 @@ CannonTile = 12
   xba
   pha
   and #3
-  add #CANNON_TILE_ID
+  add #CANNON_TILE_ID | OAM_PRIORITY_2
   sta CannonTile
   pla
   and #4
@@ -167,4 +166,178 @@ FanAnimationTile:
   .word FAN_TILE_ID + OAM_PRIORITY_2 + 1 + OAM_XFLIP
 FanAnimationXOffset:
   .word 0, 0, 0, .loword(-3)
+.endproc
+
+.a16
+.i16
+.export UpdatePlayerStatusTiles
+.proc UpdatePlayerStatusTiles
+  jsl UpdatePlayerAmmoTiles
+  jsl UpdatePlayerHealthTiles
+  fallthrough UpdatePlayerWeaponTiles
+.endproc
+.a16
+.i16
+.proc UpdatePlayerWeaponTiles
+  lda #FG_TILE_BASE_COMMON + 16*4 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusTop+3*2,x
+  inc
+  sta PlayerStatusTop+4*2,x
+  lda #FG_TILE_BASE_COMMON + 16*5 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusBottom+3*2,x
+  inc
+  sta PlayerStatusBottom+4*2,x
+
+  inc PlayerStatusRedraw,x
+  rtl
+.endproc
+
+.a16
+.i16
+.export UpdatePlayerAmmoTiles
+.proc UpdatePlayerAmmoTiles
+  lda #FG_TILE_BASE_COMMON + 16 + 10 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusTop,x
+
+  phx
+  lda PlayerAmmo,x
+  tax
+  lda f:BCD100Table,x
+  plx
+  and #255
+  tay
+  lsr
+  lsr
+  lsr
+  lsr
+  ora #FG_TILE_BASE_COMMON + 16 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusTop+2,x
+  tya
+  and #15
+  ora #FG_TILE_BASE_COMMON + 16 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusTop+4,x
+
+  inc PlayerStatusRedraw,x
+  rtl
+.endproc
+
+.a16
+.i16
+.export UpdatePlayerHealthTiles
+.proc UpdatePlayerHealthTiles
+  lda #FG_TILE_BASE_COMMON + 16 + 11 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusBottom,x
+
+  phx
+  lda PlayerHealth,x
+  tax
+  lda f:BCD100Table,x
+  plx
+  and #255
+  tay
+  lsr
+  lsr
+  lsr
+  lsr
+  ora #FG_TILE_BASE_COMMON + 16 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusBottom+2,x
+  tya
+  and #15
+  ora #FG_TILE_BASE_COMMON + 16 + (BG_ICON_PALETTE << BG_COLOR_SHIFT) + BG_PRIORITY
+  sta PlayerStatusBottom+4,x
+
+  inc PlayerStatusRedraw,x
+  rtl
+.endproc
+
+BCD100Table:
+  .byt $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+  .byt $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39
+  .byt $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59
+  .byt $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79
+  .byt $80, $81, $82, $83, $84, $85, $86, $87, $88, $89, $90, $91, $92, $93, $94, $95, $96, $97, $98, $99
+
+.a16
+.i16
+.export DrawStatusSprites
+.proc DrawStatusSprites
+  ldy OamPtr
+
+  ; ---------------------------------------------------------------------------
+  ; Player 1 active
+  lda #$0200  ; Use 16x16 sprites
+  sta OAMHI+(4*0),y
+  sta OAMHI+(4*1),y
+  sta OAMHI+(4*2),y
+  sta OAMHI+(4*3),y
+  sta OAMHI+(4*4),y
+
+  lda #SP_TILE_BASE_PLAYER + (SP_CRITTER1_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3
+  sta OAM_TILE+(4*0),y
+  lda #SP_TILE_BASE_PLAYER + 2 + (SP_CRITTER1_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3
+  sta OAM_TILE+(4*1),y
+  lda #SP_TILE_BASE_PLAYER + 4 + (SP_CRITTER1_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3
+  sta OAM_TILE+(4*2),y
+  lda #SP_TILE_BASE_PLAYER + 6 + (SP_CRITTER1_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3
+  sta OAM_TILE+(4*3),y
+  
+  seta8
+  lda #8
+  sta OAM_XPOS+(4*0),y
+  sta OAM_XPOS+(4*2),y
+  lda #8+16
+  sta OAM_XPOS+(4*1),y
+  sta OAM_XPOS+(4*3),y
+
+  lda #184
+  sta OAM_YPOS+(4*0),y
+  sta OAM_YPOS+(4*1),y
+  add #16
+  sta OAM_YPOS+(4*2),y
+  sta OAM_YPOS+(4*3),y
+  seta16
+
+  tya
+  add #4*4
+  sta OamPtr
+  tay
+  ; ---------------------------------------------------------------------------
+  ; Player 2 active
+  lda #$0200  ; Use 16x16 sprites
+  sta OAMHI+(4*0),y
+  sta OAMHI+(4*1),y
+  sta OAMHI+(4*2),y
+  sta OAMHI+(4*3),y
+  sta OAMHI+(4*4),y
+
+  lda #SP_TILE_BASE_PLAYER + 2 + 8 + (SP_CRITTER2_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3 + OAM_XFLIP
+  sta OAM_TILE+(4*0),y
+  lda #SP_TILE_BASE_PLAYER + 0 + 8 + (SP_CRITTER2_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3 + OAM_XFLIP
+  sta OAM_TILE+(4*1),y
+  lda #SP_TILE_BASE_PLAYER + 6 + 8+ (SP_CRITTER2_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3 + OAM_XFLIP
+  sta OAM_TILE+(4*2),y
+  lda #SP_TILE_BASE_PLAYER + 4 + 8 + (SP_CRITTER2_PALETTE << OAM_COLOR_SHIFT) + OAM_PRIORITY_3 + OAM_XFLIP
+  sta OAM_TILE+(4*3),y
+  
+  seta8
+  lda #216
+  sta OAM_XPOS+(4*0),y
+  sta OAM_XPOS+(4*2),y
+  lda #216+16
+  sta OAM_XPOS+(4*1),y
+  sta OAM_XPOS+(4*3),y
+
+  lda #184
+  sta OAM_YPOS+(4*0),y
+  sta OAM_YPOS+(4*1),y
+  add #16
+  sta OAM_YPOS+(4*2),y
+  sta OAM_YPOS+(4*3),y
+  seta16
+
+  tya
+  add #4*4
+  sta OamPtr
+  ; ---------------------------------------------------------------------------
+  rtl
 .endproc

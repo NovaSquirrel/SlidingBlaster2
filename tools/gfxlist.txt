@@ -1,5 +1,4 @@
-0000 SolidTiles
-0100 GreenBrown
-0700 YellowBlue
-0b00 Red
+0000 CommonBackground
+0800 LevelForeground
+4000 CityRug
 6000 CommonSprites

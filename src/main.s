@@ -20,7 +20,7 @@
 .include "tad-audio.inc"
 .smart
 .export main, nmi_handler
-.import RunAllActors, DrawPlayer, DrawPlayerStatus
+.import RunAllActors, DrawPlayer, DrawStatusSprites
 .import StartLevel, ResumeLevelFromCheckpoint
 
 .segment "CODE"
@@ -183,6 +183,8 @@ DelayedBlockLoop:
 
   stz OamPtr
 
+  jsl DrawStatusSprites
+
   ldx #Player1
   jsl RunPlayer
 
@@ -218,8 +220,19 @@ padwait:
   bne padwait
 
   seta16
+  lda framecount
+  lsr
+  lsr
+  lsr
+  lsr
+  lsr
+  lsr
+  sta f:CloudScrollX
+
   ; Clean up now that the code that needs to happen in vblank is over
   stz ScatterUpdateLength
+  stz Player1+PlayerFrameAddress
+  stz Player2+PlayerFrameAddress
 
   ; Go on with game logic again
   jmp forever

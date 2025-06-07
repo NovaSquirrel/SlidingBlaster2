@@ -9,9 +9,28 @@ BG2CHRBase    = $2000
 BG3CHRBase    = $4000
 
 ; ------------------------------------
-; Palettes
-COMMON_PALETTE = 0
-PLAYER_PALETTE = 1
+; Background palettes
+BG_MISC_PALETTE    = 0
+BG_RED_BLUE_YELLOW = 2
+BG_ICON_PALETTE    = 7
+
+; Sprite palettes
+SP_PLAYER1_PALETTE  = 0
+SP_PLAYER2_PALETTE  = 1
+SP_CRITTER1_PALETTE = 2
+SP_CRITTER2_PALETTE = 3
+SP_ENEMY_PALETTE1   = 4
+SP_ENEMY_PALETTE2   = 5
+SP_ENEMY_PALETTE3   = 6
+SP_ICON_PALETTE     = 7
+
+; ------------------------------------
+; What tile number points to the first tile in a given tileset, for a given layer
+
+FG_TILE_BASE_COMMON = $000
+
+SP_TILE_BASE_COMMON = $000
+SP_TILE_BASE_PLAYER = $080
 
 ; ------------------------------------
 

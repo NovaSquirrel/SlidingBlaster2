@@ -134,3 +134,8 @@ LevelZeroWhenLoad_End:
   LevelBuf_End:
 
   DecompressBuffer: .res 8192
+  Player1CharacterGraphics: .res 8192 ; Room for 16 frames
+  Player2CharacterGraphics: .res 8192 ; Room for 16 frames
+
+  CloudScrollX: .res 2
+  ZeroSource:   .res 2

@@ -20,7 +20,7 @@ objlist = \
   uploadppu graphics blockdata tad-audio_config audio_incbins audio_misc \
   blockinteraction palettedata \
   actordata actorcode actorshared levelload leveldata \
-  sincos_data math lz4 playerdraw playerprojectile
+  sincos_data math lz4 playerdraw playerprojectile characters
 
 CC := gcc
 AS65 := ca65
@@ -97,6 +97,7 @@ objlisto = $(foreach o,$(objlist),$(objdir)/$(o).o)
 chrXall := $(patsubst %.png,%.chr,$(wildcard tilesetsX/*.png))
 chr4all := $(patsubst %.png,%.chrsfc,$(wildcard tilesets4/*.png))
 chr2all := $(patsubst %.png,%.chrgb,$(wildcard tilesets2/*.png))
+chrX_lz4 := $(patsubst %.png,%.chr.lz4,$(wildcard tilesetsX/lz4/*.png))
 chr4_lz4 := $(patsubst %.png,%.chrsfc.lz4,$(wildcard tilesets4/lz4/*.png))
 chr2_lz4 := $(patsubst %.png,%.chrgb.lz4,$(wildcard tilesets2/lz4/*.png))
 palettes := $(wildcard palettes/*.png)
@@ -142,7 +143,7 @@ $(objdir)/actorcode.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s
 $(objdir)/playerprojectile.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
 
 # Automatically insert graphics into the ROM
-$(srcdir)/graphicsenum.s: $(chr2all) $(chr4all) $(chrXall) $(chr4allbackground) $(chr4_lz4) $(chr2_lz4) tools/gfxlist.txt tools/insertthegfx.py
+$(srcdir)/graphicsenum.s: $(chr2all) $(chr4all) $(chrXall) $(chr4allbackground) $(chr4_lz4) $(chr2_lz4) $(chrX_lz4) tools/gfxlist.txt tools/insertthegfx.py
 	$(PY) tools/insertthegfx.py
 
 # Automatically create the list of blocks from a description
@@ -166,6 +167,8 @@ levels/%.lz4: levels/%.bin
 levels/%.bin: levels/%.tmx tools/levelconvert.py
 	$(PY) tools/levelconvert.py $< $@
 
+$(objdir)/characters.o: $(chrXall) $(srcdir)/paletteenum.s
+
 $(srcdir)/sincos_data.s: tools/makesincos.py
 	$(PY) tools/makesincos.py
 
@@ -180,20 +183,23 @@ $(imgdir2)/%.chrgb: $(imgdir2)/%.png
 	$(PY) tools/pilbmp2nes.py --planes=0,1 $< $@
 $(imgdir2)/lz4/%.chrgb: $(imgdir2)/lz4/%.png
 	$(PY) tools/pilbmp2nes.py --planes=0,1 $< $@
+$(imgdir2)/lz4/%.chrgb.lz4: tilesets2/lz4/%.chrgb
+	$(lz4_compress) $(lz4_flags) $< $@
+	@touch $@
+
 $(imgdir4)/%.chrsfc: $(imgdir4)/%.png
 	$(PY) tools/pilbmp2nes.py "--planes=0,1;2,3" $< $@
+$(imgdir4)/lz4/%.chrsfc: $(imgdir4)/lz4/%.png
+	$(PY) tools/pilbmp2nes.py "--planes=0,1;2,3" $< $@
+$(imgdir4)/lz4/%.chrsfc.lz4: tilesets4/lz4/%.chrsfc
+	$(lz4_compress) $(lz4_flags) $< $@
+	@touch $@
 
 $(imgdirX)/%.chr: $(imgdirX)/%.txt $(imgdirX)/%.png
 	$(PY) tools/pilbmp2nes.py "--flag-file" $^ $@
-
-$(imgdir4)/lz4/%.chrsfc: $(imgdir4)/lz4/%.png
-	$(PY) tools/pilbmp2nes.py "--planes=0,1;2,3" $< $@
-
-
-tilesets4/lz4/%.chrsfc.lz4: tilesets4/lz4/%.chrsfc
-	$(lz4_compress) $(lz4_flags) $< $@
-	@touch $@
-tilesets2/lz4/%.chrgb.lz4: tilesets2/lz4/%.chrgb
+$(imgdirX)/lz4/%.chr: $(imgdirX)/%.txt $(imgdirX)/%.png
+	$(PY) tools/pilbmp2nes.py "--flag-file" $^ $@
+$(imgdirX)/lz4/%.chr.lz4: tilesetsX/lz4/%.chr
 	$(lz4_compress) $(lz4_flags) $< $@
 	@touch $@
 

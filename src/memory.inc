@@ -111,6 +111,12 @@ PlayerFlips      = ActorFlips
 	.res ActorStructSize
 	PlayerUsingAMouse  .byte
 	PlayerControlStyle .byte ; 0 for simple, 1 for cursor
+	PlayerStatusTop     .res 5*2
+	PlayerStatusBottom  .res 5*2
+	PlayerStatusRedraw  .word
+	PlayerFrameID      .word
+	PlayerFrameIDLast  .word
+	PlayerFrameAddress .word
 	PlayerCursorVX     .word
 	PlayerCursorVY     .word
 .endstruct
@@ -161,8 +167,11 @@ PlayerStructSize = PlayerCursorVY+.sizeof(PlayerCursorVY)
 .global SpriteXYOffset
 .global SpriteTileBase
 
-.global DecompressBuffer
+.global DecompressBuffer, Player1CharacterGraphics, Player2CharacterGraphics
 
 .global RedKeys, GreenKeys, BlueKeys, YellowKeys
 
 .global PlayerInvincible
+
+; HDMA variables
+.global CloudScrollX, ZeroSource

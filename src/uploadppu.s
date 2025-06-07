@@ -427,7 +427,6 @@ Compressed:
 .export UploadLevelGraphics
 .proc UploadLevelGraphics
   seta8
-  stz HDMASTART_Mirror
   stz HDMASTART
 
   ; Fix the background color
@@ -437,49 +436,75 @@ Compressed:
   lda LevelBackgroundColor+1
   sta CGDATA
 
+  ; DMA for the status bar gradient
+  lda #^ColorChangeHDMATable
+  sta DMAADDRBANK + $70
+  sta HDMAINDBANK + $70
+  sta DMAADDRBANK + $60
+  lda #^CloudScrollX
+  sta HDMAINDBANK + $60
+
+  lda #%11000000
+  sta HDMASTART_Mirror
+
+  stz BGSCROLLX
+  stz BGSCROLLX
+  stz BGSCROLLX + 2
+  stz BGSCROLLX + 2
+  lda #<-1
+  sta BGSCROLLY
+  stz BGSCROLLY
+  sta BGSCROLLY + 2
+  stz BGSCROLLY + 2
+
   setaxy16
+  lda #.loword(ColorChangeHDMATable)
+  sta DMAADDR + $70
+  lda #(<CGADDR << 8) | DMA_0011 | DMA_FORWARD | DMA_INDIRECT
+  sta DMAMODE + $70
+  lda #.loword(BG2ScrollXHDMATable)
+  sta DMAADDR + $60
+  lda #(<(BGSCROLLX+2) << 8) | DMA_00 | DMA_FORWARD | DMA_INDIRECT
+  sta DMAMODE + $60
+
   ; Upload graphics
-  lda #GraphicsUpload::SolidTiles
+  lda #GraphicsUpload::CommonBackground
+  jsl DoGraphicUpload
+  lda #GraphicsUpload::LevelForeground
   jsl DoGraphicUpload
 
-  lda #GraphicsUpload::GreenBrown
-  jsl DoGraphicUpload
-
-  lda #GraphicsUpload::YellowBlue
-  jsl DoGraphicUpload
-
-  lda #GraphicsUpload::Red
+  lda #GraphicsUpload::CityRug
   jsl DoGraphicUpload
 
   lda #GraphicsUpload::CommonSprites
   jsl DoGraphicUpload
 
-;  lda #GraphicsUpload::Enemy2
-;  jsl DoGraphicUpload
-
   ; Upload palettes
-  lda #Palette::GreenBrown
+  lda #Palette::Miscellaneous
   ldy #0
   jsl DoPaletteUpload
-
-  lda #Palette::YellowBlue
-  ldy #1
-  jsl DoPaletteUpload
-
-  lda #Palette::Red
+  lda #Palette::RedBlueYellow
   ldy #2
   jsl DoPaletteUpload
+  lda #Palette::GreenGrayBrown
+  ldy #3
+  jsl DoPaletteUpload
+  lda #Palette::Icons
+  ldy #7
+  jsl DoPaletteUpload
+
+  ; Unused: 0, 3, 4, 5, 6
 
   lda #Palette::PlayerToy
   ldy #8
   jsl DoPaletteUpload
-
-  lda #Palette::Enemy1
+  lda #Palette::PlayerToy
   ldy #9
   jsl DoPaletteUpload
+  ; 10 and 11 are character sprite graphics
 
-  lda #Palette::Enemy2
-  ldy #10
+  lda #Palette::Icons
+  ldy #15
   jsl DoPaletteUpload
 
   ; .------------------------------------.
@@ -490,18 +515,18 @@ Compressed:
   sta BGMODE       ; mode 1
 
   lda #(BG1CHRBase>>12)|((BG2CHRBase>>12)<<4)
-  sta BGCHRADDR+0  ; bg plane 0 CHR at $0000, plane 1 CHR at $2000
+  sta BGCHRADDR+0
   lda #BG3CHRBase>>12
-  sta BGCHRADDR+1  ; bg plane 2 CHR at $2000
+  sta BGCHRADDR+1
 
-  lda #SpriteCHRBase >> 13
-  sta OBSEL      ; sprite CHR at $6000, sprites are 8x8 and 16x16
+  lda #SpriteCHRBase >> 13 ; Sprites are 8x8 and 16x16
+  sta OBSEL
 
-  lda #1 | ((ForegroundBG >> 10)<<2)
-  sta NTADDR+0   ; plane 0 nametable, 2 screens wide
+  lda #0 | ((ForegroundBG >> 10)<<2)
+  sta NTADDR+0   ; plane 0 nametable, 1 screen
 
-  lda #1 | ((BackgroundBG >> 10)<<2)
-  sta NTADDR+1   ; plane 1 nametable, 2 screens wide
+  lda #0 | ((BackgroundBG >> 10)<<2)
+  sta NTADDR+1   ; plane 1 nametable, 1 screen
 
   lda #0 | ((ExtraBG >> 10)<<2)
   sta NTADDR+2   ; plane 2 nametable, 1 screen
@@ -521,7 +546,84 @@ Compressed:
   stz CGADSUB_Mirror
 
   setaxy16
+
+  .import SetupAnimatedCharacter
+  lda #1
+  ldy #0
+  jsl SetupAnimatedCharacter
+  lda #0
+  ldy #1
+  jsl SetupAnimatedCharacter
+  ; Force the frames to be copied
+  lda #255
+  sta Player1+PlayerFrameIDLast
+  sta Player2+PlayerFrameIDLast
+
   jml RenderLevelScreen
+.endproc
+
+.proc ColorChangeHDMATable
+INDEX = $0101
+  .byt $80 | 8,  <Top, >Top
+  .byt 128,      <Middle, >Middle
+  .byt 64,       <Middle, >Middle
+  .byt $80 | 24, <Bottom, >Bottom
+  .byt 0
+
+Top:
+  .word INDEX, RGB8(19, 19,  19)
+  .word INDEX, RGB8(12, 241, 255)
+  .word INDEX, RGB8(0,  152, 220)
+  .word INDEX, RGB8(0,  152, 220)
+  .word INDEX, RGB8(0,  152, 220)
+  .word INDEX, RGB8(0,  105, 170)
+  .word INDEX, RGB8(0,  57,  109)
+  .word INDEX, RGB8(19, 19,  19)
+Middle:
+  .word INDEX, RGB8(255, 255, 255)
+Bottom:
+  ; TODO: Make this gradient look nicer??
+;  .word INDEX, RGB8(19,  19,  19)
+  .word INDEX, RGB8(0,   152, 220)
+  .word INDEX, RGB8(0,   157, 222)
+  .word INDEX, RGB8(1,   163, 224)
+  .word INDEX, RGB8(1,   163, 224)
+  .word INDEX, RGB8(2,   169, 227)
+  .word INDEX, RGB8(3,   175, 229)
+  .word INDEX, RGB8(3,   175, 229)
+  .word INDEX, RGB8(4,   181, 231)
+;  .word INDEX, RGB8(4,   187, 234)
+  .word INDEX, RGB8(5,   193, 236)
+  .word INDEX, RGB8(5,   193, 236)
+  .word INDEX, RGB8(6,   199, 238)
+  .word INDEX, RGB8(7,   205, 241)
+  .word INDEX, RGB8(8,   211, 243)
+  .word INDEX, RGB8(8,   211, 243)
+  .word INDEX, RGB8(8,   217, 245)
+  .word INDEX, RGB8(9,   233, 248)
+;  .word INDEX, RGB8(10,  229, 250)
+;  .word INDEX, RGB8(10,  229, 250)
+;  .word INDEX, RGB8(11,  235, 252)
+;  .word INDEX, RGB8(12,  241, 255)
+
+  .word INDEX, RGB8(19,  19,  19)
+
+  .word INDEX, RGB8(211, 252, 126)
+  .word INDEX, RGB8(153, 230, 95)
+  .word INDEX, RGB8(90,  197, 79)
+  .word INDEX, RGB8(90,  197, 79)
+  .word INDEX, RGB8(51,  152, 75)
+  .word INDEX, RGB8(30,  111, 80)
+  .word INDEX, RGB8(19,  19,  19)
+.endproc
+.proc BG2ScrollXHDMATable
+  .byt 128
+  .addr ZeroSource
+  .byt 200-128
+  .addr ZeroSource
+  .byt 1
+  .addr CloudScrollX
+  .byt 0
 .endproc
 
 ; Write increasing values to VRAM

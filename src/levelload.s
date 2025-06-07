@@ -73,8 +73,9 @@
 
   seta8
   ; Health
-  lda #3
+  lda #20
   sta Player1+PlayerHealth
+  sta Player2+PlayerHealth
 
   ; Set the high byte of the level pointer
   ; so later accesses work correctly.

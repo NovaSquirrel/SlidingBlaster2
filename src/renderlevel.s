@@ -25,13 +25,101 @@
 .smart
 .global LevelBuf
 .import BlockTopLeft, BlockTopRight, BlockBottomLeft, BlockBottomRight
-.import ActorSafeRemoveX
+.import UpdatePlayerStatusTiles
 
 .segment "C_Player"
+
+COMMON_BASE = 0
+RUG_BASE = 512
+CLOUD_TILE = RUG_BASE + 16
 
 .a16
 .i16
 .proc RenderLevelScreen
-  ; TODO: Actually render the level
-  rtl
+	; Clear out the status bars
+	ldy #BackgroundBG
+	lda #RUG_BASE + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	jsr RepeatPPUWrite32
+	ldy #ForegroundBG
+	lda #0
+	jsr RepeatPPUWrite32
+	ldy #BackgroundBG + 25*32
+	lda #RUG_BASE + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	ldx #3*32
+	jsr RepeatPPUWrite
+	ldy #ForegroundBG + 25*32
+	lda #0
+	ldx #3*32
+	jsr RepeatPPUWrite
+
+	; Goal board
+	lda #ForegroundBG + 25*32 + 13
+	sta PPUADDR
+	lda #COMMON_BASE + 6*16 + 10 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	sta PPUDATA
+	ina
+	sta PPUDATA
+	sta PPUDATA
+	sta PPUDATA
+	sta PPUDATA
+	ina
+	sta PPUDATA
+	lda #ForegroundBG + 26*32 + 13
+	sta PPUADDR
+	lda #COMMON_BASE + 7*16 + 10 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	sta PPUDATA
+	ina
+	sta PPUDATA
+	sta PPUDATA
+	sta PPUDATA
+	sta PPUDATA
+	ina
+	sta PPUDATA
+
+	; Clouds
+	ldx #0
+	lda #CLOUD_TILE + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	sta PPUDATA
+:	ldy CloudPositions,x
+	bmi :+
+	sty PPUADDR
+	sta PPUDATA
+	ina
+	sta PPUDATA
+	ina
+	and #$ffff ^ 4
+	inx
+	inx
+	bra :-
+:
+
+	ldx #Player1
+	jsl UpdatePlayerStatusTiles
+	ldx #Player2
+	jsl UpdatePlayerStatusTiles
+
+	; TODO: Actually render the level
+	rtl
+
+CloudPositions:
+	.word BackgroundBG + 25*32 + 0
+	.word BackgroundBG + 25*32 + 2
+	.word BackgroundBG + 25*32 + 7
+	.word BackgroundBG + 25*32 + 10
+	.word BackgroundBG + 25*32 + 24
+	.word BackgroundBG + 25*32 + 15
+	.word BackgroundBG + 25*32 + 28
+	.word BackgroundBG + 25*32 + 21
+	.word $ffff
 .endproc
+
+.a16
+.i16
+RepeatPPUWrite32:
+	ldx #32
+RepeatPPUWrite:
+	sty PPUADDR
+:	sta PPUDATA
+	dex
+	bne :-
+	rts

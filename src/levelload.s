@@ -175,20 +175,17 @@ DecompressLoop:
   lda DecompressBuffer,y
   ; Move right one block in the decompressed data
   iny
-  cpy #256*32        ; Went past the end of the decompressed data?
+  cpy #12*16*2        ; Went past the end of the decompressed data?
   bcs Exit
   and #255
   asl
   sta f:LevelBuf,x
-
-  ; Move right one block in the destination
-  txa
-  add #32*2
-  cmp #256*32*2      ; Went past the end?
-  bcc :+
-    sub #256*32*2-2  ; Go to the start of the next row
+  inx
+  inx
+  cpx #16*12*2
+  bne :+
+    ldx #BackLevelBuf - LevelBuf ; Skip ahead
   :
-  tax
   bra DecompressLoop
 Exit:
 

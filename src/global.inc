@@ -12,6 +12,7 @@ BG3CHRBase    = $4000
 ; Background palettes
 BG_MISC_PALETTE    = 0
 BG_RED_BLUE_YELLOW = 2
+BG_GREEN_GRAY_BROWN = 3
 BG_ICON_PALETTE    = 7
 
 ; Sprite palettes

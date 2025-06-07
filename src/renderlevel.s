@@ -98,7 +98,86 @@ CLOUD_TILE = RUG_BASE + 16
 	ldx #Player2
 	jsl UpdatePlayerStatusTiles
 
-	; TODO: Actually render the level
+	ph2banks LevelBuf, LevelBuf
+	plb
+	plb
+
+	; Actually render the level
+	ColumnsLeft = 0
+	lda #ForegroundBG + 1*32
+	sta f:PPUADDR
+	ldy #0
+LevelRenderLoop:
+	lda #16
+	sta ColumnsLeft
+:	ldx LevelBuf,y
+	iny
+	iny
+	lda f:BlockTopLeft,x
+	sta f:PPUDATA
+	lda f:BlockTopRight,x
+	sta f:PPUDATA
+	dec ColumnsLeft
+	bne :-
+
+	tya
+	sub #16*2
+	tay
+	lda #16
+	sta ColumnsLeft
+:	ldx LevelBuf,y
+	iny
+	iny
+	lda f:BlockBottomLeft,x
+	sta f:PPUDATA
+	lda f:BlockBottomRight,x
+	sta f:PPUDATA
+	dec ColumnsLeft
+	bne :-
+
+	cpy #12*16*2
+	bcc LevelRenderLoop
+
+; -----------------------------------------------
+
+	; Render the background
+	lda #BackgroundBG + 1*32
+	sta f:PPUADDR
+	ldy #0
+BackgroundRenderLoop:
+	lda #16
+	sta ColumnsLeft
+:	ldx BackLevelBuf,y
+	iny
+	iny
+	lda #16 + 4 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	sta f:PPUDATA
+	lda #16 + 5 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	sta f:PPUDATA
+	dec ColumnsLeft
+	bne :-
+
+	tya
+	sub #16*2
+	tay
+	lda #16
+	sta ColumnsLeft
+:	ldx LevelBuf,y
+	iny
+	iny
+	lda #16 + 6 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	sta f:PPUDATA
+	lda #16 + 7 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	sta f:PPUDATA
+	dec ColumnsLeft
+	bne :-
+
+	cpy #12*16*2
+	bcc BackgroundRenderLoop
+
+	phk
+	plb
+
 	rtl
 
 CloudPositions:

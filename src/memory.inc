@@ -23,7 +23,7 @@ MaxDelayedBlockEdits = 15
 .global DelayedBlockEditTime
 .global DelayedBlockEditAddr
 
-.global LevelBuf
+.global LevelBuf, BackLevelBuf
 .global LevelBuf_End
 .global LevelActorList
 

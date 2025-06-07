@@ -1,27 +1,271 @@
-# Solid colors, 1 row   --> 512*1 -->  512 | $0000
-# Green/brown is 6 rows --> 512*6 --> 3072 | $0100
-# Yellow/blue is 4 rows --> 512*4 --> 2048 | $0700
-# Red is 2 rows         --> 512*2 --> 1024 | $0b00
-alias green_gfx $0100
-alias yellow_gfx $0700
-alias red_gfx $0b00
+alias common_gfx $0000
+alias level_gfx $0800
 
-alias green_palette  0
-alias yellow_palette 1
-alias red_palette    2
+alias red_blue_yellow_palette 2
+alias green_gray_brown_palette 3
+alias icon_palette 7
 
 #######################################
 # Miscellaneous
 #######################################
 
-base green_gfx
-palette green_palette
+base common_gfx
+palette icon_palette
 
 +Empty
 t 0:0 0:0
 t 0:0 0:0
 
-+Bricks
++AmmoPickup
+q 0,2
+
++HealthPickup
+q 2,2
+
++SpeedPickup
+q 4,2
+
++DamagePickup
+q 6,4
+
+base level_gfx
+palette red_blue_yellow_palette
+
++Test
 when Touch, BlockBricks
 solid
 q 6,0
+
++RedWood
+solid
+q 0,0
+
++BlueWood
+solid
+q 2,0
+
++YellowWood
+solid
+q 4,0
+
++RedWoodWideL
+solid
+q 6,0
+
++RedWoodWideR
+solid
+q 8,0
+
++BlueWoodWideL
+solid
+q 10,0
+
++BlueWoodWideR
+solid
+q 12,0
+
++YellowWoodWideL
+solid
+q 14,0
+
++YellowWoodWideR
+solid
+q 0,2
+
++RedWoodTallU
+solid
+q 2,2
+
++RedWoodTallD
+solid
+q 4,2
+
++BlueWoodTallU
+solid
+q 6,2
+
++BlueWoodTallD
+solid
+q 8,2
+
++YellowWoodTallU
+solid
+q 10,2
+
++YellowWoodTallD
+solid
+q 12,2
+
++RedEngraved
+solid
+q 14,2
+
++BlueEngraved
+solid
+q 0,4
+
++YellowEngraved
+solid
+q 2,4
+
++RedPlastic
+solid
+q 4,4
+
++BluePlastic
+solid
+q 6,4
+
++YellowPlastic
+solid
+q 8,4
+
++RedBrick
+solid
+q 10,4
+
++BlueBrick
+solid
+q 12,4
+
++YellowBrick
+solid
+q 14,4
+
++BlueFrame
+solid
+q 8,6
+
++BlueCylinder
+solid
+q 10,6
+
++RedGrass
+t 0:0 0:0
+t 6,6 7,6
+
+palette green_gray_brown_palette
+
++GreenWood
+solid
+q 0,0
+
++GrayWood
+solid
+q 2,0
+
++BrownWood
+solid
+q 4,0
+
++GreenWoodWideL
+solid
+q 6,0
+
++GreenWoodWideR
+solid
+q 8,0
+
++GrayWoodWideL
+solid
+q 10,0
+
++GrayWoodWideR
+solid
+q 12,0
+
++BrownWoodWideL
+solid
+q 14,0
+
++BrownWoodWideR
+solid
+q 0,2
+
++GreenWoodTallU
+solid
+q 2,2
+
++GreenWoodTallD
+solid
+q 4,2
+
++GrayWoodTallU
+solid
+q 6,2
+
++GrayWoodTallD
+solid
+q 8,2
+
++BrownWoodTallU
+solid
+q 10,2
+
++BrownWoodTallD
+solid
+q 12,2
+
++GreenEngraved
+solid
+q 14,0
+
++GrayEngraved
+solid
+q 0,4
+
++BrownEngraved
+solid
+q 2,4
+
++GreenPlastic
+solid
+q 4,4
+
++GrayPlastic
+solid
+q 6,4
+
++BrownPlastic
+solid
+q 8,4
+
++GreenBrick
+solid
+q 10,4
+
++GrayBrick
+solid
+q 12,4
+
++BrownBrick
+solid
+q 14,4
+
++GrayFrame
+solid
+q 8,6
+
++GrayCylinder
+solid
+q 10,6
+
++GreenGrass
+t 0:0 0:0
+t 6,6 7,6
+
++Mushroom
+t 0:0 0:0
+t 6,7 7,7
+
++Tree
+solid
+q 4,6
+
++Rock
+solid
+q 2,6
+
++Breakable
+solid
+q 0,6

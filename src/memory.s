@@ -130,7 +130,8 @@ LevelZeroWhenLoad_End:
 .segment "BSS7E"
 
 .segment "BSS7F"
-  LevelBuf:    .res 256*2 ; 512 bytes
+  LevelBuf:     .res 512
+  BackLevelBuf: .res 512
   LevelBuf_End:
 
   DecompressBuffer: .res 8192

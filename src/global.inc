@@ -35,6 +35,8 @@ SP_TILE_BASE_PLAYER = $080
 
 ; ------------------------------------
 
+GAMEPLAY_SPRITE_Y_OFFSET = 8
+
 ; Include handy macros
 .include "macros.s"
 .include "memory.inc"

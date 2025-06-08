@@ -102,14 +102,16 @@
   ; Starting X position
   lda [LevelHeaderPointer],y
   sta Player1+PlayerPX+1
-  stz Player1+PlayerPX+0
+  lda #$80
+  sta Player1+PlayerPX+0
   stz Player1+PlayerPXSub
 
   iny ; Y = 2
   ; Starting Y position
   lda [LevelHeaderPointer],y
   sta Player1+PlayerPY+1
-  stz Player1+PlayerPY+0
+  lda #$80
+  sta Player1+PlayerPY+0
   stz Player1+PlayerPYSub
 
   ; Unused, a good place to put flags
@@ -176,7 +178,7 @@ DecompressLoop:
   ; Move right one block in the decompressed data
   iny
   cpy #12*16*2        ; Went past the end of the decompressed data?
-  bcs Exit
+  bcs DoneExpanding
   and #255
   asl
   sta f:LevelBuf,x
@@ -187,7 +189,7 @@ DecompressLoop:
     ldx #BackLevelBuf - LevelBuf ; Skip ahead
   :
   bra DecompressLoop
-Exit:
+DoneExpanding:
 
   phk
   plb

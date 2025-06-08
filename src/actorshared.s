@@ -368,7 +368,7 @@ Found:
   lsr
   lsr
   lsr
-  sub #8
+  add #-8+GAMEPLAY_SPRITE_Y_OFFSET
   cmp #.loword(-1*16)
   bcs :+
   cmp #15*16
@@ -402,7 +402,7 @@ Invalid:
   lsr
   lsr
   lsr
-  sub #4
+  add #-4+GAMEPLAY_SPRITE_Y_OFFSET
   cmp #.loword(-1*16)
   bcs :+
   cmp #15*16
@@ -433,7 +433,7 @@ Invalid:
   lsr
   lsr
   add 0
-  sub #4
+  add #-4+GAMEPLAY_SPRITE_Y_OFFSET
   cmp #.loword(-1*16)
   bcs :+
   cmp #256
@@ -578,7 +578,7 @@ CustomOffset:
   lsr
   lsr
   lsr
-  sub #4
+  add #-4+GAMEPLAY_SPRITE_Y_OFFSET
   sta 2
 
   sec
@@ -743,7 +743,7 @@ StripStart:
   ; Y
   lda (Pointer)
   add BasePixelY
-  sub #4
+  add #-4+GAMEPLAY_SPRITE_Y_OFFSET
   sta CurrentY
   inc Pointer
   inc Pointer
@@ -804,7 +804,7 @@ SixteenStripStart:
   ; Y
   lda (Pointer)
   add BasePixelY
-  sub #8
+  add #-8+GAMEPLAY_SPRITE_Y_OFFSET
   sta CurrentY
   inc Pointer
   inc Pointer

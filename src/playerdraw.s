@@ -57,7 +57,7 @@ CannonTile = 12
   lsr
   lsr
   lsr
-  sub #8
+  add #-8+GAMEPLAY_SPRITE_Y_OFFSET
   sta BaseY
 
   lda framecount

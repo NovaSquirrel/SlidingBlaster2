@@ -173,7 +173,7 @@ DelayedBlockLoop:
     bne @NoBlock
     ; Hit zero? Make the change
     lda DelayedBlockEditAddr,x
-    sta LevelBlockPtr
+    tay
     lda DelayedBlockEditType,x
     jsl ChangeBlock
   @NoBlock:

@@ -38,7 +38,6 @@
   CGWSEL_Mirror: .res 1
   CGADSUB_Mirror: .res 1
 
-  LevelBlockPtr: .res 3 ; Pointer to one block or a column of blocks. 00xxxxxxxxyyyyy0
   BlockFlag:     .res 2 ; Contains block class, solid flags, and interaction set
   BlockTemp:     .res 4 ; Temporary bytes for block interaction routines specifically
 
@@ -127,13 +126,16 @@ LevelZeroWhenLoad_End:
   CursorY:       .res 2
   AutoRepeatTimer: .res 1
 
+  ; Current level
+  LevelBuf:     .res LEVEL_BUFFER_SIZE
+  BackLevelBuf: .res LEVEL_BUFFER_SIZE
+  LevelBufSolidTile: .res 2
+  LevelBuf_End:
+
+
 .segment "BSS7E"
 
 .segment "BSS7F"
-  LevelBuf:     .res 512
-  BackLevelBuf: .res 512
-  LevelBuf_End:
-
   DecompressBuffer: .res 8192
   Player1CharacterGraphics: .res 8192 ; Room for 16 frames
   Player2CharacterGraphics: .res 8192 ; Room for 16 frames

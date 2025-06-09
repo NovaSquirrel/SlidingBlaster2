@@ -38,9 +38,14 @@ BaseX = 0
 BaseY = 2
 FanTile = 4
 FanXOffset = 6
-CannonX = 8
-CannonY = 10
+CannonOffX = 8
+CannonOffY = 10
 CannonTile = 12
+
+; X positions, to make it easier to get the high X bit from them
+Fan1X = 14
+Fan2X = 16
+CannonX = 18
   phk
   plb
 
@@ -82,9 +87,9 @@ CannonTile = 12
   and #%00111111
   plp
   bpl :+
-    ora #%11000000
+    ora #%1111111111000000
   :
-  sta CannonX
+  sta CannonOffX
   lda f:MathSinTable,x
   php
   lsr
@@ -95,7 +100,7 @@ CannonTile = 12
   bpl :+
     ora #%11000000
   :
-  sta CannonY
+  sta CannonOffY
   plx
 
   lda PlayerShootAngle,x ; .......n nnnnnnn0
@@ -122,18 +127,27 @@ CannonTile = 12
   sta OAM_TILE+(4*1),y
   lda CannonTile
   sta OAM_TILE+(4*3),y ; Cannon
+ 
+  ; Calculate sprite X positions in 16-bit mode
+  lda BaseX
+  add FanXOffset
+  sta Fan1X
+  add #8+3
+  sta Fan2X
+  lda BaseX
+  add #4
+  add CannonOffX
+  sta CannonX
 
   seta8
   lda BaseX
   sta OAM_XPOS+(4*2),y
-  add FanXOffset
+  lda Fan1X
   sta OAM_XPOS+(4*0),y
-  add #8+3
+  lda Fan2X
   sta OAM_XPOS+(4*1),y
-  lda BaseX
-  add #4
-  add CannonX
-  sta OAM_XPOS+(4*3),y
+  lda CannonX
+  sta OAM_XPOS+(4*3),y ; Cannon
 
   lda BaseY
   sta OAM_YPOS+(4*2),y
@@ -142,14 +156,24 @@ CannonTile = 12
   sta OAM_YPOS+(4*3),y ; Cannon
   lda BaseY
   add #4
-  add CannonY
+  add CannonOffY
   sta OAM_YPOS+(4*3),y
 
-  lda #2 ; 16x16
+  lda #1 ; 16x16
+  asl BaseX+1
+  rol
   sta OAMHI+1+(4*2),y
   tdc ; 8x8
+  asl Fan1X+1
+  rol
   sta OAMHI+1+(4*0),y
+  tdc
+  asl Fan2X+1
+  rol
   sta OAMHI+1+(4*1),y
+  tdc
+  asl CannonX+1
+  rol
   sta OAMHI+1+(4*3),y ; Cannon
   seta16_clc
 

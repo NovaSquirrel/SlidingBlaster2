@@ -27,7 +27,7 @@
 .import BlockRunInteractionInsideBody
 .import InitActorX, InitActorY
 
-.import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16
+.import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, ActorApplyXVelocity, ActorApplyYVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16
 
 .segment "ZEROPAGE"
 
@@ -192,8 +192,145 @@ NoTarget:
 
   jsl CalculateActorVelocityFromAngleAndSpeed
   jsl DivideActorVelocityBy16
+HITBOX_SIZE = 6
+
+  ; -------------------------------------------------------
+  ; Bounce off of the left and right of the playfield
+  lda PlayerVX,x
+  bpl NotOffLeft
+  lda PlayerPX,x
+  cmp #$0080
+  bcs NotOffLeft
+  FlipFromScreenEdgeLR:
+    lda #256
+    sub PlayerMoveAngle,x
+    and #510
+    sta PlayerMoveAngle,x
+    bra NoHorizontalMovement
+  NotOffLeft:
+
+  lda PlayerVX,x
+  bmi NotOffRight
+  lda PlayerPX,x
+  cmp #$0F80
+  bcs FlipFromScreenEdgeLR
+  NotOffRight:
+
+  ; -------------------------------------------------------
+  ; Bounce horizontally off of solid blocks
+  lda PlayerVX,x
+  beq NoHorizontalMovement
+  lda #HITBOX_SIZE*16
+  sta 0
+  lda PlayerVX,x
+  bpl :+
+    lda #.loword(-HITBOX_SIZE*16)
+    sta 0
+  :
+  lda PlayerPY,x
+  sub #HITBOX_SIZE/2*16
+  tay
+  lda PlayerPX,x
+  add 0
+  pha
+  phy
+  jsr TrySideInteraction
+  bcc :+
+    pla
+    pla
+    bra NoHorizontalMovement
+  :
+  pla
+  add #HITBOX_SIZE*16
+  tay
+  pla
+  jsr TrySideInteraction
+NoHorizontalMovement:
+
+  ; -------------------------------------------------------
+  ; Bounce off of the top and bottom of playfield
+  lda PlayerVY,x
+  bpl NotOffTop
+  lda PlayerPY,x
+  cmp #$0080
+  bcs NotOffTop
+  FlipFromScreenEdgeUD:
+    lda PlayerMoveAngle,x
+    eor #$ffff
+    ina
+    and #510
+    sta PlayerMoveAngle,x
+    bra NoVerticalMovement
+  NotOffTop:
+
+  lda PlayerVY,x
+  bmi NotOffBottom
+  lda PlayerPY,x
+  cmp #$0B80
+  bcs FlipFromScreenEdgeUD
+  NotOffBottom:
+
+  ; -------------------------------------------------------
+  ; Bounce vertically off of solid blocks
+  lda PlayerVY,x
+  beq NoVerticalMovement
+  lda #HITBOX_SIZE*16
+  sta 0
+  lda PlayerVY,x
+  bpl :+
+    lda #.loword(-HITBOX_SIZE*16)
+    sta 0
+  :
+  lda PlayerPY,x
+  add 0
+  tay
+  lda PlayerPX,x
+  sub #HITBOX_SIZE/2*16
+  phy
+  pha
+  jsr TryVertInteraction
+  bcc :+
+    pla
+    pla
+    bra NoVerticalMovement
+  :
+  pla
+  add #HITBOX_SIZE*16
+  ply
+  bcs NoVerticalMovement
+  jsr TryVertInteraction
+NoVerticalMovement:
+
+  ; -------------------------------------------------------
   jsl ActorApplyVelocity
   rtl
+
+TrySideInteraction:
+  jsl GetLevelIndexXY
+  beq NoBumpHoriz
+    lda #256
+    sub PlayerMoveAngle,x
+    and #510
+    sta PlayerMoveAngle,x
+    sec
+    rts
+  NoBumpHoriz:
+  clc
+  rts
+
+TryVertInteraction:
+  jsl GetLevelIndexXY
+  beq NoBumpVert
+    lda PlayerMoveAngle,x
+    eor #$ffff
+    ina
+    and #510
+    sta PlayerMoveAngle,x
+    sec
+    rts
+  NoBumpVert:
+  clc
+  rts
 
 TargetAngleTable:
   .byt 255 ; udlr

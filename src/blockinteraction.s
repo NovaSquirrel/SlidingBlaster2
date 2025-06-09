@@ -294,8 +294,8 @@ DelayedBlockLoop:
   lda DelayedBlockEditTime,x
   beq :+
     ; Is it this block?
-    lda DelayedBlockEditAddr,x
-    cmp LevelBlockPtr
+    tya
+    cmp DelayedBlockEditAddr,x
     beq Yes
 : dex
   dex

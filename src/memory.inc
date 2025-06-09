@@ -3,10 +3,7 @@
 .globalzp keydown
 .globalzp keylast
 .globalzp keynew
-.globalzp LevelBlockPtr
 .globalzp BlockFlag
-.globalzp BlockRealX
-.globalzp BlockRealY
 .globalzp BlockTemp
 
 .globalzp OamPtr
@@ -23,7 +20,10 @@ MaxDelayedBlockEdits = 15
 .global DelayedBlockEditTime
 .global DelayedBlockEditAddr
 
-.global LevelBuf, BackLevelBuf
+LEVEL_WIDTH = 16
+LEVEL_HEIGHT = 12
+LEVEL_BUFFER_SIZE = LEVEL_WIDTH * LEVEL_HEIGHT * 2
+.global LevelBuf, BackLevelBuf, LevelBufSolidTile
 .global LevelBuf_End
 .global LevelActorList
 

@@ -77,11 +77,6 @@
   sta Player1+PlayerHealth
   sta Player2+PlayerHealth
 
-  ; Set the high byte of the level pointer
-  ; so later accesses work correctly.
-  lda #^LevelBuf
-  sta LevelBlockPtr+2
-
   ; TODO
   .import level_demo
   lda #<level_demo
@@ -177,19 +172,22 @@ DecompressLoop:
   lda DecompressBuffer,y
   ; Move right one block in the decompressed data
   iny
-  cpy #12*16*2        ; Went past the end of the decompressed data?
+  cpy #LEVEL_WIDTH * LEVEL_HEIGHT * 2 ; Went past the end of the decompressed data?
   bcs DoneExpanding
   and #255
   asl
   sta f:LevelBuf,x
   inx
   inx
-  cpx #16*12*2
+  cpx #LEVEL_BUFFER_SIZE
   bne :+
     ldx #BackLevelBuf - LevelBuf ; Skip ahead
   :
   bra DecompressLoop
 DoneExpanding:
+
+  lda #Block::BlueEngraved ; Any solid block will do
+  sta LevelBufSolidTile
 
   phk
   plb

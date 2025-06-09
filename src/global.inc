@@ -52,7 +52,7 @@ GAMEPLAY_SPRITE_Y_OFFSET = 8
 .global WritePPUIncreasing, WritePPURepeated, SkipPPUWords
 
 ; Common
-.global GetLevelColumnPtr, GetLevelPtrXY, GetBlockFlag
+.global GetLevelIndexXY, GetBlockFlag
 .global RenderLevelScreen
 .global FadeIn, FadeOut, WaitKeysReady
 .global MemClear, MemClear7F

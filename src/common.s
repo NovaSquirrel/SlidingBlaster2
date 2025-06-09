@@ -16,53 +16,49 @@
 ;
 .include "snes.inc"
 .include "global.inc"
+.include "blockenum.s"
 .smart
 
-.code
-
-; Sets LevelBlockPtr to the start of a given column in the level, then reads a specific row
-; input: A (column), Y (row)
-; output: LevelBlockPtr is set, also A = block at column,row
-; Verify that LevelBlockPtr+2 is #^LevelBuf
-.a16
-.proc GetLevelColumnPtr
-  ; Multiply by 32 (level height) and then once more for 16-bit values
-  and #255
-  asl ; * 2
-  asl ; * 4
-  asl ; * 8
-  asl ; * 16
-  asl ; * 32
-  asl ; * 64
-  sta LevelBlockPtr
-
-  lda [LevelBlockPtr],y
-  rtl
-.endproc
-
-; Sets LevelBlockPtr to point to a specific coordinate in the level
+; Sets Y to point to a specific coordinate in the level
 ; input: A (X position in 12.4 format), Y (Y position in 12.4 format)
-; output: LevelBlockPtr is set, also A = block at column,row
-; Verify that LevelBlockPtr+2 is #^LevelBuf
+; output: Y is set, also A = block at column,row
 .a16
 .i16
-.proc GetLevelPtrXY
-  ; X position * 64
-  lsr
-  lsr
-  and #%0011111111000000
-  sta LevelBlockPtr
-  ; 00xxxxxxxx000000
+.proc GetLevelIndexXY
+  ; LevelBuf index format:
+  ; 0000000y yyyxxxx0
+  cmp #LEVEL_WIDTH << 8
+  bcs OutOfBounds
+  cpy #LEVEL_HEIGHT << 8
+  bcs OutOfBounds
+  ; X position
+  ; 0000XXXX xxxxxxxx
+  xba
+  ; xxxxxxxx 0000XXXX
+  asl
+  ; xxxxxxx0 000XXXX0
+  and #%11110
+  ; 00000000 000XXXX0
+  pha
 
   ; Y position
+  ; 0000YYYY yyyyyyyy
   tya
-  xba
-  asl
-  and #63
-  tsb LevelBlockPtr
-  ; 00xxxxxxxxyyyyy0
+  lsr
+  lsr
+  lsr
+  ; 0000000Y YYYyyyyy
+  and #%111100000
+  ora 1,s
+  tay
+  pla ; Clean up the stack
 
-  lda [LevelBlockPtr]
+  lda LevelBuf,y
+  rtl
+
+OutOfBounds:
+  ldx #LevelBufSolidTile - LevelBuf
+  lda #Block::BlueEngraved ; Can be anything solid
   rtl
 .endproc
 
@@ -93,40 +89,39 @@ loop2:
 
 
 ; Changes a block in the level immediately and queues a PPU update.
-; input: A (new block), LevelBlockPtr (block to change)
+; input: A (new block), Y (index of block to change)
 ; locals: BlockTemp
 .a16
 .i16
 .proc ChangeBlock
-ADDRESS = 0
-DATA    = 2
-Temp    = BlockTemp
-; Could reserve a second variable to avoid calling GetBlockX twice
+ADDRESS = 0 ; Offset for scatter buffer
+DATA    = 2 ; Offset for scatter buffer 
+BlockType = BlockTemp
+Temp2     = BlockTemp+2
   phx
   phy
   php
   setaxy16
-  sta [LevelBlockPtr] ; Make the change in the level buffer itself
+  sta LevelBuf,y ; Make the change in the level buffer itself
+  sta BlockType
 
-  ldy ScatterUpdateLength
-  cpy #SCATTER_BUFFER_LENGTH - (4*4) + 1 ; There needs to be enough room for four tiles
+  lda ScatterUpdateLength
+  cmp #SCATTER_BUFFER_LENGTH - (4*4) + 1 ; There needs to be enough room for four tiles
   bcc :+
-    ; Instead try to do it later
-    ldy #1
-    sty BlockTemp
-    jsl DelayChangeBlock ; Takes A and LevelBlockPtr just like ChangeBlock
+    ; If not, try to do it later
+    lda #1
+    sta BlockTemp ; Timer
+    lda BlockType
+    jsl DelayChangeBlock ; Takes A and Y just like ChangeBlock
     jmp Exit
   :
-
-  ; From this point on in the routine, Y = index to write into the scatter buffer
-
-  ; Save block number in X specifically, for 24-bit Absolute Indexed
-  tax
-  ; Now the accumulator is free to do other things
 
   ; -----------------------------------
 
   ; Copy the block appearance into the update buffer
+  phy
+  ldy ScatterUpdateLength
+  ldx BlockType
   .import BlockTopLeft, BlockTopRight, BlockBottomLeft, BlockBottomRight
   lda f:BlockTopLeft,x
   sta ScatterUpdateBuffer+(4*0)+DATA,y
@@ -136,53 +131,33 @@ Temp    = BlockTemp
   sta ScatterUpdateBuffer+(4*2)+DATA,y
   lda f:BlockBottomRight,x
   sta ScatterUpdateBuffer+(4*3)+DATA,y
+  tyx
+  ply
 
   ; Now calculate the PPU address
-  ; LevelBlockPtr is 00xxxxxxxxyyyyy0 (for horizontal levels)
+  ; Index is         0000000yyyyxxxx0
   ; Needs to become  0....pyyyyyxxxxx
-  lda Temp ; still GetBlockY's result
-  asl
-  and #%11110 ; Grab Y & 15
-  asl
-  asl
-  asl
-  asl
+  tya
+  and                     #%111100000
   asl
   ora #ForegroundBG
   sta ScatterUpdateBuffer+(4*0)+ADDRESS,y
-
-CalculateRestOfAddress:
-  ; Add in X
-  jsl GetBlockX
-  pha
-  and #15
-  asl
+  tya
+  and                     %11110
   ora ScatterUpdateBuffer+(4*0)+ADDRESS,y
   sta ScatterUpdateBuffer+(4*0)+ADDRESS,y
+
+  ; Set up the addresses for the other three tiles
+  lda ScatterUpdateBuffer+(4*0)+ADDRESS,x
   ina
-  sta ScatterUpdateBuffer+(4*1)+ADDRESS,y
-
-  ; Choose second screen if needed
-  pla
-  and #16
-  beq :+
-    lda ScatterUpdateBuffer+(4*0)+ADDRESS,y
-    ora #2048>>1
-    sta ScatterUpdateBuffer+(4*0)+ADDRESS,y
-    lda ScatterUpdateBuffer+(4*1)+ADDRESS,y
-    ora #2048>>1
-    sta ScatterUpdateBuffer+(4*1)+ADDRESS,y
-  :
-
-  ; Precalculate the bottom row
-  lda ScatterUpdateBuffer+(4*0)+ADDRESS,y
-  add #(32*2)>>1
-  sta ScatterUpdateBuffer+(4*2)+ADDRESS,y
+  sta ScatterUpdateBuffer+(4*1)+ADDRESS,x
+  add #31
+  sta ScatterUpdateBuffer+(4*2)+ADDRESS,x
   ina
-  sta ScatterUpdateBuffer+(4*3)+ADDRESS,y
+  sta ScatterUpdateBuffer+(4*3)+ADDRESS,x
 
-  tya
-  adc #16 ; Carry guaranteed to be clear
+  txa
+  adc #16 ; Carry guaranteed to be clear due to the above "add"
   sta ScatterUpdateLength
 
   ; Restore registers
@@ -195,98 +170,94 @@ Exit:
 
 
 ; Changes a block, in the future!
-; input: A (new block), LevelBlockPtr (block to change), BlockTemp (Time amount)
+; input: A (new block), Y (block to change), BlockTemp (Time amount)
 .a16
 .i16
 .proc DelayChangeBlock
   phx
   phy
 
+  pha
+
   ; Find an unused slot
   ldx #(MaxDelayedBlockEdits-1)*2
 DelayedBlockLoop:
-  ldy DelayedBlockEditTime,x ; Load Y to set flags only
+  lda DelayedBlockEditTime,x
   beq Found                  ; Found an empty slot!
   dex
   dex
   bpl DelayedBlockLoop
-  bra Exit ; Fail
+  bra Fail
 
 Found:
+  pla
   sta DelayedBlockEditType,x
 
   lda BlockTemp
   sta DelayedBlockEditTime,x
 
-  lda LevelBlockPtr
+  tya
   sta DelayedBlockEditAddr,x
-
 Exit:
+  ply
+  plx
+  rtl
+Fail:
+  pla
   ply
   plx
   rtl
 .endproc
 
 
-; Gets the column number of LevelBlockPtr
+; Gets the column number of Y
 .a16
 .proc GetBlockX
-  lda LevelBlockPtr ; Get level column
+  ; LevelBuf index format:
+  ; 0000000y yyyxxxx0
+  tya
+  lsr
+  and #15
+  rtl
+.endproc
+
+
+; Set accumulator to X coordinate of Y
+.a16
+.proc GetBlockXCoord
+  ; LevelBuf index format:
+  ; 0000000y yyyxxxx0
+  tya
+  lsr
+  and #15
+  xba
+  rtl
+.endproc
+
+; Get the row number of Y
+.a16
+.proc GetBlockY
+  ; LevelBuf index format:
+  ; 0000000y yyyxxxx0
+  tya
+  asl
   asl
   asl
   xba
-  and #255
-  rtl
-.endproc
-
-
-; Set accumulator to X coordinate of LevelBlockPtr
-.a16
-.proc GetBlockXCoord
-  lda LevelBlockPtr ; Get level column
-  asl
-  asl
   and #$ff00
-  rtl
-.endproc
-
-.a16
-.export GetBlockXCoord_Vertical
-.proc GetBlockXCoord_Vertical
-  ; 00xxxxxyyyyyyyy0
-  lda LevelBlockPtr ; Get level column
-  lsr
-  and #%11111 * 256
-  rtl
-.endproc
-
-; Get the row number of LevelBlockPtr
-.a16
-.proc GetBlockY
-  lda LevelBlockPtr ; Get level row
-  lsr
-  and #31
   rtl
 .endproc
 
 ; Set accumulator to Y coordinate of LevelBlockPtr
 .a16
 .proc GetBlockYCoord
-  lda LevelBlockPtr ; Get level row
-  lsr
-  and #31
-  xba
-  rtl
-.endproc
-
-.a16
-.export GetBlockYCoord_Vertical
-.proc GetBlockYCoord_Vertical
-  ; 00xxxxxyyyyyyyy0
-  lda LevelBlockPtr ; Get level row
-  lsr
-  and #255
-  xba
+  ; LevelBuf index format:
+  ; 0000000y yyyxxxx0
+  tya
+  asl
+  asl
+  asl
+  and #$ff00
   rtl
 .endproc
 

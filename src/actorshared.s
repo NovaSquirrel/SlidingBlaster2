@@ -299,12 +299,11 @@ Found:
 .endproc
 
 ; Look up the block at a coordinate and run the interaction routine it has, if applicable
-; Will try the second layer if the first is not solid
 ; A = X coordinate, Y = Y coordinate
 .export ActorTryUpInteraction
 .import BlockRunInteractionActorTopBottom
 .proc ActorTryUpInteraction
-  jsl GetLevelPtrXY
+  jsl GetLevelIndexXY
   phx
   tax
   lda f:BlockFlags,x
@@ -316,11 +315,10 @@ Found:
 .endproc
 
 ; Look up the block at a coordinate and run the interaction routine it has, if applicable
-; Will try the second layer if the first is not solid or solid on top
 ; A = X coordinate, Y = Y coordinate
 .export ActorTryDownInteraction
 .proc ActorTryDownInteraction
-  jsl GetLevelPtrXY
+  jsl GetLevelIndexXY
   phx
   tax
   lda f:BlockFlags,x
@@ -336,7 +334,7 @@ Found:
 .export ActorTrySideInteraction
 .import BlockRunInteractionActorSide
 .proc ActorTrySideInteraction
-  jsl GetLevelPtrXY
+  jsl GetLevelIndexXY
   phx
   tax
   lda f:BlockFlags,x

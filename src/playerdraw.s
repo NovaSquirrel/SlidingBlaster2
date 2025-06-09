@@ -160,19 +160,19 @@ CannonX = 18
   sta OAM_YPOS+(4*3),y
 
   lda #1 ; 16x16
-  asl BaseX+1
+  lsr BaseX+1
   rol
   sta OAMHI+1+(4*2),y
   tdc ; 8x8
-  asl Fan1X+1
+  lsr Fan1X+1
   rol
   sta OAMHI+1+(4*0),y
   tdc
-  asl Fan2X+1
+  lsr Fan2X+1
   rol
   sta OAMHI+1+(4*1),y
   tdc
-  asl CannonX+1
+  lsr CannonX+1
   rol
   sta OAMHI+1+(4*3),y ; Cannon
   seta16_clc

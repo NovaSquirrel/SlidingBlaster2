@@ -22,9 +22,8 @@
 .include "tad-audio.inc"
 .smart
 
-.import BlockRunInteractionAbove, BlockRunInteractionBelow
-.import BlockRunInteractionSide,  BlockRunInteractionInsideHead
-.import BlockRunInteractionInsideBody
+.import BlockRunInteractionBump
+.import BlockRunInteractionInside
 .import InitActorX, InitActorY
 
 .import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, ActorApplyXVelocity, ActorApplyYVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16
@@ -152,6 +151,16 @@ NoTarget:
   lda keynew
   and #KEY_Y
   beq NoShoot
+    lda PlayerAmmo,x
+    bne HaveAmmo
+      ; TODO: No ammo message
+      bra NoShoot
+    HaveAmmo:
+    dec PlayerAmmo,x
+    .import UpdatePlayerAmmoTiles
+    jsl UpdatePlayerAmmoTiles
+
+
     jsl FindFreeProjectileY
     bcc NoShoot
       lda #Actor::PlayerProjectile*2
@@ -303,11 +312,23 @@ NoVerticalMovement:
 
   ; -------------------------------------------------------
   jsl ActorApplyVelocity
+
+  ; Try running interaction with the thing you're on top of
+  lda ActorPX,x
+  ldy ActorPY,x
+  jsl GetLevelIndexXY
+  jsl BlockRunInteractionInside
+
   rtl
 
 TrySideInteraction:
   jsl GetLevelIndexXY
-  beq NoBumpHoriz
+  phx
+  tax
+  lda f:BlockFlags,x
+  plx
+  asl
+  bcc NoBumpHoriz
     lda #256
     sub PlayerMoveAngle,x
     and #510
@@ -320,7 +341,12 @@ TrySideInteraction:
 
 TryVertInteraction:
   jsl GetLevelIndexXY
-  beq NoBumpVert
+  phx
+  tax
+  lda f:BlockFlags,x
+  plx
+  asl
+  bcc NoBumpVert
     lda PlayerMoveAngle,x
     eor #$ffff
     ina

@@ -17,24 +17,23 @@ t 0:0 0:0
 t 0:0 0:0
 
 +AmmoPickup
+When Touch, BlockGetAmmo
 q 0,2
 
 +HealthPickup
+When Touch, BlockGetHealth
 q 2,2
 
 +SpeedPickup
+When Touch, BlockGetSpeed
 q 4,2
 
 +DamagePickup
+When Touch, BlockGetDamage
 q 6,4
 
 base level_gfx
 palette red_blue_yellow_palette
-
-+Test
-when Touch, BlockBricks
-solid
-q 6,0
 
 +RedWood
 solid
@@ -267,5 +266,6 @@ solid
 q 2,6
 
 +Breakable
+when Shot, BlockBreakableShot
 solid
 q 0,6

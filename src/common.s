@@ -31,25 +31,19 @@
   bcs OutOfBounds
   cpy #LEVEL_HEIGHT << 8
   bcs OutOfBounds
-  ; X position
-  ; 0000XXXX xxxxxxxx
-  xba
-  ; xxxxxxxx 0000XXXX
-  asl
-  ; xxxxxxx0 000XXXX0
-  and #%11110
-  ; 00000000 000XXXX0
+  ; X position      0000XXXX xxxxxxxx
+  xba             ; xxxxxxxx 0000XXXX
+  asl             ; xxxxxxx0 000XXXX0
+  and #%11110     ; 00000000 000XXXX0
   pha
 
   ; Y position
-  ; 0000YYYY yyyyyyyy
-  tya
-  lsr
-  lsr
-  lsr
-  ; 0000000Y YYYyyyyy
-  and #%111100000
-  ora 1,s
+  tya             ; 0000YYYY yyyyyyyy
+  lsr             ; 00000YYY Yyyyyyyy
+  lsr             ; 000000YY YYyyyyyy
+  lsr             ; 0000000Y YYYyyyyy
+  and #%111100000 ; 0000000Y YYY00000
+  ora 1,s         ; 0000000Y YYYXXXX0 
   tay
   pla ; Clean up the stack
 
@@ -133,22 +127,21 @@ Temp2     = BlockTemp+2
   sta ScatterUpdateBuffer+(4*3)+DATA,y
   tyx
   ply
+  ldx ScatterUpdateLength
 
   ; Now calculate the PPU address
-  ; Index is         0000000yyyyxxxx0
-  ; Needs to become  0....pyyyyyxxxxx
+  ; Index is        0000000yyyyxxxx0
+  ; Needs to become 0....pyyyyyxxxxx
   tya
-  and                     #%111100000
+  and                    #%111100000
   asl
-  ora #ForegroundBG
-  sta ScatterUpdateBuffer+(4*0)+ADDRESS,y
+  sta ScatterUpdateBuffer+(4*0)+ADDRESS,x
   tya
-  and                     %11110
-  ora ScatterUpdateBuffer+(4*0)+ADDRESS,y
-  sta ScatterUpdateBuffer+(4*0)+ADDRESS,y
-
+  and                    #%000011110
+  ora ScatterUpdateBuffer+(4*0)+ADDRESS,x
+  add #ForegroundBG+32
+  sta ScatterUpdateBuffer+(4*0)+ADDRESS,x
   ; Set up the addresses for the other three tiles
-  lda ScatterUpdateBuffer+(4*0)+ADDRESS,x
   ina
   sta ScatterUpdateBuffer+(4*1)+ADDRESS,x
   add #31

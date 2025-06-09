@@ -43,8 +43,8 @@ for line in text:
 		saveBlock()
 		# Reset to prepare for the new block
 		priority = False
-		block = {"name": line[1:], "solid": False, "solid_top": False, \
-		  "tiles": [], "interaction": {}, "interaction_set": 0, "class": "None", "autotile": None}
+		block = {"name": line[1:], "solid": False, \
+		  "tiles": [], "interaction": {}, "interaction_set": 0, "class": "None"}
 		continue
 	word, arg = separateFirstWord(line)
 	# Miscellaneous directives
@@ -63,24 +63,12 @@ for line in text:
 
 		# Aliases for selecting multiple interaction types at once
 		if arg[0] == "Touch":
-			arg[0] = ("InsideBody", "InsideHead", "Above", "Below", "Side")
-		elif arg[0] == "SolidCheck":
-			arg[0] = ("InsideHead", "Above", "Below", "Side", "ActorTopBottom", "ActorSide")
-		elif arg[0] == "PlayerSolidCheck":
-			arg[0] = ("InsideHead", "Above", "Below", "Side")
-		elif arg[0] == "ActorSolidCheck":
-			arg[0] = ("ActorTopBottom", "ActorSide")
-		elif arg[0] == "Inside":
-			arg[0] = ("InsideBody", "InsideHead")
+			arg[0] = ("Inside", "Bump")
 		else:
 			arg[0] = (arg[0],)
 		for i in arg[0]:
 			block["interaction"][i] = arg[1]
 		all_interaction_procs.add(arg[1])
-	elif word == "autotile":
-		block["autotile"] = arg
-		all_interaction_procs.add(arg)
-
 	elif word == "class":
 		block["class"] = arg
 		all_classes.add(arg)
@@ -88,8 +76,6 @@ for line in text:
 	# Specifying tiles and tile attributes
 	elif word == "solid":
 		block["solid"] = True
-	elif word == "solid_top":
-		block["solid_top"] = True
 	elif word == "priority":
 		priority = True
 	elif word == "no_priority":
@@ -129,7 +115,7 @@ outfile.write('.segment "C_BlockInteraction"\n\n')
 outfile.write('.proc BlockFlags\n')
 for b in all_blocks:
 	outfile.write('  .byt %d, $%x|BlockClass::%s ; %s\n' % (b['interaction_set'], \
-	  b['solid'] * 0x80 + b['solid_top'] * 0x40, b['class'], b['name']))
+	  b['solid'] * 0x80, b['class'], b['name']))
 outfile.write('.endproc\n\n')
 
 outfile.write(".proc BlockNothing\n  rts\n.endproc\n\n")
@@ -137,7 +123,7 @@ outfile.write(".proc BlockNothing\n  rts\n.endproc\n\n")
 print("Interaction sets: %d" % len(all_interaction_sets))
 
 # Write all interaction type tables corresponding to each interaction set
-interaction_types = ["Above", "Below", "Side", "InsideHead", "InsideBody", "ActorInside", "ActorTopBottom", "ActorSide"]
+interaction_types = ["Bump", "Shot", "Inside", "ActorInside", "ActorBump"]
 for interaction in interaction_types:
 	outfile.write(".export BlockInteraction%s\n" % interaction)
 	outfile.write(".proc BlockInteraction%s\n" % interaction)

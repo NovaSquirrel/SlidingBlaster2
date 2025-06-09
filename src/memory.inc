@@ -15,7 +15,7 @@ SCATTER_BUFFER_LENGTH = 128
 .global ScatterUpdateLength
 .global ScatterUpdateBuffer
 
-MaxDelayedBlockEdits = 15
+MaxDelayedBlockEdits = 17
 .global DelayedBlockEditType
 .global DelayedBlockEditTime
 .global DelayedBlockEditAddr

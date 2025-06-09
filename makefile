@@ -165,7 +165,7 @@ $(objdir)/leveldata.o: $(levels_lz4) $(levels_bin) $(srcdir)/leveldata.s $(srcdi
 levels/%.lz4: levels/%.bin
 	$(lz4_compress) $(lz4_flags) $< $@
 	@touch $@
-levels/%.bin: levels/%.tmx tools/levelconvert.py
+levels/%.bin: levels/%.tmx tools/levelconvert.py tools/blocks.txt
 	$(PY) tools/levelconvert.py $< $@
 
 $(objdir)/characters.o: $(chrXall) $(srcdir)/paletteenum.s

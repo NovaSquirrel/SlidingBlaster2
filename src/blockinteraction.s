@@ -28,107 +28,100 @@
 
 .segment "C_BlockInteraction"
 
-.export BlockBricks
+.export BlockBreakableShot
 .export BlockSpikes
+.export BlockGetAmmo, BlockGetHealth, BlockGetSpeed, BlockGetDamage
 
 ; Export the interaction runners
-.export BlockRunInteractionAbove, BlockRunInteractionBelow
-.export BlockRunInteractionSide, BlockRunInteractionInsideHead
-.export BlockRunInteractionInsideBody, BlockRunInteractionActorInside
-.export BlockRunInteractionActorTopBottom, BlockRunInteractionActorSide
+.export BlockRunInteractionBump, BlockRunInteractionInside, BlockRunInteractionActorInside
+.export BlockRunInteractionShot, BlockRunInteractionActorBump
 
 ; .-------------------------------------
 ; | Runners for interactions
 ; '-------------------------------------
 
+CallA:
+  sta TempVal
+  jmp (TempVal)
+
 .a16
 .i16
-.import BlockInteractionAbove
-.proc BlockRunInteractionAbove
+.import BlockInteractionBump
+.proc BlockRunInteractionBump
+  phb
+  phx
+  tax
+  lda f:BlockFlags,x
   and #255 ; Get the interaction set only
   beq Skip
 
-  phb
   phk ; Data bank = program bank
   plb
   asl
   tax
-  jsr (.loword(BlockInteractionAbove),x)
+  lda BlockInteractionBump,x
+  plx
+  jsr CallA
   plb
+  rtl
+
 Skip:
+  plx
+  plb
   rtl
 .endproc
 
 .a16
 .i16
-.import BlockInteractionBelow
-.proc BlockRunInteractionBelow
+.import BlockInteractionShot
+.proc BlockRunInteractionShot
+  phb
+  phx
+  tax
+  lda f:BlockFlags,x
   and #255 ; Get the interaction set only
   beq Skip
 
-  phb
   phk ; Data bank = program bank
   plb
   asl
   tax
-  jsr (.loword(BlockInteractionBelow),x)
+  lda BlockInteractionShot,x
+  plx
+  jsr CallA
   plb
+  rtl
+
 Skip:
+  plx
+  plb
   rtl
 .endproc
 
 .a16
 .i16
-.import BlockInteractionSide
-.proc BlockRunInteractionSide
+.import BlockInteractionInside
+.proc BlockRunInteractionInside
+  phb
+  phx
+  tax
+  lda f:BlockFlags,x
   and #255 ; Get the interaction set only
   beq Skip
 
-  phb
   phk ; Data bank = program bank
   plb
   asl
   tax
-  jsr (.loword(BlockInteractionSide),x)
+  lda BlockInteractionInside,x
+  plx
+  jsr CallA
   plb
-Skip:
   rtl
-.endproc
 
-
-.a16
-.i16
-.import BlockInteractionInsideHead
-.proc BlockRunInteractionInsideHead
-  and #255 ; Get the interaction set only
-  beq Skip
-
-  phb
-  phk ; Data bank = program bank
-  plb
-  asl
-  tax
-  jsr (.loword(BlockInteractionInsideHead),x)
-  plb
 Skip:
-  rtl
-.endproc
-
-.a16
-.i16
-.import BlockInteractionInsideBody
-.proc BlockRunInteractionInsideBody
-  and #255 ; Get the interaction set only
-  beq Skip
-
-  phb
-  phk ; Data bank = program bank
+  plx
   plb
-  asl
-  tax
-  jsr (.loword(BlockInteractionInsideBody),x)
-  plb
-Skip:
   rtl
 .endproc
 
@@ -136,61 +129,53 @@ Skip:
 .i16
 .import BlockInteractionActorInside
 .proc BlockRunInteractionActorInside
+  phb
+  phx
+  tax
+  lda f:BlockFlags,x
   and #255 ; Get the interaction set only
   beq Skip
 
-  phb
   phk ; Data bank = program bank
   plb
   asl
   tax
-  jsr (.loword(BlockInteractionActorInside),x)
+  lda BlockInteractionActorInside,x
+  plx
+  jsr CallA
   plb
+  rtl
+
 Skip:
+  plx
+  plb
   rtl
 .endproc
 
-; Pass in a block flag word and it will run the interaction
 .a16
 .i16
-.import BlockInteractionActorTopBottom
-.proc BlockRunInteractionActorTopBottom
+.import BlockInteractionActorBump
+.proc BlockRunInteractionActorBump
+  phb
+  phx
+  tax
+  lda f:BlockFlags,x
   and #255 ; Get the interaction set only
   beq Skip
 
-  phb
   phk ; Data bank = program bank
   plb
   asl
-  tay
-  lda BlockInteractionActorTopBottom,y
-  jsr Call
+  tax
+  lda BlockInteractionActorBump,x
+  plx
+  jsr CallA
   plb
-Skip:
   rtl
 
-Call: ; Could use the RTS trick here instead
-  sta TempVal
-  jmp (TempVal)
-.endproc
-
-; Pass in a block flag word and it will run the interaction
-.a16
-.i16
-.import BlockInteractionActorSide
-.proc BlockRunInteractionActorSide
-  and #255 ; Get the interaction set only
-  beq Skip
-
-  phb
-  phk ; Data bank = program bank
-  plb
-  asl
-  tay
-  lda BlockInteractionActorSide,y
-  jsr BlockRunInteractionActorTopBottom::Call
-  plb
 Skip:
+  plx
+  plb
   rtl
 .endproc
 
@@ -256,7 +241,7 @@ Skip:
   rts
 .endproc
 
-.proc BlockBricks
+.proc BlockBreakableShot
   seta8
   ; Play the sound effect
   lda #SFX::brick_break
@@ -272,6 +257,49 @@ Skip:
 .proc BlockSpikes
   .import HurtPlayer
   jsl HurtPlayer
+  rts
+.endproc
+
+.a16
+.proc BlockGetAmmo
+  lda #60*10
+  sta BlockTemp ; Timer
+  lda #Block::AmmoPickup
+  jsl DelayChangeBlock
+
+  lda #Block::Empty
+  jsl ChangeBlock
+
+  lda PlayerAmmo,x
+  add #5
+  cmp #99
+  bcc :+
+    lda #99
+  :
+  sta PlayerAmmo,x
+  .import UpdatePlayerAmmoTiles
+  jsl UpdatePlayerAmmoTiles
+  rts
+.endproc
+
+.a16
+.proc BlockGetHealth
+  lda #Block::Empty
+  jsl ChangeBlock
+  rts
+.endproc
+
+.a16
+.proc BlockGetSpeed
+  lda #Block::Empty
+  jsl ChangeBlock
+  rts
+.endproc
+
+.a16
+.proc BlockGetDamage
+  lda #Block::Empty
+  jsl ChangeBlock
   rts
 .endproc
 

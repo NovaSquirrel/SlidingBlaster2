@@ -300,47 +300,11 @@ Found:
 
 ; Look up the block at a coordinate and run the interaction routine it has, if applicable
 ; A = X coordinate, Y = Y coordinate
-.export ActorTryUpInteraction
-.import BlockRunInteractionActorTopBottom
-.proc ActorTryUpInteraction
+.export ActorTryBumpInteraction
+.import BlockRunInteractionActorBump
+.proc ActorTryBumpInteraction
   jsl GetLevelIndexXY
-  phx
-  tax
-  lda f:BlockFlags,x
-  sta BlockFlag
-  plx
-  jsl BlockRunInteractionActorTopBottom
-  lda BlockFlag
-  rtl
-.endproc
-
-; Look up the block at a coordinate and run the interaction routine it has, if applicable
-; A = X coordinate, Y = Y coordinate
-.export ActorTryDownInteraction
-.proc ActorTryDownInteraction
-  jsl GetLevelIndexXY
-  phx
-  tax
-  lda f:BlockFlags,x
-  sta BlockFlag
-  plx
-  jsl BlockRunInteractionActorTopBottom
-  lda BlockFlag
-  rtl
-.endproc
-
-; Look up the block at a coordinate and run the interaction routine it has, if applicable
-; A = X coordinate, Y = Y coordinate
-.export ActorTrySideInteraction
-.import BlockRunInteractionActorSide
-.proc ActorTrySideInteraction
-  jsl GetLevelIndexXY
-  phx
-  tax
-  lda f:BlockFlags,x
-  sta BlockFlag
-  plx
-  jsl BlockRunInteractionActorSide
+  jsl BlockRunInteractionActorBump
   lda BlockFlag
   rtl
 .endproc

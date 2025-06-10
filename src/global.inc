@@ -54,7 +54,7 @@ GAMEPLAY_SPRITE_Y_OFFSET = 8
 ; Common
 .global GetLevelIndexXY, GetBlockFlag
 .global RenderLevelScreen
-.global FadeIn, FadeOut, WaitKeysReady
+.global FadeIn, FadeOut, WaitKeysReady, UpdatePlayerKeys
 .global MemClear, MemClear7F
 
 .global RunPlayer, DrawPlayer, AdjustCamera

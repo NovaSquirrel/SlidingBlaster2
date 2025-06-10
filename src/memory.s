@@ -26,10 +26,6 @@
   retraces: .res 2
   framecount: .res 2  ; Only increases every iteration of the main loop
 
-  keydown:  .res 2
-  keylast:  .res 2
-  keynew:   .res 2
-
   random1:  .res 2
   random2:  .res 2
 

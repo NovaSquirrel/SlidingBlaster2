@@ -51,7 +51,7 @@
   rtl
 
 OutOfBounds:
-  ldx #LevelBufSolidTile - LevelBuf
+  ldy #LevelBufSolidTile - LevelBuf
   lda #Block::BlueEngraved ; Can be anything solid
   rtl
 .endproc
@@ -371,16 +371,32 @@ padwait:
 
   ; -----------------------------------
 
-  lda keydown
-  sta keylast
-  lda JOY1CUR
-  sta keydown
-  lda keylast
-  eor #$ffff
-  and keydown
-  sta keynew
+  jsl UpdatePlayerKeys
+
   stz OamPtr
   plp
+  rtl
+.endproc
+
+.a16
+.proc UpdatePlayerKeys
+  lda Player1+PlayerKeyDown
+  sta Player1+PlayerKeyLast
+  lda JOY1CUR
+  sta Player1+PlayerKeyDown
+  lda Player1+PlayerKeyLast
+  eor #$ffff
+  and Player1+PlayerKeyDown
+  sta Player1+PlayerKeyNew
+
+  lda Player2+PlayerKeyDown
+  sta Player2+PlayerKeyLast
+  lda JOY2CUR
+  sta Player2+PlayerKeyDown
+  lda Player2+PlayerKeyLast
+  eor #$ffff
+  and Player2+PlayerKeyDown
+  sta Player2+PlayerKeyNew
   rtl
 .endproc
 
@@ -422,6 +438,7 @@ ZeroSource:
   bra MemClear::UseHighHalf
 .endproc
 
+.if 0
 .export KeyRepeat
 .proc KeyRepeat
   php
@@ -452,3 +469,4 @@ SkipNoAutorepeat:
   plp
   rtl
 .endproc
+.endif

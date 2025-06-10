@@ -1,8 +1,5 @@
 .globalzp retraces
 .globalzp framecount
-.globalzp keydown
-.globalzp keylast
-.globalzp keynew
 .globalzp BlockFlag
 .globalzp BlockTemp
 
@@ -110,13 +107,19 @@ PlayerFlips      = ActorFlips
 .struct
 	.res ActorStructSize
 	PlayerUsingAMouse  .byte
-	PlayerControlStyle .byte ; 0 for simple, 1 for cursor
+	PlayerMouseSensitivity .byte ; Sensitivity the player wants; will cycle between sensitivity options until it lands on this one. Should be shifted left by 4
+	PlayerControlStyle .byte ; 0 for simple, 128 for cursor
 	PlayerStatusTop     .res 5*2
 	PlayerStatusBottom  .res 5*2
 	PlayerStatusRedraw  .word
 	PlayerFrameID      .word
 	PlayerFrameIDLast  .word
 	PlayerFrameAddress .word
+	PlayerNoAmmoMessage .word ; If nonzero, show a message saying you have no ammo
+	PlayerNoAmmoPity    .word ; Counts up to 240 and then resets
+	PlayerKeyDown      .word
+	PlayerKeyLast      .word
+	PlayerKeyNew       .word
 	PlayerCursorVX     .word
 	PlayerCursorVY     .word
 .endstruct

@@ -138,20 +138,13 @@ forever:
   inc framecount
 
   ; Update keys
-  lda keydown
-  sta keylast
-  lda JOY1CUR
-  sta keydown
-  lda keylast
-  eor #$ffff
-  and keydown
-  sta keynew
+  jsl UpdatePlayerKeys
 
-  lda keynew
-  and #KEY_START
-  beq :+
-    ; TODO: Insert some sort of pause screen here!
-  :
+;  lda keynew
+;  and #KEY_START
+;  beq :+
+;    ; TODO: Insert some sort of pause screen here!
+;  :
 
   seta16
   lda NeedLevelRerender

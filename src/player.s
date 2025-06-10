@@ -24,7 +24,7 @@
 
 .import BlockRunInteractionBump
 .import BlockRunInteractionInside
-.import InitActorX, InitActorY
+.import InitActorX, InitActorY, GetAngle512
 
 .import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, ActorApplyXVelocity, ActorApplyYVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16
 
@@ -35,11 +35,28 @@
 .a16
 .i16
 .proc RunPlayer
+PlayerNumber = TouchTemp
   phk
   plb
 
+  tdc
+  cpy #.loword(Player2)
+  rol
+  sta PlayerNumber
+
+
+  lda #$fd80
+  sta 0
+  lda #$280
+  sta 2
+  wdm 0
+  jsl GetAngle512
+  wdm 0
+
   ; -------------------------------------------------------
   ; Change shoot direction when you press a direction
+  bit8 PlayerUsingAMouse,x
+  jmi MouseMode
 
 TargetAngle = 0
 AbsDifference = 2
@@ -47,7 +64,7 @@ AbsDifference = 2
   lsr PlayerShootAngle,x
   seta8
   tdc ; Clear accumulator, for the TAY
-  lda keydown+1
+  lda PlayerKeyDown+1,x
   and #>(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)
   beq NoTarget
     tay
@@ -111,11 +128,32 @@ NoTarget:
   and #255
   asl
   sta PlayerShootAngle,x
+  jmp ControlMethodEnd
+
+MouseMode:
+
+  lda #$0500
+  sta PlayerCursorPX,x
+  sta PlayerCursorPY,x
+
+  ldy PlayerNumber
+  jsl ReadMouseForPlayerY
+
+  lda PlayerCursorPX,x
+  sub PlayerPX,x
+  sta 0
+  lda PlayerCursorPY,x
+  sub PlayerPY,x
+  sta 2
+  jsl GetAngle512
+  and #$1FE
+  sta PlayerShootAngle,x
+ControlMethodEnd:
 
   ; -------------------------------------------------------
   ; Boosting
 
-  lda keydown
+  lda PlayerKeyDown,x
   and #KEY_B
   beq :+
     lda PlayerBoostTimer,x
@@ -148,14 +186,29 @@ NoTarget:
   ; -------------------------------------------------------
   ; Shooting
 
-  lda keynew
+  ; Give the player 1 ammo after 4 seconds of having none as a little bit of help
+  lda PlayerAmmo,x
+  bne :+
+    inc PlayerNoAmmoPity,x
+    lda PlayerNoAmmoPity,x
+    cmp #240
+    bcc DontResetNoAmmoPity
+    inc PlayerAmmo,x
+    jsl UpdatePlayerAmmoTiles
+  :
+  stz PlayerNoAmmoPity,x
+  DontResetNoAmmoPity:
+
+  lda PlayerKeyNew,x
   and #KEY_Y
   beq NoShoot
     lda PlayerAmmo,x
     bne HaveAmmo
-      ; TODO: No ammo message
+      lda #60
+      sta PlayerNoAmmoMessage,x
       bra NoShoot
     HaveAmmo:
+    stz PlayerNoAmmoMessage,x
     dec PlayerAmmo,x
     .import UpdatePlayerAmmoTiles
     jsl UpdatePlayerAmmoTiles
@@ -419,5 +472,43 @@ NotFound:
 Found:
   plx
   sec
+  rtl
+.endproc
+
+; Y = 0 or 1 for first or second player
+; X = pointer to player struct
+.proc ReadMouseForPlayerY
+  php
+  seta8
+  .repeat 8
+    lda $4016,y
+    lsr
+    rol 0
+  .endrep
+  .repeat 8
+    lda $4016,y
+    lsr
+    rol 1
+  .endrep
+
+  ; If the sensitivity reported isn't the right one, cycle to the next sensitivity
+  lda PlayerKeyDown,x
+  and #%110000
+  cmp PlayerMouseSensitivity,x
+  beq :+
+    lda #1
+    sta $4016
+    lda $4016,y
+    stz $4016
+  :
+
+  ; Copy the left and right mouse buttons to where the Y and B buttons would go
+  lda PlayerKeyDown,x
+  and #$80 | $40
+  sta PlayerKeyDown+1,x
+  lda PlayerKeyNew,x
+  and #$80 | $40
+  sta PlayerKeyNew+1,x
+  plp
   rtl
 .endproc

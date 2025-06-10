@@ -3,7 +3,7 @@
 .smart
 .code
 
-; Wrapper for GetAtan2 that saves X and the data bank, and automatically loads the angle
+; Wrapper for GetAtan2 that saves X (because it would otherwise get changed by setxy8) and the data bank, and automatically loads the angle
 .export GetAngle512
 .a16
 .i16
@@ -156,6 +156,7 @@ Delay:
   :
 
   ; Was the initial X distance negative?
+  wdm 0
   lsr Quadrant
   bcc :+
     eor #$ff

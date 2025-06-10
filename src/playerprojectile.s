@@ -64,12 +64,39 @@ DrawPlayerProjectileTable:
 .proc RunProjectileBullet
   jsl ActorApplyVelocity
 
+  .if 0
   inc ActorTimer,x
   lda ActorTimer,x
-  cmp #50
+  cmp #85
   bne :+
     stz ActorType,x
   :
+  .endif
+
+  ; Disappear when bumping into a wall
+  lda ActorPX,x
+  ldy ActorPY,x
+  jsl GetLevelIndexXY
+  phx
+  tax
+  lda f:BlockFlags,x
+  plx
+  asl
+  bcc NoWall
+    lda LevelBuf,y
+    cmp #Block::Breakable
+    bne :+
+      seta8
+      ; Play the sound effect
+      lda #SFX::brick_break
+      jsl PlaySoundEffect
+      seta16
+
+      lda #Block::Empty
+      jsl ChangeBlock
+    :
+    stz ActorType,x
+  NoWall:
   rtl
 .endproc
 

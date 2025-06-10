@@ -201,6 +201,11 @@ DoneExpanding:
   ; Initialize gameplay variables
   lda #2
   sta Player1+PlayerSpeed
+  seta8
+  lda #128
+  sta Player1+PlayerUsingAMouse
+  sta Player1+PlayerControlStyle
+  seta16
 
   rtl
 .endproc

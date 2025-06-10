@@ -132,7 +132,7 @@ $(objdir)/renderlevel.o: $(srcdir)/actorenum.s
 $(objdir)/main.o: $(srcdir)/vblank.s $(srcdir)/audio_enum.inc
 $(objdir)/blockdata.o: $(srcdir)/blockenum.s
 $(objdir)/common.o: $(srcdir)/blockenum.s
-$(objdir)/player.o: $(srcdir)/blockenum.s $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
+$(objdir)/player.o: $(srcdir)/blockenum.s $(srcdir)/actorenum.s $(srcdir)/audio_enum.inc
 $(objdir)/actorshared.o: $(srcdir)/blockenum.s
 $(objdir)/levelload.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s $(srcdir)/blockenum.s
 $(objdir)/leveldata.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s $(srcdir)/actorenum.s $(srcdir)/blockenum.s

@@ -150,9 +150,9 @@ BackgroundRenderLoop:
 :	ldx BackLevelBuf,y
 	iny
 	iny
-	lda #16 + 4 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	lda #16 + 4 + 512 + (BG_GREEN_GRAY_BROWN << BG_COLOR_SHIFT)
 	sta f:PPUDATA
-	lda #16 + 5 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	lda #16 + 5 + 512 + (BG_GREEN_GRAY_BROWN << BG_COLOR_SHIFT)
 	sta f:PPUDATA
 	dec ColumnsLeft
 	bne :-
@@ -165,9 +165,9 @@ BackgroundRenderLoop:
 :	ldx LevelBuf,y
 	iny
 	iny
-	lda #16 + 6 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	lda #16 + 6 + 512 + (BG_GREEN_GRAY_BROWN << BG_COLOR_SHIFT)
 	sta f:PPUDATA
-	lda #16 + 7 + 512 + (BG_ICON_PALETTE << BG_COLOR_SHIFT)
+	lda #16 + 7 + 512 + (BG_GREEN_GRAY_BROWN << BG_COLOR_SHIFT)
 	sta f:PPUDATA
 	dec ColumnsLeft
 	bne :-

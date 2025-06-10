@@ -42,12 +42,48 @@ CannonOffX = 8
 CannonOffY = 10
 CannonTile = 12
 
-; X positions, to make it easier to get the high X bit from them
+; 16-bit X positions, to make it easier to get the high X bit from them
 Fan1X = 14
 Fan2X = 16
 CannonX = 18
   phk
   plb
+
+  ; First, potentially draw the cursor
+  bit8 PlayerControlStyle,x
+  bpl NoCursor
+    ldy OamPtr
+    lda #SHOOT_CURSOR_TILE_ID | OAM_PRIORITY_2
+    sta OAM_TILE,y
+    lda PlayerCursorPX,x
+    lsr
+    lsr
+    lsr
+    lsr
+    sub #6
+    sta 0
+    lda PlayerCursorPY,x
+    lsr
+    lsr
+    lsr
+    lsr
+    add #-8+GAMEPLAY_SPRITE_Y_OFFSET+2
+    sta 2
+    seta8
+    lda 0
+    sta OAM_XPOS,y
+    lda 2
+    sta OAM_YPOS,y
+
+    lsr 0
+    lda #1
+    rol
+    sta OAMHI+1,y
+    seta16_clc
+    tya
+    adc #4
+    sta OamPtr
+  NoCursor:
 
   lda PlayerPX,x
   lsr
@@ -159,8 +195,9 @@ CannonX = 18
   add CannonOffY
   sta OAM_YPOS+(4*3),y
 
-  lda #1 ; 16x16
-  lsr BaseX+1
+  lda BaseX+1
+  lsr
+  lda #1 ; 16x16 - and leave BaseX unchanged for the "no ammo" message
   rol
   sta OAMHI+1+(4*2),y
   tdc ; 8x8
@@ -181,6 +218,46 @@ CannonX = 18
   adc #4*4 ; Carry cleared above
   sta OamPtr
 
+  ; Show "No ammo" message if needed
+  lda PlayerNoAmmoMessage,x
+  beq DontShowNoAmmoMessage
+  dec PlayerNoAmmoMessage,x
+  ldy OamPtr
+  lda #(4*16 + 13) | OAM_PRIORITY_2
+  sta OAM_TILE+(4*0),y
+  ina
+  sta OAM_TILE+(4*1),y
+
+  lda BaseX
+  sub #4
+  sta Fan1X
+  add #8
+  sta Fan2X
+  seta8
+  lda BaseY
+  sub #16
+  sta OAM_YPOS+(4*0),y
+  sta OAM_YPOS+(4*1),y
+  lda Fan1X
+  sta OAM_XPOS+(4*0),y
+  lda Fan2X
+  sta OAM_XPOS+(4*1),y
+
+  ; High OAM
+  lda #1
+  lsr Fan1X+1
+  rol
+  sta OAMHI+1+(4*0),y
+  lda #1
+  lsr Fan2X+1
+  rol
+  sta OAMHI+1+(4*1),y
+  seta16_clc
+
+  tya
+  adc #2*4
+  sta OamPtr
+DontShowNoAmmoMessage:
   rtl
 
 FanAnimationTile:

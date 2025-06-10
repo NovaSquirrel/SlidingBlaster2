@@ -291,11 +291,19 @@
 .endmacro
 
 ; Set the N and V bits to the top two bits of a byte regardless of the current accumulator size
-.macro bit8 var
+.macro bit8 var, index
   .if .asize = 8
-    bit var
+    .if .paramcount = 2
+      bit var, index
+    .else
+      bit var
+    .endif
   .else
-    bit var-1
+    .if .paramcount = 2
+      bit var-1, index
+    .else
+      bit var-1
+    .endif
   .endif
 .endmacro
 

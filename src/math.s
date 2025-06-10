@@ -129,7 +129,7 @@ SmallEnoughAlready:
   stz Angle+1
   ; Are the divisor and dividend equal? Use angle $40 and skip the delay
   lda #$40
-  cpy Dividend+1
+  cpy Dividend+1+1 ; Compare against high byte of what was put into the dividend register
   beq :+
   bra Delay
 Delay:
@@ -156,7 +156,6 @@ Delay:
   :
 
   ; Was the initial X distance negative?
-  wdm 0
   lsr Quadrant
   bcc :+
     eor #$ff

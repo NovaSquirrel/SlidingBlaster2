@@ -44,15 +44,6 @@ PlayerNumber = TouchTemp
   rol
   sta PlayerNumber
 
-
-  lda #$fd80
-  sta 0
-  lda #$280
-  sta 2
-  wdm 0
-  jsl GetAngle512
-  wdm 0
-
   ; -------------------------------------------------------
   ; Change shoot direction when you press a direction
   bit8 PlayerUsingAMouse,x
@@ -131,11 +122,6 @@ NoTarget:
   jmp ControlMethodEnd
 
 MouseMode:
-
-  lda #$0500
-  sta PlayerCursorPX,x
-  sta PlayerCursorPY,x
-
   ldy PlayerNumber
   jsl ReadMouseForPlayerY
 

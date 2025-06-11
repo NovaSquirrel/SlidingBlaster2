@@ -106,9 +106,9 @@ PlayerSpeed      = ActorSpeed
 PlayerFlips      = ActorFlips
 .struct
 	.res ActorStructSize
-	PlayerUsingAMouse  .byte
+	PlayerUsingAMouse  .byte     ; 0 for regular controller, 128 for mouse, 129 for hyperkin mouse
 	PlayerMouseSensitivity .byte ; Sensitivity the player wants; will cycle between sensitivity options until it lands on this one. Should be shifted left by 4
-	PlayerControlStyle .byte ; 0 for simple, 128 for cursor
+	PlayerControlStyle .byte     ; 0 for simple, 128 for cursor
 	PlayerStatusTop     .res 5*2
 	PlayerStatusBottom  .res 5*2
 	PlayerStatusRedraw  .word

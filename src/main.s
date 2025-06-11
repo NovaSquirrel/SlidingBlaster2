@@ -71,6 +71,8 @@
   ldx #0
   txy ; 0 = 64KB
   jsl MemClear7F
+  .a8
+  jsl DetectMice
 
   ; In the same way that the CPU of the Commodore 64 computer can
   ; interact with a floppy disk only through the CPU in the 1541 disk
@@ -229,4 +231,81 @@ padwait:
 
   ; Go on with game logic again
   jmp forever
+.endproc
+
+; Auto read is off at this point
+; Detects which controllers the user has plugged in; probably overly cautious with timing
+.a8
+.i16
+.proc DetectMice
+  ; Try changing the sensitivity, in case that's required to initialize the mouse somehow
+  lda #1
+  sta $4016
+  lda $4016
+  lda $4017
+  stz $4016
+
+  ; Check each controller
+  ldx #Player1
+  ldy #0
+  jsr CheckPlayer
+  ldx #Player2
+  ldy #1
+  jsr CheckPlayer
+
+  rtl
+
+CheckPlayer:
+  stz PlayerUsingAMouse,x
+  stz PlayerControlStyle,x
+  lda #2 << 4
+  sta PlayerMouseSensitivity,x
+
+  jsr ResetController
+  jsr ReadByteSlowly
+  jsr ReadByteSlowly
+  and #$F
+  cmp #$1
+  bne @NotMouse
+  lda #128
+  sta PlayerControlStyle,x
+  sta PlayerUsingAMouse,x
+
+  ; Read and discard X and Y movement
+  jsr ReadByteSlowly
+  jsr ReadByteSlowly
+
+  ; Official mouse has all 1s after the first 32 bits
+  ; Hyperkin mouse has a single 1 and then all 0s after the first 32 bits
+  jsr ReadByteSlowly
+  cmp #$80
+  bne @OfficialMouse
+  inc PlayerUsingAMouse,x ; Mark it as potentially Hyperkin
+@OfficialMouse:
+@NotMouse:
+  rts
+
+ResetController:
+  lda #1
+  sta $4016
+  jsr WasteTime
+  lsr
+  sta $4016
+  jsr WasteTime
+  rts
+
+ReadByteSlowly:
+  lda #1
+  sta 0
+: lda $4016,y
+  lsr
+  rol 0
+  jsr WasteTime
+  bcc :-
+  lda 0
+  jsr WasteTime
+  jsr WasteTime
+WasteTime:
+  jsr :+
+: rts
 .endproc

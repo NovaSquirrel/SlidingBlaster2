@@ -122,9 +122,44 @@ NoTarget:
   jmp ControlMethodEnd
 
 MouseMode:
+  seta8
+  lda #0 << 4
+  sta PlayerMouseSensitivity,x
+  seta16
+
   ldy PlayerNumber
   jsl ReadMouseForPlayerY
 
+  ; Convert to two's complement
+  lda 0
+  and #255
+  bit #128
+  beq :+
+    eor #$FF7F
+    sec
+    adc #0
+  :
+  asl
+  asl
+  add PlayerCursorPY,x
+  and #$FFF
+  sta PlayerCursorPY,x
+
+  lda 1
+  and #255
+  bit #128
+  beq :+
+    eor #$FF7F
+    sec
+    adc #0
+  :
+  asl
+  asl
+  add PlayerCursorPX,x
+  and #$FFF
+  sta PlayerCursorPX,x
+
+  ; Point cannon at cursor
   lda PlayerCursorPX,x
   sub PlayerPX,x
   sta 0
@@ -133,7 +168,7 @@ MouseMode:
   sta 2
   jsl GetAngle512
   and #$1FE
-  sta PlayerShootAngle,x
+  sta PlayerShootAngle,x  
 ControlMethodEnd:
 
   ; -------------------------------------------------------
@@ -466,16 +501,39 @@ Found:
 .proc ReadMouseForPlayerY
   php
   seta8
-  .repeat 8
-    lda $4016,y
-    lsr
-    rol 0
-  .endrep
-  .repeat 8
-    lda $4016,y
-    lsr
-    rol 1
-  .endrep
+
+  ; Copy the left and right mouse buttons to where the Y and B buttons would go
+  lda PlayerKeyDown,x
+  and #$80 | $40
+  sta PlayerKeyDown+1,x
+  lda PlayerKeyNew,x
+  and #$80 | $40
+  sta PlayerKeyNew+1,x
+
+  ; If it's a Hyperkin mouse, add a bunch of delays
+  lda PlayerUsingAMouse,x
+  lsr
+  bcs HyperkinMouse
+
+  lda #1
+  sta 0
+: lda $4016,y
+  lsr
+  rol 0
+  bcc :-
+
+  lda #1
+  sta 1
+: lda $4016,y
+  lsr
+  rol 1
+  bcc :-
+
+WasHyperkinMouse:
+  ; Hyperkin mouse doesn't let game change the sensitivity
+  ; but trying anyway should be good in the case where the Hyperkin mouse gets detected by mistake?
+  lda #%100000
+  sta PlayerMouseSensitivity,x
 
   ; If the sensitivity reported isn't the right one, cycle to the next sensitivity
   lda PlayerKeyDown,x
@@ -487,14 +545,36 @@ Found:
     lda $4016,y
     stz $4016
   :
-
-  ; Copy the left and right mouse buttons to where the Y and B buttons would go
-  lda PlayerKeyDown,x
-  and #$80 | $40
-  sta PlayerKeyDown+1,x
-  lda PlayerKeyNew,x
-  and #$80 | $40
-  sta PlayerKeyNew+1,x
   plp
   rtl
+
+; -----------------------------------------------------
+; The microcontroller in the Hyperkin mouse is slooooow
+HyperkinMouse:
+  lda #1
+  sta 0
+: lda $4016,y
+  lsr         ; 12
+  rol 0       ; 34
+  jsr Delay
+  bcc :-
+
+  lda #1
+  sta 1
+: lda $4016,y
+  lsr
+  rol 1
+  jsr Delay
+  bcc :-
+  bra WasHyperkinMouse
+
+Delay:
+  ; Will add 80 cycles by itself due to the JSR and RTS
+  ; So 170-(46+80) = 44, which would be covered by four NOPs
+  nop
+  nop
+  nop
+  nop
+  nop ; Extra nop for safety
+  rts
 .endproc

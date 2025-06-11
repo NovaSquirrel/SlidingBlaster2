@@ -75,7 +75,7 @@ CannonX = 18
     lda 2
     sta OAM_YPOS,y
 
-    lsr 0
+    lsr 1
     lda #1
     rol
     sta OAMHI+1,y

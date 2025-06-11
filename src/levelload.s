@@ -55,9 +55,14 @@
 .proc DecompressLevel
   ; Clear out some buffers before the level loads stuff into them
 
-  ; Init player, actor, particle memory
   ldx #Player1
-  ldy #ParticleEnd-Player1
+  jsr ResetPlayerVariables
+  ldx #Player2
+  jsr ResetPlayerVariables
+
+  ; Init Actor, particle memory
+  ldx #ActorStart
+  ldy #ParticleEnd-ActorStart
   jsl MemClear
 
   ; Clear level buffer
@@ -198,14 +203,49 @@ DoneExpanding:
   lda #ParticleEnd
   sta ParticleIterationLimit
 
-  ; Initialize gameplay variables
-  lda #2
-  sta Player1+PlayerSpeed
-  seta8
-  lda #128
-  sta Player1+PlayerUsingAMouse
-  sta Player1+PlayerControlStyle
+  ; Initialize gameplay variables here
   seta16
 
   rtl
+.endproc
+
+.proc ResetPlayerVariables
+  stz PlayerPXSub,x
+  stz PlayerPX,x
+  stz PlayerPYSub,x
+  stz PlayerPY,x
+  stz PlayerVXSub,x
+  stz PlayerVX,x
+  stz PlayerVYSub,x
+  stz PlayerVY,x
+  stz PlayerBoostTimer,x
+  stz PlayerAmmo,x
+  stz PlayerShootAngle,x
+  stz PlayerMoveAngle,x
+  stz PlayerWidth,x
+  stz PlayerHeight,x
+  stz PlayerHealth,x
+  lda #2
+  sta PlayerSpeed,x
+  stz PlayerFlips,x
+  stz PlayerStatusTop+0*2,x
+  stz PlayerStatusTop+1*2,x
+  stz PlayerStatusTop+2*2,x
+  stz PlayerStatusTop+3*2,x
+  stz PlayerStatusTop+4*2,x
+  stz PlayerStatusTop+5*2,x
+  stz PlayerStatusBottom+0*2,x
+  stz PlayerStatusBottom+1*2,x
+  stz PlayerStatusBottom+2*2,x
+  stz PlayerStatusBottom+3*2,x
+  stz PlayerStatusBottom+4*2,x
+  stz PlayerStatusBottom+5*2,x
+  stz PlayerFrameID,x
+  stz PlayerFrameIDLast,x
+  stz PlayerNoAmmoMessage,x
+  stz PlayerNoAmmoPity,x
+  stz PlayerKeyDown,x
+  stz PlayerKeyLast,x
+  stz PlayerKeyNew,x
+  rts
 .endproc

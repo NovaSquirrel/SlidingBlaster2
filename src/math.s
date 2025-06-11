@@ -23,6 +23,9 @@
 
 ; Adapted from https://github.com/VitorVilela7/SMW-CodeLib/blob/master/asm/math/atan2.asm by NovaSquirrel
 ; Original by Akaginite
+; As the original repository seems to be licensed under Unlicense ( https://github.com/VitorVilela7/SMW-CodeLib/blob/master/LICENSE )
+; this cleaned up version is licensed under Unlicense too and you may do with it as you wish.
+; A bug was also fixed that gave an incorrect angle when X distance and Y distance were the same.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; GetAtan2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
@@ -129,7 +132,7 @@ SmallEnoughAlready:
   stz Angle+1
   ; Are the divisor and dividend equal? Use angle $40 and skip the delay
   lda #$40
-  cpy Dividend+1+1 ; Compare against high byte of what was put into the dividend register
+  cpy Dividend+1+1 ; Compare against high byte of what was put into the dividend register - bug fix
   beq :+
   bra Delay
 Delay:

@@ -18,6 +18,7 @@
 .include "snes.inc"
 .include "global.inc"
 .include "blockenum.s"
+.include "paletteenum.s"
 .smart
 .import GameMainLoop, UploadLevelGraphics
 
@@ -129,19 +130,37 @@
   sta LevelBackgroundColor+1
   sta CGDATA
 
-  ; Actor data pointer
+  ; Actor tilesets
   iny ; Y = 6
+: lda [LevelHeaderPointer],y
+  sta ActorTilesetSlots-6,y
+  iny
+  cpy #6+8 ;14
+  bne :-
+
+  ; Actor palettes
+  ; Y = 14
+: lda [LevelHeaderPointer],y
+  sta ActorPaletteSlots-14,y
+  iny
+  cpy #14+3 ;17
+  bne :-
+  lda #Palette::Icons
+  sta ActorPaletteSlots + 3
+  ; Y = 17
+
+  ; Actor data pointer
   lda [LevelHeaderPointer],y
   sta LevelActorPointer+0
-  iny ; Y = 7
+  iny
   lda [LevelHeaderPointer],y
   sta LevelActorPointer+1
 
   ; Level data is at the end
-  iny ; Y = 8
+  iny
   lda [LevelHeaderPointer],y
   sta LevelDataPointer+0
-  iny ; Y = 9
+  iny
   lda [LevelHeaderPointer],y
   sta LevelDataPointer+1
 
@@ -227,7 +246,7 @@ DoneExpanding:
   stz PlayerHealth,x
   lda #2
   sta PlayerSpeed,x
-  stz PlayerFlips,x
+  stz PlayerTileBase,x
   stz PlayerStatusTop+0*2,x
   stz PlayerStatusTop+1*2,x
   stz PlayerStatusTop+2*2,x

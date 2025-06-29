@@ -109,7 +109,8 @@ LevelZeroWhenLoad_Start:
   DelayedBlockEditAddr: .res MaxDelayedBlockEdits*2 ; Address to put the block at
   DelayedBlockEditTime: .res MaxDelayedBlockEdits*2 ; Time left until the change
 
-  PlayerInvincible: .res 1     ; timer for player invincibility
+  ActorTilesetSlots:    .res ACTOR_TILESET_SLOT_COUNT
+  ActorPaletteSlots:    .res ACTOR_PALETTE_SLOT_COUNT ; Last one is always the icon palette
 
   ; Number of keys
   RedKeys:    .res 1

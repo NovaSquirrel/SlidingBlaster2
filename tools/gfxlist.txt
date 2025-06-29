@@ -2,3 +2,13 @@
 0800 LevelForeground
 4000 CityRug
 6000 CommonSprites
+7000 EnemyBadGuy
+7000 EnemyBalloon
+7000 EnemyBlueCannon
+7000 EnemyRedCannon
+7000 EnemyBurger
+7000 EnemyCookieWolf
+7000 EnemyHotWheel
+7000 EnemyPirateSalad
+7000 EnemyPoochiPirate
+7000 EnemySnowman

@@ -20,7 +20,7 @@
 .include "snes.inc"
 .include "global.inc"
 .include "blockenum.s"
-.import ActorRun, ActorDraw, ActorAfterRun, ActorFlags, ActorWidthTable, ActorHeightTable, ActorBank, ActorGraphic, ActorPalette
+.import ActorRun, ActorDraw, ActorAfterRun, ActorFlags, ActorWidthTable, ActorHeightTable, ActorBank, ActorTilesetPaletteTable
 .import ActorGetShot
 .smart
 
@@ -443,7 +443,7 @@ Invalid:
 
   ldy OamPtr
   lda 4
-  eor ActorFlips,x
+  add SpriteTileBase,x
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
   seta8
@@ -482,7 +482,7 @@ CustomOffset:
   ldy OamPtr
 
   lda 4
-  eor ActorFlips,x
+  add SpriteTileBase,x
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
   seta8
@@ -948,7 +948,7 @@ Exit:
   stz ActorVY,x
   stz ActorVYSub,x ; 24-bit variable
   stz ActorTimer,x
-  stz ActorFlips,x
+  stz SpriteTileBase,x
   rtl
 .endproc
 
@@ -1064,8 +1064,66 @@ Loop:
 .i16
 .export InitActorX
 .proc InitActorX
-  ; You could insert something here that calls a constructor of some sort
-  ; Fall into UpdateActorSizeX
+  ; Find the right tileset and palette
+  stz ActorTileBase,x
+  phy
+  phx
+  lda ActorType,x
+  tax
+  lda f:ActorTilesetPaletteTable,x
+  plx
+  pha
+  ; 1,s = Tileset
+  ; 2,s = Palette
+
+  seta8
+FindPalette:
+  lda 2,s
+  ina
+  beq DidNotFindPalette ; Skip because the table entry is $FF
+  ldy #ACTOR_PALETTE_SLOT_COUNT-1
+: lda ActorPaletteSlots,y
+  cmp 2,s
+  beq FoundPalette
+  dey
+  bpl :-
+  bra DidNotFindPalette
+FoundPalette:
+  tya
+  add #4 ; First four palettes are for player use
+  asl
+  sta ActorTileBase+1,x
+DidNotFindPalette:
+
+; -----
+
+FindTileset:
+  lda 1,s
+  ina
+  beq DidNotFindTileset ; Skip because the table entry is $FF
+  ldy #ACTOR_TILESET_SLOT_COUNT-1
+: lda ActorTilesetSlots,y
+  cmp 1,s
+  beq FoundTileset
+  dey
+  bpl :-
+  bra DidNotFindTileset
+FoundTileset:
+      ; YXPPpppt tttttttt
+  tya
+  seta16
+  xba ; .....TTT ........
+  lsr ; ......TT T.......
+  lsr ; .......T TT......
+  lsr ; ........ TTT.....
+  ora #512    ;1 TTT00000
+  ora ActorTileBase,x
+  sta ActorTileBase,x
+DidNotFindTileset:
+  seta16
+
+  pla
+  ply
 .endproc
 .export UpdateActorSizeX
 .proc UpdateActorSizeX

@@ -306,21 +306,26 @@ hi_source:
   phx
   php
   setaxy16
+  stz SpriteTileBase
+
+KeepOffset:
   ; Calculate the address
   and #255
   ; Multiply by 7 by subtracting the original value from value*8
-  sta 0
+  pha
   asl
   asl
   asl
-  sub 0
+  sub 1,s
   tax
+  pla
 
   ; Now access the stuff from GraphicsDirectory:
   ; ppp dd ss - pointer, destination, size
 
   ; Destination address
   lda f:GraphicsDirectory+3,x
+  add SpriteTileBase
   sta PPUADDR
 
   ; Size can indicate that it's compressed
@@ -348,6 +353,12 @@ hi_source:
   plp
   plx
   rtl
+
+::DoGraphicUploadWithOffset: ; Alternate entrance for using destination address offsets
+  phx
+  php
+  setaxy16
+  bra KeepOffset
 
 .a16
 .i16
@@ -479,6 +490,23 @@ Compressed:
   lda #GraphicsUpload::CommonSprites
   jsl DoGraphicUpload
 
+  ; Upload level actor graphics
+  ldx #ACTOR_TILESET_SLOT_COUNT-1
+UploadActorTilesetLoop:
+  lda ActorTilesetSlots,x
+  and #255
+  cmp #255
+  beq :+
+  txa ; 00000000 00000ttt
+  xba ; 00000ttt 00000000
+  asl ; 0000ttt0 00000000
+  sta SpriteTileBase
+
+  lda ActorTilesetSlots,x
+  jsl DoGraphicUploadWithOffset
+: dex
+  bpl UploadActorTilesetLoop
+
   ; Upload palettes
   lda #Palette::Miscellaneous
   ldy #0
@@ -493,8 +521,7 @@ Compressed:
   ldy #7
   jsl DoPaletteUpload
 
-  ; Unused: 0, 3, 4, 5, 6
-
+  ; Player palettes
   lda #Palette::PlayerToy
   ldy #8
   jsl DoPaletteUpload
@@ -503,14 +530,27 @@ Compressed:
   jsl DoPaletteUpload
   ; 10 and 11 are character sprite graphics
 
-  lda #Palette::Icons
+  seta8
+  ; Upload actor palettes
+  lda ActorPaletteSlots+0
+  bmi :+
+  ldy #12
+  jsl DoPaletteUpload
+: lda ActorPaletteSlots+1
+  bmi :+
+  ldy #13
+  jsl DoPaletteUpload
+: lda ActorPaletteSlots+2
+  bmi :+
+  ldy #14
+  jsl DoPaletteUpload
+: lda #Palette::Icons
   ldy #15
   jsl DoPaletteUpload
 
   ; .------------------------------------.
   ; | Set up PPU registers for level use |
   ; '------------------------------------'
-  seta8
   lda #1
   sta BGMODE       ; mode 1
 

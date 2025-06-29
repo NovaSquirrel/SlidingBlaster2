@@ -79,9 +79,9 @@ ActorVarA = ParticleVariable
 	ActorHeight .word
 	ActorHealth .word
 	ActorSpeed  .word
-	ActorFlips  .word ; OAM attribute bits to toggle; store 0 or OAM_XFLIP or OAM_YFLIP
+	ActorTileBase .word ; Base tile number for OAM, including the palette picked. Can also set the OAM_XFLIP or OAM_YFLIP bits
 .endstruct
-ActorStructSize = ActorFlips+.sizeof(ActorFlips)
+ActorStructSize = ActorTileBase+.sizeof(ActorTileBase)
 ActorProjectileType = ActorHealth ; Reuse this since player projectiles don't get damaged
 
 PlayerType       = ActorType
@@ -103,7 +103,7 @@ PlayerWidth      = ActorWidth
 PlayerHeight     = ActorHeight
 PlayerHealth     = ActorHealth
 PlayerSpeed      = ActorSpeed
-PlayerFlips      = ActorFlips
+PlayerTileBase   = ActorTileBase
 .struct
 	.res ActorStructSize
 	PlayerUsingAMouse  .byte     ; 0 for regular controller, 128 for mouse, 129 for hyperkin mouse
@@ -174,7 +174,10 @@ PlayerStructSize = PlayerCursorVY+.sizeof(PlayerCursorVY)
 
 .global RedKeys, GreenKeys, BlueKeys, YellowKeys
 
-.global PlayerInvincible
+ACTOR_TILESET_SLOT_COUNT = 8
+.global ActorTilesetSlots
+ACTOR_PALETTE_SLOT_COUNT = 4
+.global ActorPaletteSlots
 
 ; HDMA variables
 .global CloudScrollX, ZeroSource

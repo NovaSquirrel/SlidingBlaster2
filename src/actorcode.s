@@ -118,6 +118,431 @@ Exit:
   rtl
 .endproc
 
+; -----------------------------------------------
+
+.a16
+.i16
+.export RunEnemyCookie
+.proc RunEnemyCookie
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyCookie
+.proc DrawEnemyCookie
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBurger
+.proc RunEnemyBurger
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBurger
+.proc DrawEnemyBurger
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyFries
+.proc RunEnemyFries
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyFries
+.proc DrawEnemyFries
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyFriesProjectile
+.proc RunEnemyFriesProjectile
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyFriesProjectile
+.proc DrawEnemyFriesProjectile
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBadGuy
+.proc RunEnemyBadGuy
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBadGuy
+.proc DrawEnemyBadGuy
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyPumpkin
+.proc RunEnemyPumpkin
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyPumpkin
+.proc DrawEnemyPumpkin
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemySnowman
+.proc RunEnemySnowman
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemySnowman
+.proc DrawEnemySnowman
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyProSnowman
+.proc RunEnemyProSnowman
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyProSnowman
+.proc DrawEnemyProSnowman
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyGreenPirate
+.proc RunEnemyGreenPirate
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyGreenPirate
+.proc DrawEnemyGreenPirate
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemySaladBowl
+.proc RunEnemySaladBowl
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemySaladBowl
+.proc DrawEnemySaladBowl
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemySaladProjectile
+.proc RunEnemySaladProjectile
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemySaladProjectile
+.proc DrawEnemySaladProjectile
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemySaladRazor
+.proc RunEnemySaladRazor
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemySaladRazor
+.proc DrawEnemySaladRazor
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBalloon1
+.proc RunEnemyBalloon1
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBalloon1
+.proc DrawEnemyBalloon1
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBalloon2
+.proc RunEnemyBalloon2
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBalloon2
+.proc DrawEnemyBalloon2
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBalloon3
+.proc RunEnemyBalloon3
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBalloon3
+.proc DrawEnemyBalloon3
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBalloon4
+.proc RunEnemyBalloon4
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBalloon4
+.proc DrawEnemyBalloon4
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyHotWheel
+.proc RunEnemyHotWheel
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyHotWheel
+.proc DrawEnemyHotWheel
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBunnyROM
+.proc RunEnemyBunnyROM
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBunnyROM
+.proc DrawEnemyBunnyROM
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyRedCannon
+.proc RunEnemyRedCannon
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyRedCannon
+.proc DrawEnemyRedCannon
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyRedCannonBall
+.proc RunEnemyRedCannonBall
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyRedCannonBall
+.proc DrawEnemyRedCannonBall
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBlueCannon
+.proc RunEnemyBlueCannon
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBlueCannon
+.proc DrawEnemyBlueCannon
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBlueCannonBall
+.proc RunEnemyBlueCannonBall
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBlueCannonBall
+.proc DrawEnemyBlueCannonBall
+	rtl
+.endproc
+
+
+.a16
+.i16
+.export RunEnemyBluePunch
+.proc RunEnemyBluePunch
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBluePunch
+.proc DrawEnemyBluePunch
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyRedPunch
+.proc RunEnemyRedPunch
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyRedPunch
+.proc DrawEnemyRedPunch
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyBluePooChi
+.proc RunEnemyBluePooChi
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyBluePooChi
+.proc DrawEnemyBluePooChi
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyRedPooChi
+.proc RunEnemyRedPooChi
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyRedPooChi
+.proc DrawEnemyRedPooChi
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyDarkPirate
+.proc RunEnemyDarkPirate
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyDarkPirate
+.proc DrawEnemyDarkPirate
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyCookieWolf
+.proc RunEnemyCookieWolf
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyCookieWolf
+.proc DrawEnemyCookieWolf
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyCookieWolfBox
+.proc RunEnemyCookieWolfBox
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyCookieWolfBox
+.proc DrawEnemyCookieWolfBox
+	rtl
+.endproc
+
+.a16
+.i16
+.export RunEnemyTeapot
+.proc RunEnemyTeapot
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyTeapot
+.proc DrawEnemyTeapot
+	rtl
+.endproc
+
+
+
 ; -------------------------------------
 ; Particles! These are like actors but they don't have as many
 ; variables. They work the same way with a Run and Draw routine

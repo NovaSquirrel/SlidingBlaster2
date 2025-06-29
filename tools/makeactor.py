@@ -34,7 +34,7 @@ for line in text:
 		saveActor()
 		# Reset to prepare for the new actor
 		actor = {"name": line[1:], "particle": False, "owdecoration": False, "size": [16, 16],
-			"run": "ActorNothing", "draw": "ActorNothing", "flags": [],
+			"run": "ActorNothing", "draw": "ActorNothing", "flags": [], "tileset": None, "palette": None,
 			"essential": False, "secondary": False}
 		continue
 	word, arg = separateFirstWord(line)
@@ -48,7 +48,9 @@ for line in text:
 		actor["size"] = arg.split("x")
 	elif word == "flag":
 		actor["flags"] = arg.split()
-	elif word in ["run", "draw"]:
+	elif word in ("tileset", "palette"):
+		actor[word] = arg
+	elif word in ("run", "draw"):
 		actor[word] = arg
 		all_subroutines.append(arg)
 	elif word in ["particle"]:
@@ -65,7 +67,7 @@ outfile = open("src/actordata.s", "w")
 outfile.write('; This is automatically generated. Edit "actors.txt" instead\n')
 outfile.write('.include "snes.inc"\n.include "global.inc"\n.include "graphicsenum.s"\n.include "paletteenum.s"\n')
 
-outfile.write('.export ActorBank, ActorRun, ActorDraw, ActorWidthTable, ActorHeightTable\n')
+outfile.write('.export ActorBank, ActorRun, ActorDraw, ActorWidthTable, ActorHeightTable, ActorTilesetPaletteTable\n')
 outfile.write('.export ParticleRun, ParticleDraw\n')
 
 outfile.write('.import %s\n' % str(", ".join(all_subroutines)))
@@ -98,6 +100,18 @@ outfile.write('.endproc\n\n')
 outfile.write('.proc ActorHeightTable\n  .word 0\n')
 for b in all_actors:
 	outfile.write('  .word %s<<4 ; %s\n' % (b["size"][1], b["name"]))
+outfile.write('.endproc\n\n')
+
+outfile.write('.proc ActorTilesetPaletteTable\n  .byte 255, 255\n')
+for b in all_actors:
+	if b['tileset']:
+		outfile.write('  .byt GraphicsUpload::%s, ' % b['tileset'])
+	else:
+		outfile.write('  .byt 255, ')
+	if b['palette']:
+		outfile.write('Palette::%s\n' % b['palette'])
+	else:
+		outfile.write('255\n')
 outfile.write('.endproc\n\n')
 
 # Particles

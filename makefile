@@ -159,9 +159,9 @@ $(srcdir)/paletteenum.s: $(palettes) $(variable_palettes) tools/encodepalettes.p
 $(srcdir)/actorenum.s: tools/actors.txt tools/makeactor.py
 	$(PY) tools/makeactor.py
 
-$(srcdir)/leveldata.s: $(levels_lz4) $(levels_bin) tools/levelinsert.py tools/readtiled.py
+$(srcdir)/leveldata.s: $(levels_lz4) $(levels_bin) tools/levelinsert.py tools/readtiled.py tools/actors.txt
 	$(PY) tools/levelinsert.py
-$(objdir)/leveldata.o: $(levels_lz4) $(levels_bin) $(srcdir)/leveldata.s $(srcdir)/actorenum.s
+$(objdir)/leveldata.o: $(levels_lz4) $(levels_bin) $(srcdir)/leveldata.s $(srcdir)/actorenum.s $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s
 levels/%.lz4: levels/%.bin
 	$(lz4_compress) $(lz4_flags) $< $@
 	@touch $@

@@ -458,11 +458,11 @@ TargetAngleTable:
   seta8
   lda PlayerHealth
   beq :+
-  lda PlayerInvincible
-  bne :+
+;  lda PlayerInvincible
+;  bne :+
     dec PlayerHealth
-    lda #160
-    sta PlayerInvincible
+;    lda #160
+;    sta PlayerInvincible
 
     ; Play the sound effect
     lda #SFX::player_hurt

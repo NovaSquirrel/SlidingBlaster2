@@ -40,28 +40,28 @@ for f in sorted(glob.glob("levels/*.tmx")):
 
 	# Generate actor data first
 	actor_data = ""
-	for actor in sorted(map.actor_list, key=lambda r: r[1]):
-		actor_tile, actor_x, actor_y, actor_xflip, actor_yflip, actor_properties = actor
-		tileset_name, tileset_offset = actor_tile
+	number_of_actor_waves = len(map.actor_list)
+	for actor_list_name in sorted(map.actor_list.keys()):
+		actor_list = map.actor_list[actor_list_name]
+		for actor in actor_list:
+			actor_tile, actor_x, actor_y, actor_xflip, actor_yflip, actor_properties = actor
+			tileset_name, tileset_offset = actor_tile
 
-		# Load if the tileset isn't already loaded
-		if tileset_name not in actor_tilesets:
-			actor_tilesets[tileset_name] = TiledMapTileset(os.path.dirname(f) + '/' + tileset_name)
-		tileset_data = actor_tilesets[tileset_name].tiles[tileset_offset]
+			# Load if the tileset isn't already loaded
+			if tileset_name not in actor_tilesets:
+				actor_tilesets[tileset_name] = TiledMapTileset(os.path.dirname(f) + '/' + tileset_name)
+			tileset_data = actor_tilesets[tileset_name].tiles[tileset_offset]
 
-		actor_name = tileset_data['Name']
-		this_actor_tileset = actor_tileset.get(actor_name)
-		if this_actor_tileset:
-			actor_tilesets_needed.add(this_actor_tileset)
-		this_actor_palette = actor_palette.get(actor_name)
-		if this_actor_palette and this_actor_palette != "Icons":
-			actor_palettes_needed.add(this_actor_palette)
+			actor_name = tileset_data['Name']
+			this_actor_tileset = actor_tileset.get(actor_name)
+			if this_actor_tileset:
+				actor_tilesets_needed.add(this_actor_tileset)
+			this_actor_palette = actor_palette.get(actor_name)
+			if this_actor_palette and this_actor_palette != "Icons":
+				actor_palettes_needed.add(this_actor_palette)
 
-		if 'extra' in actor_properties:
-			actor_data += "  .byt %d, %d|%d, Actor::%s, (%s)<<4\n" % (actor_x, (128 if actor_xflip else 0), actor_y-1, actor_name, actor_properties['extra'])
-		else:
-			actor_data += "  .byt %d, %d|%d, Actor::%s, 0\n" % (actor_x, (128 if actor_xflip else 0), actor_y-1, actor_name)
-	actor_data += '  .byt 255\n'
+			actor_data += "  .byt %d|(%d<<4), Actor::%s, %s\n" % (actor_x, actor_y-1, actor_name, actor_properties['extra'] if 'extra' in actor_properties else "0")
+		actor_data += '  .byt 255\n'
 
 	actor_tilesets_needed = list(actor_tilesets_needed)
 	if len(actor_tilesets_needed) > 8:
@@ -79,6 +79,7 @@ for f in sorted(glob.glob("levels/*.tmx")):
 	outfile.write('  .byt %d, %d ; X and Y\n' % (map.start_x, map.start_y))
 	outfile.write('  .byt 0 ; Flags\n')
 	outfile.write('  .word RGB8(%d,%d,%d)\n' % (map.bgcolor[0], map.bgcolor[1], map.bgcolor[2]))
+	outfile.write('  .byte %d ; Actor wave count\n' % number_of_actor_waves)
 	outfile.write('  .byte %s\n' % ", ".join([(("GraphicsUpload::"+_) if _ else "255") for _ in actor_tilesets_needed]))
 	outfile.write('  .byte %s\n' % ", ".join([(("Palette::"+_) if _ else "255") for _ in actor_palettes_needed]))
 	outfile.write('  .word .loword(level_%s_sp)\n' % plain_name)

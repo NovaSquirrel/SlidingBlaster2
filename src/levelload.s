@@ -19,6 +19,7 @@
 .include "global.inc"
 .include "blockenum.s"
 .include "paletteenum.s"
+.include "actorenum.s"
 .smart
 .import GameMainLoop, UploadLevelGraphics
 
@@ -130,24 +131,30 @@
   sta LevelBackgroundColor+1
   sta CGDATA
 
-  ; Actor tilesets
+  ; Actor wave count
   iny ; Y = 6
+  lda [LevelHeaderPointer],y
+  sta ActorWaveCount
+  stz ActorWaveNumber
+
+  ; Actor tilesets
+  iny ; Y = 7
 : lda [LevelHeaderPointer],y
   sta ActorTilesetSlots-6,y
   iny
-  cpy #6+8 ;14
+  cpy #7+8 ;15
   bne :-
 
   ; Actor palettes
-  ; Y = 14
+  ; Y = 15
 : lda [LevelHeaderPointer],y
   sta ActorPaletteSlots-14,y
   iny
-  cpy #14+3 ;17
+  cpy #15+3 ;18
   bne :-
   lda #Palette::Icons
   sta ActorPaletteSlots + 3
-  ; Y = 17
+  ; Y = 18
 
   ; Actor data pointer
   lda [LevelHeaderPointer],y
@@ -223,7 +230,7 @@ DoneExpanding:
   sta ParticleIterationLimit
 
   ; Initialize gameplay variables here
-  seta16
+  jsr SpawnLevelActors
 
   rtl
 .endproc
@@ -267,4 +274,66 @@ DoneExpanding:
   stz PlayerKeyLast,x
   stz PlayerKeyNew,x
   rts
+.endproc
+
+.import ActorClearX, InitActorX
+.a16
+.i16
+.proc SpawnLevelActors
+	ldy #0
+Loop:
+	; Format: x|(y<<4), type, extra
+	lda [LevelActorPointer],y
+	and #255
+	cmp #255 ; End of the list
+	bne :+
+	Exit:
+		tya
+		sec ; Skip past the 255
+		adc LevelActorPointer
+		sta LevelActorPointer
+		rts
+	:
+	jsl FindFreeActorX
+	bcc Exit
+
+	; Position byte
+	stz ActorPXSub,x
+	stz ActorPYSub,x
+	lda [LevelActorPointer],y
+	and #255
+	pha
+	and #$0f
+	xba
+	ora #$80
+	sta ActorPX,x
+	pla
+	and #$f0
+	lsr
+	lsr
+	lsr
+	lsr
+	xba
+	ora #$80
+	sta ActorPY,x
+
+	jsl ActorClearX
+
+	lda #Actor::EnemyPortal*2
+	sta ActorType,x
+
+	; Type byte
+	iny
+	lda [LevelActorPointer],y
+	and #255
+	asl
+	sta ActorVarB,x
+
+	; Extra byte
+	iny
+	lda [LevelActorPointer],y
+	sta ActorVarA,x
+
+	iny
+	bra Loop
 .endproc

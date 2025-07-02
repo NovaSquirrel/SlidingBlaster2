@@ -7,7 +7,6 @@ aliases = {}
 actor = None
 all_actors = []
 all_particles = []
-all_owdecorations = []
 all_subroutines = []
 
 # Read and process the file
@@ -20,8 +19,6 @@ def saveActor():
 	# Put it in the appropriate list
 	if actor["particle"]:
 		all_particles.append(actor)
-	elif actor["owdecoration"]:
-		all_owdecorations.append(actor)
 	else:
 		all_actors.append(actor)
 
@@ -33,9 +30,8 @@ for line in text:
 	if line.startswith("+"): # new actor
 		saveActor()
 		# Reset to prepare for the new actor
-		actor = {"name": line[1:], "particle": False, "owdecoration": False, "size": [16, 16],
-			"run": "ActorNothing", "draw": "ActorNothing", "flags": [], "tileset": None, "palette": None,
-			"essential": False, "secondary": False}
+		actor = {"name": line[1:], "particle": False, "size": [16, 16],
+			"run": "ActorNothing", "draw": "ActorNothing", "flags": [], "tileset": None, "palette": None, "health": 32, "init_type": None}
 		continue
 	word, arg = separateFirstWord(line)
 	# Miscellaneous directives
@@ -47,8 +43,8 @@ for line in text:
 	elif word == "size":
 		actor["size"] = arg.split("x")
 	elif word == "flag":
-		actor["flags"] = arg.split()
-	elif word in ("tileset", "palette"):
+		actor["flags"].extend(arg.split())
+	elif word in ("tileset", "palette", "health", "init_type"):
 		actor[word] = arg
 	elif word in ("run", "draw"):
 		actor[word] = arg
@@ -67,7 +63,7 @@ outfile = open("src/actordata.s", "w")
 outfile.write('; This is automatically generated. Edit "actors.txt" instead\n')
 outfile.write('.include "snes.inc"\n.include "global.inc"\n.include "graphicsenum.s"\n.include "paletteenum.s"\n')
 
-outfile.write('.export ActorBank, ActorRun, ActorDraw, ActorWidthTable, ActorHeightTable, ActorTilesetPaletteTable\n')
+outfile.write('.export ActorBank, ActorRun, ActorDraw, ActorWidthTable, ActorHeightTable, ActorTilesetPaletteTable, ActorFlagsTable, ActorInitTable\n')
 outfile.write('.export ParticleRun, ParticleDraw\n')
 
 outfile.write('.import %s\n' % str(", ".join(all_subroutines)))
@@ -100,6 +96,23 @@ outfile.write('.endproc\n\n')
 outfile.write('.proc ActorHeightTable\n  .word 0\n')
 for b in all_actors:
 	outfile.write('  .word %s<<4 ; %s\n' % (b["size"][1], b["name"]))
+outfile.write('.endproc\n\n')
+
+actor_flag_values = {
+	"enemy": 1
+}
+outfile.write('.proc ActorFlagsTable\n  .word 0\n')
+for b in all_actors:
+	value = 0
+	for f in b["flags"]:
+		value |= actor_flag_values.get(f, 0)
+	outfile.write('  .word %d ; %s\n' % (value, b["name"]))
+outfile.write('.endproc\n\n')
+
+outfile.write('.proc ActorInitTable\n  .word 0\n')
+for b in all_actors:
+	outfile.write('  .byte %s, %s ; %s\n' % (b["health"], ("2*ActorInitType::"+b["init_type"]) if b["init_type"] else "0", b["name"]))
+
 outfile.write('.endproc\n\n')
 
 outfile.write('.proc ActorTilesetPaletteTable\n  .byte 255, 255\n')

@@ -16,24 +16,33 @@ run RunPlayerProjectile
 draw DrawPlayerProjectile
 size 8x8
 
++EnemyPortal
+run RunEnemyPortal
+draw DrawEnemyPortal
+flag enemy
+
 # ---------- enemies ----------
 +EnemyCookie
 tileset EnemyBurger
 palette EnemyBurger
 run RunEnemyCookie
 draw DrawEnemyCookie
+flag enemy
+init_type RandomAngle
 
 +EnemyBurger
 tileset EnemyBurger
 palette EnemyBurger
 run RunEnemyBurger
 draw DrawEnemyBurger
+flag enemy
 
 +EnemyFries
 tileset EnemyBurger
 palette EnemyBurger
 run RunEnemyFries
 draw DrawEnemyFries
+flag enemy
 
 +EnemyFriesProjectile
 tileset EnemyBurger
@@ -46,36 +55,42 @@ tileset EnemyBadGuy
 palette EnemyBurger
 run RunEnemyBadGuy
 draw DrawEnemyBadGuy
+flag enemy
 
 +EnemyPumpkin
 tileset EnemyBurger
 palette EnemyBurger
 run RunEnemyPumpkin
 draw DrawEnemyPumpkin
+flag enemy
 
 +EnemySnowman
 tileset EnemySnowman
 palette Icons
 run RunEnemySnowman
 draw DrawEnemySnowman
+flag enemy
 
 +EnemyProSnowman
 tileset EnemySnowman
 palette Icons
 run RunEnemyProSnowman
 draw DrawEnemyProSnowman
+flag enemy
 
 +EnemyGreenPirate
 tileset EnemyPirateSalad
 palette Icons
 run RunEnemyGreenPirate
 draw DrawEnemyGreenPirate
+flag enemy
 
 +EnemySaladBowl
 tileset EnemyPirateSalad
 palette Icons
 run RunEnemySaladBowl
 draw DrawEnemySaladBowl
+flag enemy
 
 +EnemySaladProjectile
 tileset EnemyPirateSalad
@@ -94,48 +109,56 @@ tileset EnemyBalloon
 palette Icons
 run RunEnemyBalloon1
 draw DrawEnemyBalloon1
+flag enemy
 
 +EnemyBalloon2
 tileset EnemyBalloon
 palette Icons
 run RunEnemyBalloon2
 draw DrawEnemyBalloon2
+flag enemy
 
 +EnemyBalloon3
 tileset EnemyBalloon
 palette Icons
 run RunEnemyBalloon3
 draw DrawEnemyBalloon3
+flag enemy
 
 +EnemyBalloon4
 tileset EnemyBalloon
 palette Icons
 run RunEnemyBalloon4
 draw DrawEnemyBalloon4
+flag enemy
 
 +EnemyHotWheel
 tileset EnemyHotWheel
 palette Icons
 run RunEnemyHotWheel
 draw DrawEnemyHotWheel
+flag enemy
 
 +EnemyBunnyROM
 tileset EnemyHotWheel
 palette Icons
 run RunEnemyBunnyROM
 draw DrawEnemyBunnyROM
+flag enemy
 
 +EnemyRedCannon
 tileset EnemyRedCannon
 palette EnemyPoochi
 run RunEnemyRedCannon
 draw DrawEnemyRedCannon
+flag enemy
 
 +EnemyBlueCannon
 tileset EnemyBlueCannon
 palette EnemyPoochi
 run RunEnemyBlueCannon
 draw DrawEnemyBlueCannon
+flag enemy
 
 +EnemyRedCannonBall
 tileset EnemyRedCannon
@@ -166,24 +189,28 @@ tileset EnemyPoochiPirate
 palette EnemyPoochi
 run RunEnemyBluePooChi
 draw DrawEnemyBluePooChi
+flag enemy
 
 +EnemyRedPooChi
 tileset EnemyPoochiPirate
 palette EnemyPoochi
 run RunEnemyRedPooChi
 draw DrawEnemyRedPooChi
+flag enemy
 
 +EnemyDarkPirate
 tileset EnemyPoochiPirate
 palette EnemyPoochi
 run RunEnemyDarkPirate
 draw DrawEnemyDarkPirate
+flag enemy
 
 +EnemyCookieWolf
 tileset EnemyCookieWolf
 palette EnemyPoochi
 run RunEnemyCookieWolf
 draw DrawEnemyCookieWolf
+flag enemy
 
 +EnemyCookieWolfBox
 tileset EnemyCookieWolf
@@ -196,6 +223,7 @@ tileset EnemyCookieWolf
 palette EnemyPoochi
 run RunEnemyTeapot
 draw DrawEnemyTeapot
+flag enemy
 
 # ---------- particles ----------
 +Poof

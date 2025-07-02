@@ -92,6 +92,11 @@ DrawPlayerProjectileTable:
       jsl PlaySoundEffect
       seta16
 
+      lda #60*10
+      sta BlockTemp ; Timer
+      lda #Block::Breakable
+      jsl DelayChangeBlock
+
       lda #Block::Empty
       jsl ChangeBlock
     :

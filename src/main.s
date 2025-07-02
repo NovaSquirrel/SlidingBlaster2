@@ -182,11 +182,10 @@ DelayedBlockLoop:
 
   ldx #Player1
   jsl RunPlayer
-
-  jsl RunAllActors
-
   ldx #Player1
   jsl DrawPlayer
+
+  jsl RunAllActors
 
   lda OamPtr
   setaxy16

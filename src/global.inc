@@ -65,16 +65,15 @@ GAMEPLAY_SPRITE_Y_OFFSET = 8
 
 .global PlaySoundEffect
 
-; Flags
-.enum ActorFlag
-  Priority      = %1100000000000000 ; Priority bits
-  Essential     = %1000000000000000 
-  Primary       = %0100000000000000
-  Secondary     = %0000000000000000
-.endenum
-
 .global FindFreeActorX, FindFreeActorY, FindFreeParticleY
 
 .global RandomByte, VelocityLeftOrRight
 
 DirectionKeys = KEY_LEFT|KEY_DOWN|KEY_UP|KEY_RIGHT
+
+.enum ActorInitType
+	Nothing
+	LookAtPlayer
+	LookAtCenter
+	RandomAngle
+.endenum

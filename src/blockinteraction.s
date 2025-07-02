@@ -241,15 +241,22 @@ Skip:
   rts
 .endproc
 
+; Not used currently - this is in playerprojectile.s
 .proc BlockBreakableShot
+  lda #60*5
+  sta BlockTemp ; Timer
+  lda #Block::Breakable
+  jsl DelayChangeBlock
+
+  lda #Block::Empty
+  jsl ChangeBlock
+
   seta8
   ; Play the sound effect
   lda #SFX::brick_break
   jsl PlaySoundEffect
   seta16
 
-  lda #Block::Empty
-  jsl ChangeBlock
   jsr PoofAtBlock
   rts
 .endproc

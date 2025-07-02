@@ -35,19 +35,22 @@
 .include "global.inc"
 .include "actorenum.s"
 .include "blockenum.s"
+.include "actorframedefine.inc"
 .smart
 
 .segment "C_ActorData"
 
-.import DispActor16x16, DispActor8x8, DispActor8x8WithOffset, DispParticle8x8, DispParticle16x16
+.import DispActor16x16, DispActor8x8, DispActor8x8WithOffset, DispParticle8x8, DispParticle16x16, DispActorMeta
 .import ActorWalk, ActorWalkOnPlatform, ActorFall, ActorGravity, ActorApplyXVelocity
 .import ActorAutoBump, ActorLookAtPlayer, ActorTurnAround
 .import PlayerActorCollision, PlayerActorCollisionHurt
 .import FindFreeProjectileY, ActorApplyVelocity
 .import ActorNegIfLeft
 .import ActorTryUpInteraction, ActorTryDownInteraction
-.import ActorCopyPosXY, InitActorY, ActorClearY
+.import ActorCopyPosXY, InitActorX, InitActorY, ActorClearY
 .import SharedEnemyCommon, ActorSafeRemoveX
+
+.import CalculateActorVelocityFromAngleAndSpeed, DivideActorVelocityBy16, ActorMoveAndBumpAgainstWalls
 
 .a16
 .i16
@@ -122,8 +125,71 @@ Exit:
 
 .a16
 .i16
+.export RunEnemyPortal
+.proc RunEnemyPortal
+	inc ActorTimer,x
+	lda ActorTimer,x
+	cmp #120
+	bcc No
+		lda ActorVarB,x
+		sta ActorType,x
+		stz ActorVarB,x
+		stz ActorTimer,x
+		jsl InitActorX
+	No:
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawEnemyPortal
+.proc DrawEnemyPortal
+	lda ActorTimer,x
+	cmp #15
+	bcs Always
+	lsr
+	bcc :+
+		rtl
+	:
+Always:
+	lda ActorTimer,x
+	lsr
+	lsr
+	and #%110
+	tay
+	lda Animation,y
+	jml DispActor16x16
+
+Animation:
+	.word 11|(4<<4)|OAM_PRIORITY_2|(SP_ICON_PALETTE << OAM_COLOR_SHIFT)
+	.word 11|(4<<4)|OAM_PRIORITY_2|(SP_ICON_PALETTE << OAM_COLOR_SHIFT)|OAM_XFLIP
+	.word 11|(4<<4)|OAM_PRIORITY_2|(SP_ICON_PALETTE << OAM_COLOR_SHIFT)|OAM_XFLIP|OAM_YFLIP
+	.word 11|(4<<4)|OAM_PRIORITY_2|(SP_ICON_PALETTE << OAM_COLOR_SHIFT)|OAM_YFLIP
+.endproc
+
+.a16
+.i16
 .export RunEnemyCookie
 .proc RunEnemyCookie
+	lda #3
+	sta ActorSpeed,x
+	jsl CalculateActorVelocityFromAngleAndSpeed
+	jsl DivideActorVelocityBy16
+
+	lda ActorAngle,x
+	pha
+	jsl ActorMoveAndBumpAgainstWalls
+	pla
+	cmp ActorAngle,x
+	beq :+
+		jsl RandomByte
+		and #31*2
+		sub #16*2
+		add ActorAngle,x
+		and #510
+		sta ActorAngle,x
+	:
+
 	rtl
 .endproc
 
@@ -131,7 +197,8 @@ Exit:
 .i16
 .export DrawEnemyCookie
 .proc DrawEnemyCookie
-	rtl
+	lda #$00|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -145,7 +212,8 @@ Exit:
 .i16
 .export DrawEnemyBurger
 .proc DrawEnemyBurger
-	rtl
+	lda #2|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -159,7 +227,8 @@ Exit:
 .i16
 .export DrawEnemyFries
 .proc DrawEnemyFries
-	rtl
+	lda #4|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -173,7 +242,8 @@ Exit:
 .i16
 .export DrawEnemyFriesProjectile
 .proc DrawEnemyFriesProjectile
-	rtl
+	lda #8|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -187,7 +257,31 @@ Exit:
 .i16
 .export DrawEnemyBadGuy
 .proc DrawEnemyBadGuy
-	rtl
+	lda #OAM_PRIORITY_2
+	ora ActorTileBase,x
+	sta ActorTileBase,x
+
+	lda framecount
+	lsr
+	lsr
+	lsr
+	and #%110
+	tay
+	lda Frames,y
+.import DispActorMetaLeft
+	jml DispActorMeta
+
+Frames:
+	.addr Frame1, Frame2, Frame3, Frame2
+Frame1:
+	Row16x16 -8,0, 0, 2
+	EndMetasprite
+Frame2:
+	Row16x16 -8,0, 4, 6
+	EndMetasprite
+Frame3:
+	Row16x16 -8,0, 8, 10
+	EndMetasprite
 .endproc
 
 .a16
@@ -201,7 +295,8 @@ Exit:
 .i16
 .export DrawEnemyPumpkin
 .proc DrawEnemyPumpkin
-	rtl
+	lda #12|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -215,7 +310,8 @@ Exit:
 .i16
 .export DrawEnemySnowman
 .proc DrawEnemySnowman
-	rtl
+	lda #$00|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -229,7 +325,8 @@ Exit:
 .i16
 .export DrawEnemyProSnowman
 .proc DrawEnemyProSnowman
-	rtl
+	lda #$02|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -243,7 +340,8 @@ Exit:
 .i16
 .export DrawEnemyGreenPirate
 .proc DrawEnemyGreenPirate
-	rtl
+	lda #$02|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -257,7 +355,8 @@ Exit:
 .i16
 .export DrawEnemySaladBowl
 .proc DrawEnemySaladBowl
-	rtl
+	lda #$08|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -271,7 +370,8 @@ Exit:
 .i16
 .export DrawEnemySaladProjectile
 .proc DrawEnemySaladProjectile
-	rtl
+	lda #12|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -285,7 +385,8 @@ Exit:
 .i16
 .export DrawEnemySaladRazor
 .proc DrawEnemySaladRazor
-	rtl
+	lda #14|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -299,7 +400,8 @@ Exit:
 .i16
 .export DrawEnemyBalloon1
 .proc DrawEnemyBalloon1
-	rtl
+	lda #0|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -313,7 +415,8 @@ Exit:
 .i16
 .export DrawEnemyBalloon2
 .proc DrawEnemyBalloon2
-	rtl
+	lda #4|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -327,7 +430,8 @@ Exit:
 .i16
 .export DrawEnemyBalloon3
 .proc DrawEnemyBalloon3
-	rtl
+	lda #8|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -341,7 +445,8 @@ Exit:
 .i16
 .export DrawEnemyBalloon4
 .proc DrawEnemyBalloon4
-	rtl
+	lda #12|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -355,7 +460,8 @@ Exit:
 .i16
 .export DrawEnemyHotWheel
 .proc DrawEnemyHotWheel
-	rtl
+	lda #0|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -369,7 +475,8 @@ Exit:
 .i16
 .export DrawEnemyBunnyROM
 .proc DrawEnemyBunnyROM
-	rtl
+	lda #8|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -383,7 +490,8 @@ Exit:
 .i16
 .export DrawEnemyRedCannon
 .proc DrawEnemyRedCannon
-	rtl
+	lda #0|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -397,7 +505,8 @@ Exit:
 .i16
 .export DrawEnemyRedCannonBall
 .proc DrawEnemyRedCannonBall
-	rtl
+	lda #8|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -411,7 +520,8 @@ Exit:
 .i16
 .export DrawEnemyBlueCannon
 .proc DrawEnemyBlueCannon
-	rtl
+	lda #0|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -425,7 +535,8 @@ Exit:
 .i16
 .export DrawEnemyBlueCannonBall
 .proc DrawEnemyBlueCannonBall
-	rtl
+	lda #8|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 
@@ -440,7 +551,8 @@ Exit:
 .i16
 .export DrawEnemyBluePunch
 .proc DrawEnemyBluePunch
-	rtl
+	lda #10|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -454,7 +566,8 @@ Exit:
 .i16
 .export DrawEnemyRedPunch
 .proc DrawEnemyRedPunch
-	rtl
+	lda #10|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -468,7 +581,13 @@ Exit:
 .i16
 .export DrawEnemyBluePooChi
 .proc DrawEnemyBluePooChi
-	rtl
+	lda framecount
+	lsr
+	lsr
+	lsr
+	and #%10
+	ora #$00|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -482,7 +601,8 @@ Exit:
 .i16
 .export DrawEnemyRedPooChi
 .proc DrawEnemyRedPooChi
-	rtl
+	lda #4|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -496,7 +616,8 @@ Exit:
 .i16
 .export DrawEnemyDarkPirate
 .proc DrawEnemyDarkPirate
-	rtl
+	lda #10|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -510,7 +631,8 @@ Exit:
 .i16
 .export DrawEnemyCookieWolf
 .proc DrawEnemyCookieWolf
-	rtl
+	lda #0|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -524,7 +646,8 @@ Exit:
 .i16
 .export DrawEnemyCookieWolfBox
 .proc DrawEnemyCookieWolfBox
-	rtl
+	lda #4|OAM_PRIORITY_2
+	jml DispActor16x16
 .endproc
 
 .a16

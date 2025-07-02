@@ -20,8 +20,9 @@
 .include "snes.inc"
 .include "global.inc"
 .include "blockenum.s"
-.import ActorRun, ActorDraw, ActorAfterRun, ActorFlags, ActorWidthTable, ActorHeightTable, ActorBank, ActorTilesetPaletteTable
+.import ActorRun, ActorDraw, ActorAfterRun, ActorFlags, ActorWidthTable, ActorHeightTable, ActorBank, ActorTilesetPaletteTable, ActorInitTable
 .import ActorGetShot
+.import GetAngle512
 .smart
 
 .segment "C_ActorCommon"
@@ -77,8 +78,37 @@ ProcessOneActor:
   ; Call the run and draw routines
   lda ActorType,x
   jsl CallRun
+
+  ; Save position, and potentially apply shake
+  lda ActorPX,x
+  pha
+  lda ActorPY,x
+  pha
+  lda ActorHitShake,x
+  beq :+
+    dec ActorHitShake,x
+
+    jsl RandomByte
+	and #$7F
+	sub #$40
+	add ActorPX,x
+	sta ActorPX,x
+
+    jsl RandomByte
+	and #$7F
+	sub #$40
+	add ActorPY,x
+	sta ActorPY,x
+  :
+
   lda ActorType,x
   jsl CallDraw
+
+  ; Restore position
+  pla
+  sta ActorPY,x
+  pla
+  sta ActorPX,x
   rts
 
 ; Call the Actor run code
@@ -443,7 +473,7 @@ Invalid:
 
   ldy OamPtr
   lda 4
-  add SpriteTileBase,x
+  add ActorTileBase,x
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
   seta8
@@ -482,7 +512,7 @@ CustomOffset:
   ldy OamPtr
 
   lda 4
-  add SpriteTileBase,x
+  add ActorTileBase,x
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
   seta8
@@ -665,7 +695,7 @@ TempTile = 14
 
   lda #8 ; Always go rightwards for now
   sta WidthUnit
-
+OverrideWidthUnit:
   ldy OamPtr
 
   ; Get the base pixel positions
@@ -809,7 +839,7 @@ StripLoopCommon:
   lda (Pointer)
   pha
   and #31
-  ora SpriteTileBase
+  ora ActorTileBase,x
   sta TempTile
   pla
   and #%11000000 ; The X and Y flip bits
@@ -825,6 +855,26 @@ StripLoopCommon:
   lda CurrentX+1
   cmp #%00000001
   rts
+.endproc
+
+.a16
+.i16
+.export DispActorMetaLeft
+.proc DispActorMetaLeft
+  sta DispActorMeta::Pointer
+
+  lda ActorTileBase,x
+  pha
+  eor #OAM_XFLIP
+  sta ActorTileBase,x
+
+  lda #.loword(-8)
+  sta DispActorMeta::WidthUnit
+  jsl DispActorMeta::OverrideWidthUnit
+
+  pla
+  sta ActorTileBase,x
+  rtl
 .endproc
 
 ; Tests if two actors overlap
@@ -948,6 +998,7 @@ Exit:
   stz ActorVY,x
   stz ActorVYSub,x ; 24-bit variable
   stz ActorTimer,x
+  stz ActorHitShake,x
   stz SpriteTileBase,x
   rtl
 .endproc
@@ -1090,7 +1141,7 @@ FindPalette:
   bra DidNotFindPalette
 FoundPalette:
   tya
-  add #4 ; First four palettes are for player use
+  ora #4 ; First four palettes are for player use
   asl
   sta ActorTileBase+1,x
 DidNotFindPalette:
@@ -1110,19 +1161,38 @@ FindTileset:
   bra DidNotFindTileset
 FoundTileset:
       ; YXPPpppt tttttttt
-  tya
   seta16
+  tya
   xba ; .....TTT ........
   lsr ; ......TT T.......
   lsr ; .......T TT......
   lsr ; ........ TTT.....
-  ora #512    ;1 TTT00000
+  ora #256    ;1 TTT00000
   ora ActorTileBase,x
   sta ActorTileBase,x
 DidNotFindTileset:
   seta16
+  pla ; Clean up
 
-  pla
+  ; -------------------------
+
+  ; Actor type-specific init
+  phx
+  lda ActorType,x
+  tax
+  lda f:ActorInitTable,x
+  plx
+  pha
+  lda 1,s ; Health
+  and #255
+  sta ActorHealth,x
+  lda 2,s ; Init type
+  and #255
+  txy
+  tax
+  jsr (ActorInitTypes,x)
+  pla ; Clean up
+
   ply
 .endproc
 .export UpdateActorSizeX
@@ -1139,6 +1209,32 @@ DidNotFindTileset:
   ply
   plx
   rtl
+.endproc
+
+.proc ActorInitTypes
+  .addr Nothing
+  .addr LookAtPlayer
+  .addr LookAtCenter
+  .addr RandomAngle
+Nothing:
+  tyx
+  rts
+LookAtPlayer:
+  tyx
+  rts
+LookAtCenter:
+  tyx
+  lda #$0880
+  ldy #$0680
+  jsl ActorLookAtXY
+  sta ActorAngle,x
+  rts
+RandomAngle:
+  tyx
+  jsl RandomByte
+  asl
+  sta ActorAngle,x
+  rts
 .endproc
 
 .a16
@@ -1161,6 +1257,21 @@ DidNotFindTileset:
   sta ActorHeight,y
   ply
   plx
+  rtl
+.endproc
+
+.a16
+.i16
+.export ActorLookAtXY
+.proc ActorLookAtXY
+  sty 2
+  sub ActorPX,x
+  sta 0
+  lda 2
+  sub ActorPY,x
+  sta 2
+  jsl GetAngle512
+  and #$1FE
   rtl
 .endproc
 
@@ -1316,4 +1427,161 @@ DidNotFindTileset:
     sta PlayerVY,x
   :
   rtl
+.endproc
+
+
+.a16
+.i16
+.export ActorMoveAndBumpAgainstWalls
+.proc ActorMoveAndBumpAgainstWalls
+HITBOX_RADIUS = 6
+HITBOX_LINE_LENGTH = 4
+
+  ; -------------------------------------------------------
+  ; Bounce off of the left and right of the playfield
+  lda ActorVX,x
+  bpl NotOffLeft
+  lda ActorPX,x
+  cmp #$0080
+  bcs NotOffLeft
+  FlipFromScreenEdgeLR:
+    lda #256
+    sub ActorAngle,x
+    and #510
+    sta ActorAngle,x
+    bra NoHorizontalMovement
+  NotOffLeft:
+
+  lda ActorVX,x
+  bmi NotOffRight
+  lda ActorPX,x
+  cmp #$0F80
+  bcs FlipFromScreenEdgeLR
+  NotOffRight:
+
+  ; -------------------------------------------------------
+  ; Bounce horizontally off of solid blocks
+  lda ActorVX,x
+  beq NoHorizontalMovement
+  lda #HITBOX_RADIUS*16
+  sta 0
+  lda ActorVX,x
+  bpl :+
+    lda #.loword(-HITBOX_RADIUS*16)
+    sta 0
+  :
+  lda ActorPY,x
+  sub #HITBOX_LINE_LENGTH/2*16
+  tay
+  lda ActorPX,x
+  add 0
+  pha
+  phy
+  jsr TrySideInteraction
+  bcc :+
+    pla
+    pla
+    bra NoHorizontalMovement
+  :
+  pla
+  add #HITBOX_LINE_LENGTH*16
+  tay
+  pla
+  jsr TrySideInteraction
+NoHorizontalMovement:
+
+  ; -------------------------------------------------------
+  ; Bounce off of the top and bottom of playfield
+  lda ActorVY,x
+  bpl NotOffTop
+  lda ActorPY,x
+  cmp #$0080
+  bcs NotOffTop
+  FlipFromScreenEdgeUD:
+    lda ActorAngle,x
+    eor #$FFFF
+    ina
+    and #510
+    sta ActorAngle,x
+    bra NoVerticalMovement
+  NotOffTop:
+
+  lda ActorVY,x
+  bmi NotOffBottom
+  lda ActorPY,x
+  cmp #$0B80
+  bcs FlipFromScreenEdgeUD
+  NotOffBottom:
+
+  ; -------------------------------------------------------
+  ; Bounce vertically off of solid blocks
+  lda ActorVY,x
+  beq NoVerticalMovement
+  lda #HITBOX_RADIUS*16
+  sta 0
+  lda ActorVY,x
+  bpl :+
+    lda #.loword(-HITBOX_RADIUS*16)
+    sta 0
+  :
+  lda ActorPY,x
+  add 0
+  tay
+  lda ActorPX,x
+  sub #HITBOX_LINE_LENGTH/2*16
+  phy
+  pha
+  jsr TryVertInteraction
+  bcc :+
+    pla
+    pla
+    bra NoVerticalMovement
+  :
+  pla
+  add #HITBOX_LINE_LENGTH*16
+  ply
+  bcs NoVerticalMovement
+  jsr TryVertInteraction
+NoVerticalMovement:
+
+  jml ActorApplyVelocity
+
+; -------------------------------------------------------
+
+TrySideInteraction:
+  jsl GetLevelIndexXY
+  phx
+  tax
+  lda f:BlockFlags,x
+  plx
+  asl
+  bcc NoBumpHoriz
+    lda #256
+    sub ActorAngle,x
+    and #510
+    sta ActorAngle,x
+    sec
+    rts
+  NoBumpHoriz:
+  clc
+  rts
+
+TryVertInteraction:
+  jsl GetLevelIndexXY
+  phx
+  tax
+  lda f:BlockFlags,x
+  plx
+  asl
+  bcc NoBumpVert
+    lda ActorAngle,x
+    eor #$FFFF
+    ina
+    and #510
+    sta ActorAngle,x
+    sec
+    rts
+  NoBumpVert:
+  clc
+  rts
 .endproc

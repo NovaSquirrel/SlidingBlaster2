@@ -73,7 +73,7 @@ class TiledMap():
 
 		# Lists to store the read map data
 		map_data   = []
-		actor_list = []
+		actor_list = {}
 
 		# Keep track of the mapping between the tile numbers and different tilesets
 		tileset_first = []
@@ -116,7 +116,9 @@ class TiledMap():
 								row.append(identify_gid(int(t)))
 							map_out.append(row)
 			elif e.tag == 'objectgroup':
-				if e.attrib['name'].lower() == 'actors':
+				if e.attrib['name'].lower().startswith('actors'):
+					current_list = []
+					actor_list[e.attrib['name'][6:]] = current_list
 					for sprite in e:
 						assert sprite.tag == 'object'
 						gid = int(sprite.attrib['gid'])
@@ -145,7 +147,7 @@ class TiledMap():
 									properties[name] = value
 						# Pack it up into a tuple
 						data = (tile, int(sprite.attrib['x'])//16, int(sprite.attrib['y'])//16, xflip, yflip, properties)
-						actor_list.append(data)
+						current_list.append(data)
 				elif e.attrib['name'].lower() == 'meta':
 					for cmd in e:
 						assert cmd.tag == 'object'

@@ -51,11 +51,97 @@
 .segment "BSS" ; First 8KB of RAM
 ; ---------------------------------------------------------
 ; Actor related variables
-  ; See memory.inc for struct definition
+
+.struct
+	ParticleType     .word
+	ParticlePXSub    .res 1   ; 12.12
+	ParticlePX       .res 2
+	ParticlePXUnused .res 1
+	ParticlePYSub    .res 1   ; 12.12
+	ParticlePY       .res 2
+	ParticlePYUnused .res 1
+	ParticleVXSub    .res 1   ; 12.12
+	ParticleVX       .res 2
+	ParticleVXUnused .res 1
+	ParticleVYSub    .res 1   ; 12.12
+	ParticleVY       .res 2
+	ParticleVYUnused .res 1
+	ParticleTimer    .word
+	ParticleVariable .word
+; The "Unused" position bytes allow doing 32-bit adds instead of having to drop down to an 8-bit accumulator to do 24-bit adds
+.endstruct
+ParticleStructSize = ParticleVariable+.sizeof(ParticleVariable)
+
+ActorType = ParticleType
+ActorPXSub = ParticlePXSub
+ActorPX    = ParticlePX
+ActorPYSub = ParticlePYSub
+ActorPY    = ParticlePY
+ActorVXSub = ParticleVXSub
+ActorVX    = ParticleVX
+ActorVYSub = ParticleVYSub
+ActorVY    = ParticleVY
+ActorTimer = ParticleTimer
+ActorVarA = ParticleVariable
+.struct
+	.res ParticleStructSize
+	ActorVarB   .word
+	ActorVarC   .word 
+	ActorVarD   .word
+	ActorAngle  .word ; 256 angles; always multiplied by 2 here
+	ActorWidth  .word
+	ActorHeight .word
+	ActorHealth .word
+	ActorSpeed  .word
+	ActorHitShake .word
+	ActorTileBase .word ; Base tile number for OAM, including the palette picked. Can also set the OAM_XFLIP or OAM_YFLIP bits
+.endstruct
+ActorStructSize = ActorTileBase+.sizeof(ActorTileBase)
+ActorProjectileType = ActorHealth ; Reuse this since player projectiles don't get damaged
+
+PlayerType       = ActorType
+PlayerPXSub      = ActorPXSub
+PlayerPX         = ActorPX
+PlayerPYSub      = ActorPYSub
+PlayerPY         = ActorPY
+PlayerVXSub      = ActorVXSub
+PlayerVX         = ActorVX
+PlayerVYSub      = ActorVYSub
+PlayerVY         = ActorVY
+PlayerBoostTimer = ActorTimer
+PlayerAmmo       = ActorVarA
+PlayerCursorPX   = ActorVarB
+PlayerCursorPY   = ActorVarC
+PlayerShootAngle = ActorVarD
+PlayerMoveAngle  = ActorAngle
+PlayerWidth      = ActorWidth
+PlayerHeight     = ActorHeight
+PlayerHealth     = ActorHealth
+PlayerSpeed      = ActorSpeed
+PlayerTileBase   = ActorTileBase
+.struct
+	.res ActorStructSize
+	PlayerUsingAMouse  .byte     ; 0 for regular controller, 128 for mouse, 129 for hyperkin mouse
+	PlayerMouseSensitivity .byte ; Sensitivity the player wants; will cycle between sensitivity options until it lands on this one. Should be shifted left by 4
+	PlayerControlStyle .byte     ; 0 for simple, 128 for cursor
+	PlayerStatusTop     .res 5*2
+	PlayerStatusBottom  .res 5*2
+	PlayerStatusRedraw  .word
+	PlayerFrameID      .word
+	PlayerFrameIDLast  .word
+	PlayerFrameAddress .word
+	PlayerNoAmmoMessage .word ; If nonzero, show a message saying you have no ammo
+	PlayerNoAmmoPity    .word ; Counts up to 240 and then resets
+	PlayerKeyDown      .word
+	PlayerKeyLast      .word
+	PlayerKeyNew       .word
+	PlayerCursorVX     .word
+	PlayerCursorVY     .word
+.endstruct
+PlayerStructSize = PlayerCursorVY+.sizeof(PlayerCursorVY)
 
   Player1: .res PlayerStructSize
   Player2: .res PlayerStructSize
-
   ActorStart: .res ActorCount*ActorStructSize
   ActorEnd:
   ProjectileStart: .res ProjectileCount*ActorStructSize
@@ -109,15 +195,17 @@ LevelZeroWhenLoad_Start:
   DelayedBlockEditAddr: .res MaxDelayedBlockEdits*2 ; Address to put the block at
   DelayedBlockEditTime: .res MaxDelayedBlockEdits*2 ; Time left until the change
 
-  ActorTilesetSlots:    .res ACTOR_TILESET_SLOT_COUNT
-  ActorPaletteSlots:    .res ACTOR_PALETTE_SLOT_COUNT ; Last one is always the icon palette
-
   ; Number of keys
   RedKeys:    .res 1
   GreenKeys:  .res 1
   BlueKeys:   .res 1
   YellowKeys: .res 1
 LevelZeroWhenLoad_End:
+
+  ActorTilesetSlots:    .res ACTOR_TILESET_SLOT_COUNT
+  ActorPaletteSlots:    .res ACTOR_PALETTE_SLOT_COUNT ; Last one is always the icon palette
+  ActorWaveCount:       .res 1
+  ActorWaveNumber:      .res 1
 
   CursorX:       .res 2
   CursorY:       .res 2

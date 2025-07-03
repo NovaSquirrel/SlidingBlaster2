@@ -278,7 +278,7 @@ Skip:
   jsl ChangeBlock
 
   lda PlayerAmmo,x
-  add #5
+  add #7
   cmp #99
   bcc :+
     lda #99

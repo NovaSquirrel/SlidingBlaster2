@@ -24,7 +24,7 @@
 
 .import BlockRunInteractionBump
 .import BlockRunInteractionInside
-.import InitActorX, InitActorY, GetAngle512
+.import InitActorX, InitActorY, GetAngle512, ActorClearY
 
 .import CalculateActorVelocityFromAngleAndSpeed, ActorApplyVelocity, ActorApplyXVelocity, ActorApplyYVelocity, DivideActorVelocityBy8, DivideActorVelocityBy16, ActorMoveAndBumpAgainstWalls
 
@@ -237,6 +237,7 @@ ControlMethodEnd:
 
     jsl FindFreeProjectileY
     bcc NoShoot
+      jsl ActorClearY
       lda #Actor::PlayerProjectile*2
       sta ActorType,y
       jsl InitActorY

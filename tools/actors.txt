@@ -29,6 +29,7 @@ run RunEnemyCookie
 draw DrawEnemyCookie
 flag enemy
 init_type RandomAngle
+health 1
 
 +EnemyBurger
 tileset EnemyBurger
@@ -36,6 +37,7 @@ palette EnemyBurger
 run RunEnemyBurger
 draw DrawEnemyBurger
 flag enemy
+health 1
 
 +EnemyFries
 tileset EnemyBurger
@@ -43,6 +45,7 @@ palette EnemyBurger
 run RunEnemyFries
 draw DrawEnemyFries
 flag enemy
+health 1
 
 +EnemyFriesProjectile
 tileset EnemyBurger
@@ -56,6 +59,7 @@ palette EnemyBurger
 run RunEnemyBadGuy
 draw DrawEnemyBadGuy
 flag enemy
+health $40
 
 +EnemyPumpkin
 tileset EnemyBurger
@@ -71,12 +75,26 @@ run RunEnemySnowman
 draw DrawEnemySnowman
 flag enemy
 
+
++EnemySnowball
+tileset EnemySnowman
+palette EnemyPoochi
+run RunEnemySnowball
+draw DrawEnemySnowball
+flag enemy
+
 +EnemyProSnowman
 tileset EnemySnowman
 palette Icons
 run RunEnemyProSnowman
 draw DrawEnemyProSnowman
 flag enemy
+
++EnemyProSnowmanBoard
+tileset EnemySnowman
+palette Icons
+run RunEnemyProSnowmanBoard
+draw DrawEnemyProSnowmanBoard
 
 +EnemyGreenPirate
 tileset EnemyPirateSalad
@@ -190,6 +208,7 @@ palette EnemyPoochi
 run RunEnemyBluePooChi
 draw DrawEnemyBluePooChi
 flag enemy
+health $30
 
 +EnemyRedPooChi
 tileset EnemyPoochiPirate
@@ -197,6 +216,7 @@ palette EnemyPoochi
 run RunEnemyRedPooChi
 draw DrawEnemyRedPooChi
 flag enemy
+health $30
 
 +EnemyDarkPirate
 tileset EnemyPoochiPirate
@@ -211,6 +231,7 @@ palette EnemyPoochi
 run RunEnemyCookieWolf
 draw DrawEnemyCookieWolf
 flag enemy
+health $30
 
 +EnemyCookieWolfBox
 tileset EnemyCookieWolf

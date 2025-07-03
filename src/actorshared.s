@@ -425,7 +425,7 @@ Invalid:
   lsr
   lsr
   add 0
-  add #-4+GAMEPLAY_SPRITE_Y_OFFSET
+  sub #4
   cmp #.loword(-1*16)
   bcs :+
   cmp #256
@@ -446,7 +446,7 @@ Invalid:
   lsr
   adc #0 ; Why do I need to round Y and not X?
   add 2
-  sub #9
+  add #GAMEPLAY_SPRITE_Y_OFFSET
   cmp #.loword(-1*16)
   bcs :+
   cmp #15*16
@@ -549,37 +549,6 @@ CustomOffset:
 .endproc
 .export DispActor8x8WithOffset
 
-.a16
-.proc ParticleDrawPosition
-  lda ParticlePX,x
-  cmp #.loword(-1*256)
-  bcs :+
-  cmp #16*256
-  bcs Invalid
-: lsr
-  lsr
-  lsr
-  lsr
-  sub #4
-  sta 0
-
-  lda ParticlePY,x
-  cmp #15*256
-  bcs Invalid
-  lsr
-  lsr
-  lsr
-  lsr
-  add #-4+GAMEPLAY_SPRITE_Y_OFFSET
-  sta 2
-
-  sec
-  rts
-Invalid:
-  clc
-  rts
-.endproc
-
 ; For meta sprites
 .a16
 .proc ActorDrawPositionMeta
@@ -591,7 +560,7 @@ Invalid:
   cmp #.loword(-1*16)
   bcs :+
   cmp #17*16
-  bcs ParticleDrawPosition::Invalid
+  bcs Invalid
 :
   ; No hardcoded offset
   sta 0
@@ -604,11 +573,14 @@ Invalid:
   cmp #.loword(-1*256)
   bcs :+
   cmp #16*16
-  bcs ParticleDrawPosition::Invalid
+  bcs Invalid
   ; No hardcoded offset
   sta 2
 
   sec
+  rts
+Invalid:
+  clc
   rts
 .endproc
 
@@ -620,7 +592,7 @@ Invalid:
   ldy OamPtr
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
-  jsr ParticleDrawPosition
+  jsr ActorDrawPosition16x16
   bcs :+
     rtl
   :  
@@ -653,10 +625,10 @@ Invalid:
   ldy OamPtr
   sta OAM_TILE,y ; 16-bit, combined with attribute
 
-  jsr ParticleDrawPosition
+  jsr ActorDrawPosition8x8
   bcs :+
     rtl
-  :  
+  :
 
   seta8
   lda 0
@@ -1241,8 +1213,13 @@ RandomAngle:
 .i16
 .export InitActorY
 .proc InitActorY
-  ; You could insert something here that calls a constructor of some sort
-  ; Fall into UpdateActorSizeY
+  phx
+  phy
+  tyx
+  jsl InitActorX
+  ply
+  plx
+  rtl
 .endproc
 .export UpdateActorSizeY
 .proc UpdateActorSizeY

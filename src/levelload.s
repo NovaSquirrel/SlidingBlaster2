@@ -140,7 +140,7 @@
   ; Actor tilesets
   iny ; Y = 7
 : lda [LevelHeaderPointer],y
-  sta ActorTilesetSlots-6,y
+  sta ActorTilesetSlots-7,y
   iny
   cpy #7+8 ;15
   bne :-
@@ -332,6 +332,7 @@ Loop:
 	; Extra byte
 	iny
 	lda [LevelActorPointer],y
+	and #255
 	sta ActorVarA,x
 
 	iny

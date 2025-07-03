@@ -123,6 +123,7 @@ DrawPlayerProjectileTable:
 .endproc
 
 .a16
+.export ActorGetShotTest
 .proc ActorGetShotTest
 ProjectileIndex = TempVal
 ProjectileType  = 0
@@ -164,18 +165,31 @@ ProjectileType  = ActorGetShotTest::ProjectileType
   ldy ProjectileIndex
   rts
 
-DefeatAndRemove:
+Damage:
   lda #0
   sta ActorType,y
-Defeat:
   seta8
   ; Play the sound effect
   lda #SFX::menu_cursor
   jsl PlaySoundEffect
   seta16
 
+  lda ActorHealth,x
+  sub #16
+  sta ActorHealth,x
+  beq Die
+  bcs NoDie
+Die:
   jml ActorBecomePoof
+NoDie:
+  lda #15
+  sta ActorHitShake,x
+  rtl
 
 HitProjectileResponse:
-  .word .loword(DefeatAndRemove-1)
+  .word .loword(Damage-1)
 .endproc
+ActorGetShotTest_ProjectileIndex = ActorGetShotTest::ProjectileIndex
+ActorGetShotTest_ProjectileType = ActorGetShotTest::ProjectileType
+.exportzp ActorGetShotTest_ProjectileIndex
+.exportzp ActorGetShotTest_ProjectileType

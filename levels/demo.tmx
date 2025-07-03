@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="6" nextobjectid="44">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="6" nextobjectid="55">
  <tileset firstgid="1" source="tiles/level.tsx"/>
  <tileset firstgid="129" source="tiles/actors.tsx"/>
  <tileset firstgid="161" source="tiles/background.tsx"/>
@@ -32,7 +32,7 @@
 4,0,0,0,0,0,0,0,0,0,0,0,0,0,81,67,
 49,0,0,0,0,0,0,0,0,0,0,0,0,81,81,51,
 65,33,34,33,34,33,34,0,0,0,0,0,81,81,113,67,
-1,1,1,1,0,0,0,0,0,0,0,37,38,37,38,6
+1,1,1,1,0,0,0,0,0,113,113,37,38,37,38,6
 </data>
  </layer>
  <objectgroup id="5" name="Actors2">
@@ -50,6 +50,16 @@
   <object id="26" gid="137" x="160" y="32" width="16" height="16"/>
   <object id="27" gid="141" x="64" y="128" width="16" height="16"/>
   <object id="28" gid="135" x="224" y="32" width="16" height="16"/>
+  <object id="44" gid="141" x="48" y="144" width="16" height="16"/>
+  <object id="45" gid="141" x="64" y="160" width="16" height="16"/>
+  <object id="46" gid="141" x="80" y="144" width="16" height="16"/>
+  <object id="47" gid="135" x="240" y="64" width="16" height="16"/>
+  <object id="48" gid="135" x="208" y="80" width="16" height="16"/>
+  <object id="49" gid="150" x="176" y="32" width="16" height="16"/>
+  <object id="50" gid="160" x="128" y="176" width="16" height="16"/>
+  <object id="52" gid="160" x="192" y="144" width="16" height="16"/>
+  <object id="53" gid="135" x="224" y="112" width="16" height="16"/>
+  <object id="54" gid="135" x="112" y="192" width="16" height="16"/>
  </objectgroup>
  <objectgroup id="3" name="Meta">
   <object id="20" name="PlayerStart" x="40" y="43">

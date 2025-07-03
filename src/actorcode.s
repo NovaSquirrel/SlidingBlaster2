@@ -1011,6 +1011,24 @@ NotMakingCookiesNow:
 	jsl RandomByte
 	and #3
 	bne DontMakeCookies
+		; Are there too many cookies already?
+		phx
+		ldy #0
+		ldx #ActorStart
+	:	lda ActorType,x
+		cmp #Actor::EnemyCookie*2
+		bne :+
+			iny
+		:
+		txa
+		add #ActorStructSize
+		tax
+		cpx ActorIterationLimit
+		bne :--
+		plx
+		cpy #10
+		bcs DontMakeCookies
+	
 		lda #60
 		sta ActorVarA,x
 		sta ActorTimer,x

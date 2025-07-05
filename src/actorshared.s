@@ -855,19 +855,24 @@ StripLoopCommon:
 .a16
 .i16
 .proc TwoActorCollision
+AHeight  = TouchTemp+0
 AWidth   = TouchTemp+0
   ; Test Y positions
 
-  ; Actor 1's top edge should not be below actor 2's bottom edge
-  lda ActorPY,x
-  sub ActorHeight,x
-  cmp ActorPY,y
-  bcs No
+  ; The two actors' heights are added together, so just do this math now
+  lda ActorHeight,x
+  add ActorHeight,y
+  sta AHeight
 
-  ; Actor 2's top edge should not be below actor 1's bottom edge
-  lda ActorPY,y
-  sub ActorHeight,y
-  cmp ActorPY,x
+  ; Assert that (abs(a.x - b.x) * 2 < (a.width + b.width))
+  lda ActorPY,x
+  sub ActorPY,y
+  bpl :+       ; Take the absolute value
+    eor #$ffff
+    ina
+  :
+  asl
+  cmp AHeight
   bcs No
 
   ; Test X positions
@@ -903,44 +908,8 @@ No:
 .a16
 .i16
 .proc PlayerActorCollision
-.if 0
-AWidth   = TouchTemp+0
-  ; Actor's bottom edge should not be above player's top edge
-  lda ActorPY,x
-  cmp PlayerPYTop
-  bcc No
-
-  lda ActorWidth,x
-  lsr
-  sta AWidth
-
-  ; Actor's left edge should not be more right than the player's right edge
-  lda ActorPX,x
-  sec
-  sbc AWidth
-  cmp PlayerPXRight
-  bcs No
-
-  ; Actor's right edge should not be more left than the player's left edge
-  lda ActorPX,x
-  sec
-  adc AWidth
-  cmp PlayerPXLeft
-  bcc No
-
-  ; Actor's top edge should not be below the player's bottom edge
-  lda ActorPY,x
-  sub ActorHeight,x
-  cmp PlayerPY
-  bcs No
-
-Yes:
-  sec
-  rtl
-.endif
-No:
-  clc
-  rtl
+	ldy #Player1
+	jmp TwoActorCollision
 .endproc
 
 .export PlayerActorCollisionHurt

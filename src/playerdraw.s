@@ -23,12 +23,9 @@
 
 .import DispActor16x16, DispActorMeta, MathCosTable, MathSinTable
 
-SHOOT_CURSOR_TILE_ID = 0
-NORMAL_CURSOR_TILE_ID = 2
-PLAYER1_TILE_ID = 4
-PLAYER2_TILE_ID = 6
-CANNON_TILE_ID = 8
-FAN_TILE_ID    = 12
+SHOOT_CURSOR_TILE_ID = 14
+NORMAL_CURSOR_TILE_ID = $20
+CANNON_TILE_ID = (12|$20)
 
 .a16
 .i16
@@ -36,19 +33,19 @@ FAN_TILE_ID    = 12
 .proc DrawPlayer
 BaseX = 0
 BaseY = 2
-FanTile = 4
-FanXOffset = 6
+EdgeTile = 4
+EdgeX = 6
 CannonOffX = 8
 CannonOffY = 10
 CannonTile = 12
+PlayerTile = 14
 
 ; 16-bit X positions, to make it easier to get the high X bit from them
-Fan1X = 14
-Fan2X = 16
-CannonX = 18
+CannonX = 16
   phk
   plb
 
+  ; -------------------------------------------------------
   ; First, potentially draw the cursor
   bit8 PlayerControlStyle,x
   bpl NoCursor
@@ -85,6 +82,8 @@ CannonX = 18
     sta OamPtr
   NoCursor:
 
+  ; -------------------------------------------------------
+
   lda PlayerPX,x
   lsr
   lsr
@@ -101,17 +100,25 @@ CannonX = 18
   add #-8+GAMEPLAY_SPRITE_Y_OFFSET
   sta BaseY
 
-  lda framecount
+  lda PlayerMoveAngle,x
+  add #32
   lsr
   lsr
-  and #%11
-  asl
+  lsr
+  lsr
+  lsr
+  and #%1110
   tay
-  lda FanAnimationTile,y
-  sta FanTile
-  lda FanAnimationXOffset,y
-  sta FanXOffset
+  lda PlayerAngleTiles,y
+  sta PlayerTile
+  lda PlayerEdgeTiles,y
+  sta EdgeTile
+  lda PlayerEdgeOffsets,y
+  add BaseX
+  sta EdgeX
 
+  ; -------------------------------------------------------
+  ; Calculate cannon positions
   phx
   lda PlayerShootAngle,x
   tax
@@ -155,21 +162,15 @@ CannonX = 18
     tsb CannonTile
   :
 
+  ; -------------------------------------------------------
+
   ldy OamPtr
-  lda #PLAYER1_TILE_ID | OAM_PRIORITY_2
-  sta OAM_TILE+(4*2),y ; 16-bit, combined with attribute
-  lda FanTile
-  sta OAM_TILE+(4*0),y
-  sta OAM_TILE+(4*1),y
+  lda PlayerTile
+  sta OAM_TILE+(4*0),y ; 16-bit, combined with attribute
   lda CannonTile
-  sta OAM_TILE+(4*3),y ; Cannon
- 
+  sta OAM_TILE+(4*1),y ; Cannon
+
   ; Calculate sprite X positions in 16-bit mode
-  lda BaseX
-  add FanXOffset
-  sta Fan1X
-  add #8+3
-  sta Fan2X
   lda BaseX
   add #4
   add CannonOffX
@@ -177,48 +178,54 @@ CannonX = 18
 
   seta8
   lda BaseX
-  sta OAM_XPOS+(4*2),y
-  lda Fan1X
   sta OAM_XPOS+(4*0),y
-  lda Fan2X
-  sta OAM_XPOS+(4*1),y
   lda CannonX
-  sta OAM_XPOS+(4*3),y ; Cannon
+  sta OAM_XPOS+(4*1),y ; Cannon
+  lda EdgeX
+  sta OAM_XPOS+(4*2),y ; Edge
 
   lda BaseY
-  sta OAM_YPOS+(4*2),y
-  sta OAM_YPOS+(4*0),y
-  sta OAM_YPOS+(4*1),y
-  sta OAM_YPOS+(4*3),y ; Cannon
+  sta OAM_YPOS+(4*0),y ; Player
+  sta OAM_YPOS+(4*2),y ; Edge
   lda BaseY
   add #4
   add CannonOffY
-  sta OAM_YPOS+(4*3),y
+  sta OAM_YPOS+(4*1),y ; Cannon
 
+  ; Hide edge sprite if it isn't needed
+  lda EdgeTile+1
+  sta OAM_TILE+(4*2)+1,y ; Edge
+  lda EdgeTile
+  sta OAM_TILE+(4*2),y ; Edge
+  bne :+
+    lda #$f0
+    sta OAM_YPOS+(4*2),y
+  :
+
+  ; High OAM bits
   lda BaseX+1
   lsr
   lda #1 ; 16x16 - and leave BaseX unchanged for the "no ammo" message
   rol
-  sta OAMHI+1+(4*2),y
-  tdc ; 8x8
-  lsr Fan1X+1
-  rol
   sta OAMHI+1+(4*0),y
-  tdc
-  lsr Fan2X+1
-  rol
-  sta OAMHI+1+(4*1),y
   tdc
   lsr CannonX+1
   rol
-  sta OAMHI+1+(4*3),y ; Cannon
+  sta OAMHI+1+(4*1),y ; Cannon
+  tdc
+  lsr EdgeX+1
+  rol
+  sta OAMHI+1+(4*2),y ; Edge
   seta16_clc
 
   tya
-  adc #4*4 ; Carry cleared above
+  adc #3*4 ; Carry cleared above
   sta OamPtr
 
+  ; ---------------------------------------------
   ; Show "No ammo" message if needed
+  NoAmmoX1 = CannonOffX
+  NoAmmoX2 = CannonOffY
   lda PlayerNoAmmoMessage,x
   beq DontShowNoAmmoMessage
   dec PlayerNoAmmoMessage,x
@@ -230,26 +237,26 @@ CannonX = 18
 
   lda BaseX
   sub #4
-  sta Fan1X
+  sta NoAmmoX1
   add #8
-  sta Fan2X
+  sta NoAmmoX2
   seta8
   lda BaseY
   sub #16
   sta OAM_YPOS+(4*0),y
   sta OAM_YPOS+(4*1),y
-  lda Fan1X
+  lda NoAmmoX1
   sta OAM_XPOS+(4*0),y
-  lda Fan2X
+  lda NoAmmoX2
   sta OAM_XPOS+(4*1),y
 
   ; High OAM
   lda #1
-  lsr Fan1X+1
+  lsr NoAmmoX1+1
   rol
   sta OAMHI+1+(4*0),y
   lda #1
-  lsr Fan2X+1
+  lsr NoAmmoX2+1
   rol
   sta OAMHI+1+(4*1),y
   seta16_clc
@@ -260,13 +267,26 @@ CannonX = 18
 DontShowNoAmmoMessage:
   rtl
 
-FanAnimationTile:
-  .word FAN_TILE_ID + OAM_PRIORITY_2
-  .word FAN_TILE_ID + OAM_PRIORITY_2 + 1
-  .word FAN_TILE_ID + OAM_PRIORITY_2 + 2
-  .word FAN_TILE_ID + OAM_PRIORITY_2 + 1 + OAM_XFLIP
-FanAnimationXOffset:
-  .word 0, 0, 0, .loword(-3)
+PlayerAngleTiles:
+  .word 4 | OAM_PRIORITY_2
+  .word 2 | OAM_PRIORITY_2
+  .word 0 | OAM_PRIORITY_2
+  .word 2 | OAM_PRIORITY_2 | OAM_XFLIP
+  .word 4 | OAM_PRIORITY_2 | OAM_XFLIP
+  .word 6 | OAM_PRIORITY_2 | OAM_XFLIP
+  .word 8 | OAM_PRIORITY_2
+  .word 6 | OAM_PRIORITY_2
+PlayerEdgeTiles:
+  .word $1A | OAM_PRIORITY_2
+  .word 0
+  .word 0
+  .word 0
+  .word $1A | OAM_PRIORITY_2 | OAM_XFLIP
+  .word $0A | OAM_PRIORITY_2 | OAM_XFLIP
+  .word 0
+  .word $0A | OAM_PRIORITY_2
+PlayerEdgeOffsets:
+  .word .loword(-8), 0, 0, 0, 16, 16, 0, .loword(-8)
 .endproc
 
 .a16

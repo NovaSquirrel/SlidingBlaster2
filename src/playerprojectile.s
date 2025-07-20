@@ -27,7 +27,6 @@
 .import DispParticle8x8
 
 .segment "C_ActorData"
-CommonTileBase = $40
 
 .a16
 .i16
@@ -108,7 +107,7 @@ DrawPlayerProjectileTable:
 .a16
 .i16
 .proc DrawProjectileBullet
-  lda #$1F|OAM_PRIORITY_2|OAM_COLOR_0
+  lda #$1D|OAM_PRIORITY_2|OAM_COLOR_0
   jml DispActor8x8
 .endproc
 

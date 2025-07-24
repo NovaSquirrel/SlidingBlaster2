@@ -200,6 +200,13 @@ LevelZeroWhenLoad_Start:
   GreenKeys:  .res 1
   BlueKeys:   .res 1
   YellowKeys: .res 1
+
+
+  ; Pathfinding
+  DijkstraMapQueueReadIndex: .res 2
+  DijkstraMapQueueWriteIndex: .res 2
+  DijkstraMapStatus: .res 2
+
 LevelZeroWhenLoad_End:
 
   ActorTilesetSlots:    .res ACTOR_TILESET_SLOT_COUNT
@@ -214,9 +221,14 @@ LevelZeroWhenLoad_End:
   ; Current level
   LevelBuf:     .res LEVEL_BUFFER_SIZE
   BackLevelBuf: .res LEVEL_BUFFER_SIZE
-  LevelBufSolidTile: .res 2
+  LevelBufSolidTile: .res 2 ; Solid tile that can be pointed to when coordinates are out of bounds
   LevelBuf_End:
 
+  ; Pathfinding
+  DijkstraMapQueueBuffer: .res LEVEL_WIDTH * LEVEL_HEIGHT + 1
+  WhichDijkstraMap:  .res 2 ; 0 or 256 - which one actors should actually actively look at
+  LevelDijkstraMap1: .res 256 ; Only the first 192 bytes are used
+  LevelDijkstraMap2: .res 192
 
 .segment "BSS7E"
 

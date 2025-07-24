@@ -192,6 +192,9 @@ DelayedBlockLoop:
   .a16
   .i16
 
+  .import UpdateDijkstraMaps
+  jsl UpdateDijkstraMaps
+
   ; Include code for handling the vblank
   ; and updating PPU memory.
   .include "vblank.s"

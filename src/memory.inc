@@ -24,6 +24,9 @@ LEVEL_BUFFER_SIZE = LEVEL_WIDTH * LEVEL_HEIGHT * 2
 .global LevelBuf_End
 .global LevelActorList
 
+; Pathfinding related
+.global WhichDijkstraMap, LevelDijkstraMap1, LevelDijkstraMap2, DijkstraMapQueueBuffer, DijkstraMapQueueReadIndex, DijkstraMapQueueWriteIndex, DijkstraMapStatus
+
 .global OAM
 .global OAMHI
 OAM_XPOS = OAM+0

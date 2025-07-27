@@ -110,7 +110,7 @@ AbsDifference = 2
     :
 
     lda PlayerShootAngle,x
-    add #3
+    add #4
     sta PlayerShootAngle,x
 NoTarget:
   seta16

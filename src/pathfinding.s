@@ -113,7 +113,7 @@ ProcessLoop:
 
 	; Down
 	lda CurrentDijkstraMapIndex
-	cmp #12 << 4
+	cmp #11 << 4
 	bcs @SkipDown
 		add #16
 		CheckPotentialTile Map
@@ -208,5 +208,184 @@ StartQueue:
 	lda #1
 	sta LevelDijkstraMap1,x
 	seta16
+	rtl
+.endproc
+
+.a16
+.i16
+.export PathfindTowardPlayer
+.proc PathfindTowardPlayer
+DX = 0
+DY = 2
+	lda ActorPX,x
+	and #$FF00
+	ora #$0088
+	sub ActorPX,x
+	sta DX
+	abs
+	cmp #$30
+	bcs NotAligned
+
+	lda ActorPY,x
+	and #$FF00
+	ora #$0088
+	sub ActorPY,x
+	sta DY
+	abs
+	cmp #$30
+	bcs NotAligned
+Aligned:
+	jsl UseDijkstraMapToPickAngle
+	sta ActorAngle,x
+	rtl
+
+NotAligned:
+	; Fix the alignment
+	lda ActorAngle,x
+	adc #64-1 ; Carry guaranteed set here
+	and #128
+	bne AlignVertical
+AlignHorizontal:
+	lda ActorPY,x
+	and #$FF00
+	ora #$0088
+	sub ActorPY,x
+	asr_n 3
+	add ActorPY,x
+	sta ActorPY,x
+	rtl
+AlignVertical:
+	lda ActorPX,x
+	and #$FF00
+	ora #$0088
+	sub ActorPX,x
+	asr_n 3
+	add ActorPX,x
+	sta ActorPX,x
+	rtl
+.endproc
+
+.a16
+.i16
+.proc UseDijkstraMapToPickAngle
+Index      = 0
+RightValue = 2
+DownValue  = 3
+LeftValue  = 4
+UpValue    = 5
+BestDirectionList  = 6 ; 7, 8, 9, 10
+BestDirectionCount = 2
+BestDirectionValue = 12
+	lda ActorPX+1,x
+	and #15
+	sta Index
+	lda ActorPY+1,x
+	and #15
+	asl
+	asl
+	asl
+	asl
+	ora WhichDijkstraMap
+	ora Index
+	sta Index
+	tay
+	lda #$FFFF
+	sta RightValue ; and DownValue
+	sta LeftValue  ; and UpValue
+
+	seta8
+
+	; -------------------------------------------
+	; Check the cardinal directions if not up against the edge
+	lda Index
+	and #%00001111
+	beq :+
+		lda LevelDijkstraMap1-1,y
+		sta LeftValue
+	:
+
+	lda Index
+	and #%00001111
+	cmp #%00001111
+	beq :+
+		lda LevelDijkstraMap1+1,y
+		sta RightValue
+	:
+
+	lda Index
+	and #%11110000
+	beq :+
+		lda LevelDijkstraMap1-16,y
+		sta UpValue
+	:
+
+	lda Index
+	cmp #11 << 4
+	bcs :+
+		lda LevelDijkstraMap1+16,y
+		sta DownValue
+	:
+
+	; -------------------------------------------
+	; Make a list of the best ones
+
+	lda RightValue
+	sta BestDirectionValue
+	stz BestDirectionList
+	ldy #1
+
+	lda BestDirectionValue
+	cmp DownValue
+	bcc NotDown
+	beq @DontRestartList
+	lda DownValue
+	sta BestDirectionValue
+	ldy #0
+@DontRestartList:
+	lda #64
+	sta BestDirectionList,y
+	iny
+NotDown:
+
+	lda BestDirectionValue
+	cmp LeftValue
+	bcc NotLeft
+	beq @DontRestartList
+	lda LeftValue
+	sta BestDirectionValue
+	ldy #0
+@DontRestartList:
+	lda #128
+	sta BestDirectionList,y
+	iny
+NotLeft:
+
+	lda BestDirectionValue
+	cmp UpValue
+	bcc NotUp
+	beq @DontRestartList
+	lda UpValue
+	sta BestDirectionValue
+	ldy #0
+@DontRestartList:
+	lda #192
+	sta BestDirectionList,y
+	iny
+NotUp:
+	sty BestDirectionCount
+
+	; -------------------------------------------
+	; Pick from the list of best ones
+TryLoop:
+	jsl RandomByte
+	and #3
+	cmp BestDirectionCount
+	bcs TryLoop
+	tay
+
+	seta16
+	lda BestDirectionList,y
+	and #255
+	asl
 	rtl
 .endproc

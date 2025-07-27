@@ -18,7 +18,7 @@ version = 0.01
 objlist = \
   snesheader init main player memory common renderlevel \
   uploadppu graphics blockdata tad-audio_config audio_incbins audio_misc \
-  blockinteraction palettedata \
+  blockinteraction palettedata pathfinding \
   actordata actorcode actorshared levelload leveldata \
   sincos_data math lz4 playerdraw playerprojectile characters
 

@@ -36,32 +36,32 @@
 	; It's 255, so it hasn't been checked yet
 	stx PotentialDijkstraMapIndex
 	; Convert to level buffer index and check the level; is that tile solid?
-	txa
-	asl
-	tax
+	txa ;\
+	asl ; > Convert Dijkstra map index to level map index
+	tax ;/
 	lda LevelBuf,x
 	tax
 	lda f:BlockFlags,x
 	bmi @Wall
 @AddToQueue:
 	; Not solid, so assign a distance and add it to the queue
-	ldx DijkstraMapQueueWriteIndex
 	seta8
-	; Put the index into the queue
-	lda PotentialDijkstraMapIndex
-	sta DijkstraMapQueueBuffer,x
-	inc DijkstraMapQueueWriteIndex
-
-	; Copy the distance over, but incremented
+	; New distance = old distance + 1
 	ldx CurrentDijkstraMapIndex
 	lda Map,x
 	ina
 	ldx PotentialDijkstraMapIndex
 	sta Map,x
+
+	; Put the index into the queue
+	txa
+	ldx DijkstraMapQueueWriteIndex
+	sta DijkstraMapQueueBuffer,x
+	inc DijkstraMapQueueWriteIndex
 	seta16
 	bra @Skip
 @Wall:
-	; If it's a wall, mark it as maximum distance
+	; If it's a wall, mark it as checked, but maximum distance
 	ldx PotentialDijkstraMapIndex
 	seta8
 	lda #254
@@ -115,7 +115,7 @@ ProcessLoop:
 	lda CurrentDijkstraMapIndex
 	cmp #11 << 4
 	bcs @SkipDown
-		add #16
+		adc #16 ; Carry is clear
 		CheckPotentialTile Map
 	@SkipDown:
 
@@ -376,6 +376,9 @@ NotUp:
 
 	; -------------------------------------------
 	; Pick from the list of best ones
+	dey
+	beq PickThisOne
+
 TryLoop:
 	jsl RandomByte
 	and #3
@@ -383,6 +386,7 @@ TryLoop:
 	bcs TryLoop
 	tay
 
+PickThisOne:
 	seta16
 	lda BestDirectionList,y
 	and #255

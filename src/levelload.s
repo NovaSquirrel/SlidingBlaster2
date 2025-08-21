@@ -83,6 +83,7 @@
   lda #20
   sta Player1+PlayerHealth
   sta Player2+PlayerHealth
+  sta Player1+PlayerActive
 
   ; TODO
   .import level_demo
@@ -273,6 +274,7 @@ DoneExpanding:
   stz PlayerKeyDown,x
   stz PlayerKeyLast,x
   stz PlayerKeyNew,x
+  stz PlayerSpeedupTimer,x
   rts
 .endproc
 

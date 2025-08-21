@@ -34,6 +34,17 @@ SP_TILE_BASE_COMMON = $000
 SP_TILE_BASE_PLAYER = $080
 
 ; ------------------------------------
+; Game balance
+
+AMMO_PICKUP_AMOUNT = 7
+MAX_AMMO_AMOUNT = 99
+
+HEALTH_PICKUP_AMOUNT = 10
+MAX_HEALTH_AMOUNT = 99
+
+SPEEDUP_PICKUP_TIME = 7*60
+
+; ------------------------------------
 
 GAMEPLAY_SPRITE_Y_OFFSET = 8
 

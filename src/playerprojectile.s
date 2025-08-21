@@ -115,10 +115,10 @@ DrawPlayerProjectileTable:
 ; and run the default handler for it
 .export ActorGetShot
 .proc ActorGetShot
-  jsl ActorGetShotTest
-  bcc :+
-  jsl ActorGotShot
-: rtl
+	jsl ActorGetShotTest
+	bcc :+
+	jsl ActorGotShot
+:	 rtl
 .endproc
 
 .a16
@@ -126,64 +126,86 @@ DrawPlayerProjectileTable:
 .proc ActorGetShotTest
 ProjectileIndex = TempVal
 ProjectileType  = 0
-  ldy #ProjectileStart
+	ldy #ProjectileStart
 Loop:
-  lda ActorType,y
-  beq NotProjectile  
+	lda ActorType,y
+	beq NotProjectile  
 
-  jsl TwoActorCollision
-  bcc :+
-    lda ActorProjectileType,y
-    sta ProjectileType
-    sty ProjectileIndex
-    sec ; Set = Actor was hit by projectile
-    rtl
-  :
+	jsl TwoActorCollision
+	bcc :+
+		lda ActorProjectileType,y
+		sta ProjectileType
+		sty ProjectileIndex
+		sec ; Set = Actor was hit by projectile
+		rtl
+	:
 
 NotProjectile:
-  tya
-  add #ActorStructSize
-  tay
-  cpy #ProjectileEnd
-  bne Loop
+	tya
+	add #ActorStructSize
+	tay
+	cpy #ProjectileEnd
+	bne Loop
 
-  clc ; Clear = Actor was not hit by projectile
-  rtl
+	clc ; Clear = Actor was not hit by projectile
+	rtl
 .endproc
 
 .proc ActorGotShot
 ProjectileIndex = ActorGetShotTest::ProjectileIndex
 ProjectileType  = ActorGetShotTest::ProjectileType
-  phk
-  plb
-  lda ProjectileType
-  asl
-  tay
-  lda HitProjectileResponse,y
-  pha
-  ldy ProjectileIndex
-  rts
+	phk
+	plb
+	lda ProjectileType
+	asl
+	tay
+	lda HitProjectileResponse,y
+	pha
+	ldy ProjectileIndex
+	rts
 
 Damage:
-  lda #0
-  sta ActorType,y
-  seta8
-  ; Play the sound effect
-  lda #SFX::menu_cursor
-  jsl PlaySoundEffect
-  seta16
+	lda #0
+	sta ActorType,y
+	seta8
+	; Play the sound effect
+	lda #SFX::menu_cursor
+	jsl PlaySoundEffect
+	seta16
 
-  lda ActorHealth,x
-  sub #16
-  sta ActorHealth,x
-  beq Die
-  bcs NoDie
+	lda ActorHealth,x
+	sub #16
+	sta ActorHealth,x
+	beq Die
+	bcs NoDie
 Die:
-  jml ActorBecomePoof
+	; Randomly create an item pickup
+	jsl RandomByte
+	and #%11
+	bne NoPowerup
+	jsl FindFreeActorY
+	bcc NoPowerup
+		.import ActorClearY, InitActorY
+		jsl ActorClearY
+		lda #Actor::Powerup*2
+		sta ActorType,y
+		jsl InitActorY
+
+		lda ActorPX,x
+		sta ActorPX,y
+		lda ActorPY,x
+		sta ActorPY,y
+
+		jsl RandomByte
+		and #%110
+		sta ActorVarA,y
+	NoPowerup:
+
+	jml ActorBecomePoof
 NoDie:
-  lda #15
-  sta ActorHitShake,x
-  rtl
+	lda #15
+	sta ActorHitShake,x
+	rtl
 
 HitProjectileResponse:
   .word .loword(Damage-1)

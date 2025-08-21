@@ -908,8 +908,19 @@ No:
 .a16
 .i16
 .proc PlayerActorCollision
-	ldy #Player1
-	jmp TwoActorCollision
+	lda Player1+PlayerActive
+	beq :+
+		ldy #Player1
+		jsl TwoActorCollision
+		bcs Exit
+	:
+	lda Player2+PlayerActive
+	beq :+
+		ldy #Player2
+		jsl TwoActorCollision
+	:
+Exit:
+	rtl
 .endproc
 
 .export PlayerActorCollisionHurt
@@ -1530,4 +1541,67 @@ TryVertInteraction:
   NoBumpVert:
   clc
   rts
+.endproc
+
+.a16
+.i16
+.export ActorIsNextToSolid
+.proc ActorIsNextToSolid
+	lda ActorPX,x
+	cmp #$0100
+	bcc Yes
+	cmp #$0F00
+	bcs _rtl
+
+	ldy ActorPY,x
+	cpy #$0100
+	bcc Yes
+	cpy #$0B00
+	bcs _rtl
+
+	jsl GetLevelIndexXY
+
+	phx
+
+	ldx LevelBuf-1*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf-17*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf-16*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf-15*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf+1*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf+17*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf+16*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	ldx LevelBuf+14*2,y
+	lda f:BlockFlags,x
+	bmi Yes_plx
+
+	plx
+	clc
+	rtl
+Yes_plx:
+	plx
+Yes:
+	sec
+_rtl:
+	rtl
 .endproc

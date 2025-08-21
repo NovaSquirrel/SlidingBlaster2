@@ -195,7 +195,6 @@ lowoamloop:
 .proc prepare_ppu_copy_oam_partial
 OamPartialCopy512Sub        = 10
 OamPartialCopyDivide16      = 12
-OamPartialCopyDivide16Rsb32 = 14
   seta16
   lda #512
   sub OamPtr
@@ -206,8 +205,6 @@ OamPartialCopyDivide16Rsb32 = 14
   lsr
   lsr
   sta OamPartialCopyDivide16
-  rsb #32
-  sta OamPartialCopyDivide16Rsb32
   rtl
 .endproc
 
@@ -249,19 +246,13 @@ OamPartialCopyDivide16Rsb32 = 14
 
   ldx OamPartialCopyDivide16
   stx DMALEN+$00
-  ldx OamPartialCopyDivide16Rsb32
-  stx DMALEN+$10
   ldx #OAMHI
   stx DMAADDR+$00
-  ldx #.loword(hi_source)
-  stx DMAADDR+$10
-  lda #3
+  lda #1
   sta COPYSTART
   rtl
 oam_source:
   .byt $f0
-hi_source:
-  .byt %01010101 ; upper bit on all X positions set
 .endproc
 
 ;;

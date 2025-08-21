@@ -46,7 +46,7 @@ PlayerCount = 2
 .globalzp ActorType, ActorPXSub, ActorPX, ActorPYSub, ActorPY, ActorVXSub, ActorVX, ActorVYSub, ActorVY, ActorTimer, ActorVarA, ActorVarB, ActorVarC, ActorVarD, ActorAngle, ActorWidth, ActorHeight, ActorHealth, ActorSpeed, ActorHitShake, ActorTileBase
 .globalzp ActorStructSize
 .globalzp ActorProjectileType
-.globalzp PlayerType, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerCursorVX, PlayerCursorVY
+.globalzp PlayerActive, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerSpeedupTimer, PlayerCursorVX, PlayerCursorVY
 .globalzp PlayerStructSize
 
 ; Storage

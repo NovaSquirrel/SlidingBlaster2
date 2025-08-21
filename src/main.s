@@ -88,8 +88,8 @@
 
   jsl Tad_Init
 
-  lda #Song::gimo_297
-  jsr Tad_LoadSong
+;  lda #Song::gimo_297
+;  jsr Tad_LoadSong
 
   seta8
   ; Clear palette

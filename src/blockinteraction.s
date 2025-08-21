@@ -278,10 +278,10 @@ Skip:
   jsl ChangeBlock
 
   lda PlayerAmmo,x
-  add #7
-  cmp #99
+  add #AMMO_PICKUP_AMOUNT
+  cmp #MAX_AMMO_AMOUNT
   bcc :+
-    lda #99
+    lda #MAX_AMMO_AMOUNT
   :
   sta PlayerAmmo,x
   .import UpdatePlayerAmmoTiles

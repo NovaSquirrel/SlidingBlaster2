@@ -142,8 +142,18 @@ MouseMode:
   asl
   asl
   add PlayerCursorPY,x
-  and #$FFF
   sta PlayerCursorPY,x
+  adc #$8000         ; Apply an offset so that I don't need a separate check for being too close to the left edge and going past it
+  cmp #$8000 + $080
+  bcs :+
+    lda #$0040
+    sta PlayerCursorPY,x
+  :
+  cmp #$8000 + $D80
+  bcc :+
+    lda #$0C80
+    sta PlayerCursorPY,x
+  :
 
   lda 1
   and #255
@@ -156,8 +166,18 @@ MouseMode:
   asl
   asl
   add PlayerCursorPX,x
-  and #$FFF
   sta PlayerCursorPX,x
+  adc #$8000
+  cmp #$8000 + $080
+  bcs :+
+    lda #$0040
+    sta PlayerCursorPX,x
+  :
+  cmp #$8000 + $F80
+  bcc :+
+    lda #$0FC0
+    sta PlayerCursorPX,x
+  :
 
   ; Point cannon at cursor
   lda PlayerCursorPX,x
@@ -168,11 +188,16 @@ MouseMode:
   sta 2
   jsl GetAngle512
   and #$1FE
-  sta PlayerShootAngle,x  
+  sta PlayerShootAngle,x
 ControlMethodEnd:
 
   ; -------------------------------------------------------
   ; Boosting
+
+  lda PlayerSpeedupTimer,x
+  beq :+
+    dec PlayerSpeedupTimer,x
+  :
 
   lda PlayerKeyDown,x
   and #KEY_B
@@ -185,6 +210,13 @@ ControlMethodEnd:
       sta PlayerSpeed,x
       asl
       sta PlayerBoostTimer,x
+
+      lda PlayerSpeedupTimer,x
+      beq @NoSpeedup
+         lda #7
+         sta PlayerSpeed,x
+         lsr PlayerBoostTimer,x
+      @NoSpeedup:
   :
   lda PlayerBoostTimer,x
   bne :+
@@ -200,6 +232,8 @@ ControlMethodEnd:
       lda PlayerSpeed,x
       cmp #2
       beq NoBoostSlowDown
+        lda PlayerSpeedupTimer,x
+        bne NoBoostSlowDown
         lda #10
         sta PlayerBoostTimer,x
   NoBoostSlowDown:

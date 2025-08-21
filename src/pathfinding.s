@@ -82,7 +82,7 @@ ProcessLoop:
 	; Left
 	bit #%00001111
 	beq @SkipLeft
-		lda CurrentDijkstraMapIndex
+		;lda CurrentDijkstraMapIndex
 		dea
 		CheckPotentialTile Map
 	@SkipLeft:
@@ -240,6 +240,7 @@ Aligned:
 	rtl
 
 NotAligned:
+::AlignActorToMiddleOfBlock:
 	; Fix the alignment
 	lda ActorAngle,x
 	adc #64-1 ; Carry guaranteed set here
@@ -326,9 +327,9 @@ BestDirectionValue = 12
 		sta DownValue
 	:
 
+PickBestCardinalDirection:
 	; -------------------------------------------
 	; Make a list of the best ones
-
 	lda RightValue
 	sta BestDirectionValue
 	stz BestDirectionList
@@ -393,3 +394,137 @@ PickThisOne:
 	asl
 	rtl
 .endproc
+
+.a16
+.i16
+.export TryForSpecificDistanceFromPlayer
+.proc TryForSpecificDistanceFromPlayer
+TryDistance = 14
+DX = 0
+DY = 2
+	sta TryDistance
+
+	lda ActorPX,x
+	and #$FF00
+	ora #$0088
+	sub ActorPX,x
+	sta DX
+	abs
+	cmp #$30
+	bcs NotAligned
+
+	lda ActorPY,x
+	and #$FF00
+	ora #$0088
+	sub ActorPY,x
+	sta DY
+	abs
+	cmp #$30
+	bcs NotAligned
+Aligned:
+	jsl UseDijkstraMapToPickAngleForDistance
+	sta ActorAngle,x
+	rtl
+
+NotAligned:
+	jmp AlignActorToMiddleOfBlock
+.endproc
+
+.a16
+.i16
+.export UseDijkstraMapToPickAngleForDistance
+.proc UseDijkstraMapToPickAngleForDistance
+Index      = UseDijkstraMapToPickAngle::Index
+RightValue = UseDijkstraMapToPickAngle::RightValue
+DownValue  = UseDijkstraMapToPickAngle::DownValue
+LeftValue  = UseDijkstraMapToPickAngle::LeftValue
+UpValue    = UseDijkstraMapToPickAngle::UpValue
+TryDistance = TryForSpecificDistanceFromPlayer::TryDistance
+	lda ActorPX+1,x
+	and #15
+	sta Index
+	lda ActorPY+1,x
+	and #15
+	asl
+	asl
+	asl
+	asl
+	ora WhichDijkstraMap
+	ora Index
+	sta Index
+	tay
+	lda #$FFFF
+	sta RightValue ; and DownValue
+	sta LeftValue  ; and UpValue
+
+	seta8
+
+	; -------------------------------------------
+	; Check the cardinal directions if not up against the edge
+	lda Index
+	and #%00001111
+	beq :+
+		lda LevelDijkstraMap1-1,y
+		bmi :+
+		sub TryDistance
+		abs
+		sta LeftValue
+	:
+
+	lda Index
+	and #%00001111
+	cmp #%00001111
+	beq :+
+		lda LevelDijkstraMap1+1,y
+		bmi :+
+		sub TryDistance
+		abs
+		sta RightValue
+	:
+
+	lda Index
+	and #%11110000
+	beq :+
+		lda LevelDijkstraMap1-16,y
+		bmi :+
+		sub TryDistance
+		abs
+		sta UpValue
+	:
+
+	lda Index
+	cmp #11 << 4
+	bcs :+
+		lda LevelDijkstraMap1+16,y
+		bmi :+
+		sub TryDistance
+		abs
+		sta DownValue
+	:
+
+	jmp UseDijkstraMapToPickAngle::PickBestCardinalDirection
+.endproc
+
+.a16
+.i16
+.export GetDijkstraMapValueAtActor
+.proc GetDijkstraMapValueAtActor
+Index = 0
+	lda ActorPX+1,x
+	and #15
+	sta Index
+	lda ActorPY+1,x
+	and #15
+	asl
+	asl
+	asl
+	asl
+	ora WhichDijkstraMap
+	ora Index
+	sta Index
+	tay
+	lda LevelDijkstraMap1,y
+	and #255
+	rtl
+.endproc
+

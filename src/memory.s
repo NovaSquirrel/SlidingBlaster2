@@ -99,7 +99,7 @@ ActorVarA = ParticleVariable
 ActorStructSize = ActorTileBase+.sizeof(ActorTileBase)
 ActorProjectileType = ActorHealth ; Reuse this since player projectiles don't get damaged
 
-PlayerType       = ActorType
+PlayerActive     = ActorType
 PlayerPXSub      = ActorPXSub
 PlayerPX         = ActorPX
 PlayerPYSub      = ActorPYSub
@@ -135,6 +135,7 @@ PlayerTileBase   = ActorTileBase
 	PlayerKeyDown      .word
 	PlayerKeyLast      .word
 	PlayerKeyNew       .word
+	PlayerSpeedupTimer .word
 	PlayerCursorVX     .word
 	PlayerCursorVY     .word
 .endstruct

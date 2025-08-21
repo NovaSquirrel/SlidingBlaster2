@@ -49,8 +49,10 @@
 .import ActorTryUpInteraction, ActorTryDownInteraction
 .import ActorCopyPosXY, InitActorX, InitActorY, ActorClearY
 .import SharedEnemyCommon, ActorSafeRemoveX, ActorGetShotTest, ActorLookAtXY
+.import PathfindTowardPlayer, ActorIsNextToSolid, TryForSpecificDistanceFromPlayer, GetDijkstraMapValueAtActor
 
 .import CalculateActorVelocityFromAngleAndSpeed, DivideActorVelocityBy16, ActorMoveAndBumpAgainstWalls
+.import MathSinTable, MathCosTable
 
 .a16
 .i16
@@ -121,8 +123,44 @@ Exit:
 .a16
 .export ActorLookAtPlayer
 .proc ActorLookAtPlayer
+	lda Player2+PlayerActive
+	beq AimAtPlayer1
+	lda Player1+PlayerActive
+	beq AimAtPlayer2
+
+	; 0 = Distance to player 1
+	lda ActorPX,x
+	sub Player1+PlayerPX
+	abs
+	sta 0
+	lda ActorPY,x
+	sub Player1+PlayerPY
+	abs
+	adc 0 ; Don't care about carry
+	sta 0
+
+	; 2 = Distance to player 2
+	lda ActorPX,x
+	sub Player2+PlayerPX
+	abs
+	sta 2
+	lda ActorPY,x
+	sub Player2+PlayerPY
+	abs
+	adc 2 ; Don't care about carry
+
+	cmp 0
+	bcc AimAtPlayer2
+
+AimAtPlayer1:
 	lda Player1+PlayerPX
 	ldy Player1+PlayerPY
+	jsl ActorLookAtXY
+	sta ActorAngle,x
+	rtl
+AimAtPlayer2:
+	lda Player2+PlayerPX
+	ldy Player2+PlayerPY
 	jsl ActorLookAtXY
 	sta ActorAngle,x
 	rtl
@@ -183,6 +221,80 @@ Animation:
 	jsl CalculateActorVelocityFromAngleAndSpeed
 	jsl DivideActorVelocityBy16
 	rts
+.endproc
+
+.a16
+.i16
+.export RunPowerup
+.proc RunPowerup
+	inc ActorTimer,x
+	lda ActorTimer,x
+	cmp #60*7
+	bcc :+
+		stz ActorType,x
+	:
+
+	jsl PlayerActorCollision
+	bcc NotTouched
+		stz ActorType,x
+		phy
+		ldy ActorVarA,x
+		lda PowerupHandlers,y
+		ply
+		pha
+		rts
+	NotTouched:
+	rtl
+
+PowerupHandlers:
+	.addr PowerupAmmo-1
+	.addr PowerupHealth-1
+	.addr PowerupSpeed-1
+	.addr PowerupBomb-1
+
+PowerupAmmo:
+	phx
+	tyx
+	lda PlayerAmmo,x
+	add #AMMO_PICKUP_AMOUNT
+	cmp #MAX_AMMO_AMOUNT
+	bcc :+
+		lda #MAX_AMMO_AMOUNT
+	:
+	sta PlayerAmmo,x
+	.import UpdatePlayerAmmoTiles
+	jsl UpdatePlayerAmmoTiles
+	plx
+	rtl
+PowerupHealth:
+	phx
+	tyx
+	lda PlayerHealth,x
+	add #HEALTH_PICKUP_AMOUNT
+	cmp #MAX_HEALTH_AMOUNT
+	bcc :+
+		lda #MAX_HEALTH_AMOUNT
+	:
+	sta PlayerHealth,x
+	.import UpdatePlayerHealthTiles
+	jsl UpdatePlayerHealthTiles
+	plx
+	rtl
+PowerupSpeed:
+	lda #SPEEDUP_PICKUP_TIME
+	sta PlayerSpeedupTimer,y
+	rtl
+PowerupBomb:
+	rtl
+.endproc
+
+.a16
+.i16
+.export DrawPowerup
+.proc DrawPowerup
+	lda ActorVarA,x
+	add #$68|OAM_PRIORITY_2|(BG_ICON_PALETTE << OAM_COLOR_SHIFT)
+	jml DispActor16x16
 .endproc
 
 .a16
@@ -269,15 +381,18 @@ Animation:
 	lda framecount
 	and #64
 	beq Nothing
-	lda framecount
-	and #63
-	bne :+
-		jsl ActorLookAtPlayer
-	:
+	;lda framecount
+	;and #63
+	;bne :+
+	;	jsl ActorLookAtPlayer
+	;:
 
-	lda #1
+	jsl PathfindTowardPlayer
+	lda #2
 	jsr SetActorSpeedAndVelocity
+	jsl ActorMoveAndBumpAgainstWalls
 
+	.if 0
 	lda ActorAngle,x
 	pha
 	jsl ActorMoveAndBumpAgainstWalls
@@ -291,6 +406,7 @@ Animation:
 		and #510
 		sta ActorAngle,x
 	:
+	.endif
 
 Nothing:
 	jml SharedEnemyCommon
@@ -367,12 +483,29 @@ FrameWalk2:
 .i16
 .export RunEnemySnowman
 .proc RunEnemySnowman
+	lda ActorVarA,x
+	beq NotPathfinding
+		jsl PathfindTowardPlayer
+
+		jsl ActorIsNextToSolid
+		bcs DontStopPathfinding
+
+		lda ActorTimer,x
+		beq :+
+			dec ActorTimer,x
+		:
+		bne DontStopPathfinding
+		stz ActorVarA,x
+		bra DontStopPathfinding
+	NotPathfinding:
+
 	lda framecount
 	and #15
 	bne :+
 		jsl ActorLookAtPlayer
 		jsr FlipBasedOnAngle
 	:
+DontStopPathfinding:
 
 	lda #1
 	jsr SetActorSpeedAndVelocity
@@ -383,12 +516,10 @@ FrameWalk2:
 	pla
 	cmp ActorAngle,x
 	beq :+
-		jsl RandomByte
-		and #31*2
-		sub #16*2
-		add ActorAngle,x
-		and #510
-		sta ActorAngle,x
+		lda #1
+		sta ActorVarA,x
+		lda #100
+		sta ActorTimer,x
 	:
 
 	jml SharedEnemyCommon
@@ -398,8 +529,41 @@ FrameWalk2:
 .i16
 .export DrawEnemySnowman
 .proc DrawEnemySnowman
-	lda #$00|OAM_PRIORITY_2
-	jml DispActor16x16
+	lda ActorPY,x
+	pha
+	lda framecount
+	lsr
+	lsr
+	pha
+	asl
+	and #%1110
+	tay
+	lda Bounce,y
+	add ActorPY,x
+	sta ActorPY,x
+	pla
+	and #%110
+	tay
+	lda Animation,y
+	jsl DispActor16x16
+
+	pla
+	sta ActorPY,x
+	rtl
+Animation:
+	.word 0|OAM_PRIORITY_2
+	.word 0|OAM_PRIORITY_2
+	.word 0|OAM_PRIORITY_2
+	.word 13|OAM_PRIORITY_2
+Bounce:
+	.word .loword(-1*16)
+	.word .loword(-2*16)
+	.word .loword(-3*16)
+	.word .loword(-2*16)
+	.word .loword(-1*16)
+	.word 0
+	.word 0
+	.word 0
 .endproc
 
 .a16
@@ -591,6 +755,29 @@ FrameDiagonal2:
 .i16
 .export RunEnemyGreenPirate
 .proc RunEnemyGreenPirate
+	lda #4
+	jsl TryForSpecificDistanceFromPlayer
+
+	jsl GetDijkstraMapValueAtActor
+	sub #4
+	beq :+
+	abs
+	jsr SetActorSpeedAndVelocity
+	jsl ActorMoveAndBumpAgainstWalls
+:
+
+	lda framecount
+	and #%111
+	bne NoAim
+	lda ActorAngle,x
+	pha
+	jsl ActorLookAtPlayer
+	sta ActorVarA,x
+	jsr FlipBasedOnAngle
+	pla
+	sta ActorAngle,x
+NoAim:
+
 	jml SharedEnemyCommon
 .endproc
 
@@ -598,8 +785,126 @@ FrameDiagonal2:
 .i16
 .export DrawEnemyGreenPirate
 .proc DrawEnemyGreenPirate
-	lda #$02|OAM_PRIORITY_2
+	lda #.loword(CannonFrames)
+	jsr DrawEnemyCannon
+
+	; Draw enemy
+	lda ActorAngle,x
+	add #32
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr
+	and #%110
+	tay
+	lda Frames,y
 	jml DispActor16x16
+Frames:
+	.word 2|OAM_PRIORITY_2
+	.word 4|OAM_PRIORITY_2
+	.word 2|OAM_PRIORITY_2
+	.word 0|OAM_PRIORITY_2
+CannonFrames:
+	.word 6|OAM_PRIORITY_2
+	.word 7|OAM_PRIORITY_2
+	.word 6|16|OAM_PRIORITY_2
+	.word 7|16|OAM_PRIORITY_2
+	.word 6|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+	.word 7|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+	.word 6|16|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+	.word 7|16|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+.endproc
+
+.a16
+.i16
+.proc DrawEnemyCannon
+CannonOffX = 0
+CannonOffY = 2
+CannonTile = 4
+	sta CannonTile
+	phx
+	lda ActorVarA,x
+	tax
+	lda f:MathCosTable,x
+	php
+	lsr
+	lsr
+	xba
+	and #%00111111
+	plp
+	bpl :+
+		ora #%1111111111000000
+	:
+	sta CannonOffX
+	lda f:MathSinTable,x
+	php
+	lsr
+	lsr
+	xba
+	and #%00111111
+	plp
+	bpl :+
+		ora #%11000000
+	:
+	sta CannonOffY
+	plx
+	
+	lda ActorVarA,x        ; .......n nnnnnnn0
+	add #32
+	asl                    ; ......nn nnnnnn00
+	asl                    ; .....nnn nnnnn000
+	asl
+	xba
+	and #%1110
+	add CannonTile
+	tay
+	lda a:0,y
+	sta CannonTile
+
+	ldy OamPtr
+	lda ActorTileBase,x
+	and #.loword(~(OAM_XFLIP | OAM_YFLIP))
+	ora CannonTile
+	sta OAM_TILE,y ; 16-bit, combined with attribute
+	
+	; Calculate sprite X positions in 16-bit mode
+	lda ActorPX,x
+	lsr
+	lsr
+	lsr
+	lsr
+	sub #4
+	add CannonOffX
+	sta CannonOffX
+
+	lda ActorPY,x
+	lsr
+	lsr
+	lsr
+	lsr
+	add #-4+GAMEPLAY_SPRITE_Y_OFFSET
+	add CannonOffY
+	sta CannonOffY
+	
+	seta8
+	lda CannonOffX
+	sta OAM_XPOS,y
+	
+	lda CannonOffY
+	sta OAM_YPOS,y
+	
+	; High OAM bits
+	tdc
+	lsr CannonOffX+1
+	rol
+	sta OAMHI+1,y
+	seta16_clc
+	tya
+	adc #4 ; Carry cleared above
+	sta OamPtr
+	rts
 .endproc
 
 .a16
@@ -969,6 +1274,33 @@ ChargingUp:
 .i16
 .export RunEnemyDarkPirate
 .proc RunEnemyDarkPirate
+	lda #8
+	jsl TryForSpecificDistanceFromPlayer
+
+	jsl GetDijkstraMapValueAtActor
+	sub #8
+	beq NoMove
+	abs
+	asl
+	cmp #8
+	bcc :+
+		lda #8
+	:
+	jsr SetActorSpeedAndVelocity
+	jsl ActorMoveAndBumpAgainstWalls
+NoMove:
+
+	lda framecount
+	and #%111
+	bne NoAim
+	lda ActorAngle,x
+	pha
+	jsl ActorLookAtPlayer
+	sta ActorVarA,x
+	jsr FlipBasedOnAngle
+	pla
+	sta ActorAngle,x
+NoAim:
 	jml SharedEnemyCommon
 .endproc
 
@@ -976,8 +1308,35 @@ ChargingUp:
 .i16
 .export DrawEnemyDarkPirate
 .proc DrawEnemyDarkPirate
-	lda #10|OAM_PRIORITY_2
+	lda #.loword(CannonFrames)
+	jsr DrawEnemyCannon
+
+	lda PlayerMoveAngle,x
+	add #32
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr
+	lsr
+	and #%110
+	tay
+	lda Frames,y
 	jml DispActor16x16
+Frames:
+	.word 10|OAM_PRIORITY_2
+	.word 12|OAM_PRIORITY_2
+	.word 10|OAM_PRIORITY_2
+	.word 8|OAM_PRIORITY_2
+CannonFrames:
+	.word 14|OAM_PRIORITY_2
+	.word 15|OAM_PRIORITY_2
+	.word 14|16|OAM_PRIORITY_2
+	.word 15|16|OAM_PRIORITY_2
+	.word 14|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+	.word 15|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+	.word 14|16|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
+	.word 15|16|OAM_PRIORITY_2 | OAM_XFLIP | OAM_YFLIP
 .endproc
 
 .a16
@@ -1102,8 +1461,6 @@ DontMakeCookies:
 .proc DrawEnemyTeapot
 	rtl
 .endproc
-
-
 
 ; -------------------------------------
 ; Particles! These are like actors but they don't have as many

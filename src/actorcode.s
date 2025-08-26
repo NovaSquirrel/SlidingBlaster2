@@ -77,19 +77,31 @@
 .i16
 .export RunEnemyBullet
 .proc RunEnemyBullet
-  ; Enemy bullets add the X velocity to their position, and hurt the player.
-  ; They also disappear after a certain amount of time.
-  jsr ActorExpire
-  jsl ActorApplyXVelocity  
-  jml PlayerActorCollisionHurt
+	jsr ActorExpire
+	jsl ActorApplyVelocity
+
+	; Disappear when bumping into a wall
+	lda ActorPX,x
+	ldy ActorPY,x
+	jsl GetLevelIndexXY
+	phx
+	tax
+	lda f:BlockFlags,x
+	plx
+	asl
+	bcc NoWall
+		stz ActorType,x
+	NoWall:
+
+	jml PlayerActorCollisionHurt
 .endproc
 
 .a16
 .i16
 .export DrawEnemyBullet
 .proc DrawEnemyBullet
-  lda #$46|OAM_PRIORITY_2|OAM_COLOR_1
-  jml DispActor8x8
+	lda #OAM_PRIORITY_2 ; Draw ActorTileBase
+	jml DispActor8x8
 .endproc
 
 ; 
@@ -760,11 +772,15 @@ FrameDiagonal2:
 
 	jsl GetDijkstraMapValueAtActor
 	sub #4
-	beq :+
+	beq NoMove
 	abs
+	cmp #8
+	bcc :+
+		lda #8
+	:
 	jsr SetActorSpeedAndVelocity
 	jsl ActorMoveAndBumpAgainstWalls
-:
+NoMove:
 
 	lda framecount
 	and #%111
@@ -777,6 +793,61 @@ FrameDiagonal2:
 	pla
 	sta ActorAngle,x
 NoAim:
+
+	jsl RandomByte
+	and #3
+	bne :+
+	lda framecount
+	and #63
+	bne :+
+		lda #60
+		sta ActorVarB,x
+	:
+
+	lda ActorVarB,x
+	beq NoShoot
+	dec ActorVarB,x
+	bne NoShoot
+	jsl FindFreeActorY
+	bcc NoShoot
+		jsl ActorClearY
+		lda #Actor::EnemyBullet*2
+		sta ActorType,y
+		jsl InitActorY
+
+		lda ActorPX,x
+		sta ActorPX,y
+		lda ActorPY,x
+		sta ActorPY,y
+		lda ActorVarA,x
+		sta ActorAngle,y
+		lda #(SP_ICON_PALETTE << OAM_COLOR_SHIFT) | 11 | 32
+		sta ActorTileBase,y
+		lda #120
+		sta ActorTimer,y
+
+		phx
+		phy
+		tyx
+		lda #4
+		jsr SetActorSpeedAndVelocity
+		ply
+		plx
+		lda ActorVX,y
+		asl
+		asl
+		asl
+		asl
+		add ActorPX,y
+		sta ActorPX,y
+		lda ActorVY,y
+		asl
+		asl
+		asl
+		asl
+		add ActorPY,y
+		sta ActorPY,y
+	NoShoot:
 
 	jml SharedEnemyCommon
 .endproc
@@ -823,6 +894,7 @@ CannonFrames:
 CannonOffX = 0
 CannonOffY = 2
 CannonTile = 4
+Temp = 4
 	sta CannonTile
 	phx
 	lda ActorVarA,x
@@ -868,7 +940,9 @@ CannonTile = 4
 	and #.loword(~(OAM_XFLIP | OAM_YFLIP))
 	ora CannonTile
 	sta OAM_TILE,y ; 16-bit, combined with attribute
-	
+	lda #(SP_ICON_PALETTE << OAM_COLOR_SHIFT) | OAM_PRIORITY_2 | 32 | 10
+	sta OAM_TILE+4,y
+
 	; Calculate sprite X positions in 16-bit mode
 	lda ActorPX,x
 	lsr
@@ -891,20 +965,51 @@ CannonTile = 4
 	seta8
 	lda CannonOffX
 	sta OAM_XPOS,y
+	sta OAM_XPOS+4,y
 	
 	lda CannonOffY
 	sta OAM_YPOS,y
+
+	lda ActorVarB,x
+	beq :+
+		phy
+		tdc
+		lda framecount
+		and #31
+		tay
+		lda WarningCircle+8,y
+		add CannonOffX
+		sta Temp
+		lda WarningCircle,y
+		add CannonOffY
+		ply
+		sta OAM_YPOS+4,y
+
+		lda Temp
+		sta OAM_XPOS+4,y
+	:
 	
 	; High OAM bits
 	tdc
 	lsr CannonOffX+1
 	rol
-	sta OAMHI+1,y
+	sta OAMHI+1+0,y
+	sta OAMHI+1+4,y
 	seta16_clc
 	tya
 	adc #4 ; Carry cleared above
 	sta OamPtr
+
+	lda ActorVarB,x
+	beq :+
+		tya
+		adc #8 ; Carry should still be clear!
+		sta OamPtr
+	:
 	rts
+
+WarningCircle:
+	.lobytes 0, 2, 3, 4, 6, 7, 7, 8, 8, 8, 7, 7, 6, 4, 3, 2, 0, -2, -3, -4, -6, -7, -7, -8, -8, -8, -7, -7, -6, -4, -3, -2, 0, 2, 3, 4, 6, 7, 7, 8
 .endproc
 
 .a16
@@ -1301,6 +1406,64 @@ NoMove:
 	pla
 	sta ActorAngle,x
 NoAim:
+
+	jsl RandomByte
+	and #3
+	bne :+
+	lda framecount
+	and #63
+	bne :+
+		lda #60
+		sta ActorVarB,x
+	:
+
+	lda ActorVarB,x
+	beq NoShoot
+	dec ActorVarB,x
+	bne NoShoot
+	jsl FindFreeActorY
+	bcc NoShoot
+		jsl ActorClearY
+		lda #Actor::EnemyBullet*2
+		sta ActorType,y
+		jsl InitActorY
+
+		lda ActorPX,x
+		sta ActorPX,y
+		lda ActorPY,x
+		sta ActorPY,y
+		jsl RandomByte
+		and #15*2
+		sub #8*2
+		add ActorVarA,x
+		and #511
+		sta ActorAngle,y
+		lda #(SP_ICON_PALETTE << OAM_COLOR_SHIFT) | 12 | 16
+		sta ActorTileBase,y
+		lda #240
+		sta ActorTimer,y
+
+		phx
+		phy
+		tyx
+		lda #6
+		jsr SetActorSpeedAndVelocity
+		ply
+		plx
+		lda ActorVX,y
+		asl
+		asl
+		asl
+		add ActorPX,y
+		sta ActorPX,y
+		lda ActorVY,y
+		asl
+		asl
+		asl
+		add ActorPY,y
+		sta ActorPY,y
+	NoShoot:
+
 	jml SharedEnemyCommon
 .endproc
 

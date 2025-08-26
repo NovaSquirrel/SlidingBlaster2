@@ -246,6 +246,13 @@ run RunEnemyTeapot
 draw DrawEnemyTeapot
 flag enemy
 
+# ---------- other actors ----------
+
++Powerup
+run RunPowerup
+draw DrawPowerup
+size 16x16
+
 # ---------- particles ----------
 +Poof
 particle

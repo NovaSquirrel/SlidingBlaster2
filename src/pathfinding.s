@@ -125,7 +125,7 @@ ProcessLoop:
 	dec Limit
 	beq @StopEarly
 	cpy DijkstraMapQueueWriteIndex
-	jne ProcessLoop
+	jcc ProcessLoop
 	stz DijkstraMapStatus
 	lda WhichDijkstraMap
 	eor #256

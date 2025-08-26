@@ -912,14 +912,16 @@ No:
 	beq :+
 		ldy #Player1
 		jsl TwoActorCollision
-		bcs Exit
+		bcs _rtl
 	:
 	lda Player2+PlayerActive
 	beq :+
 		ldy #Player2
 		jsl TwoActorCollision
+		bcs _rtl
 	:
-Exit:
+	clc
+_rtl:
 	rtl
 .endproc
 

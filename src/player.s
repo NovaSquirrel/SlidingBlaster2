@@ -268,6 +268,9 @@ ControlMethodEnd:
     .import UpdatePlayerAmmoTiles
     jsl UpdatePlayerAmmoTiles
 
+    ; Play the sound effect
+    lda #SFX::fire_arrow
+    jsl PlaySoundEffect
 
     jsl FindFreeProjectileY
     bcc NoShoot

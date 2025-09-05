@@ -36,6 +36,8 @@
 .include "actorenum.s"
 .include "blockenum.s"
 .include "actorframedefine.inc"
+.include "audio_enum.inc"
+.include "tad-audio.inc"
 .smart
 
 .segment "C_ActorData"
@@ -249,6 +251,9 @@ Animation:
 
 	jsl PlayerActorCollision
 	bcc NotTouched
+        lda #SFX::collect_coin
+        jsl PlaySoundEffect
+
 		stz ActorType,x
 		phy
 		ldy ActorVarA,x

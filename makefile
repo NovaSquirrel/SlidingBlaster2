@@ -140,7 +140,7 @@ $(objdir)/actordata.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s
 $(objdir)/uploadppu.o: $(palettes) $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s
 $(objdir)/blockinteraction.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
 $(srcdir)/actordata.s: $(srcdir)/actorenum.s
-$(objdir)/actorcode.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s
+$(objdir)/actorcode.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
 $(objdir)/playerprojectile.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
 
 # Automatically insert graphics into the ROM

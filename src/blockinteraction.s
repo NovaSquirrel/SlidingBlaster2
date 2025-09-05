@@ -269,6 +269,9 @@ Skip:
 
 .a16
 .proc BlockGetAmmo
+  lda #SFX::collect_coin
+  jsl PlaySoundEffect
+
   lda #60*10
   sta BlockTemp ; Timer
   lda #Block::AmmoPickup

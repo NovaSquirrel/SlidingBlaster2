@@ -53,6 +53,7 @@ VblankHandler:
   jsl ppu_copy_oam_partial
   setaxy16
 
+  ; Player 1 status
   lda Player1+PlayerStatusRedraw
   beq :+
     lda #ForegroundBG + 25*32 + 4
@@ -70,6 +71,7 @@ VblankHandler:
     stz Player1+PlayerStatusRedraw
   :
 
+  ; Player 2 status
   lda Player2+PlayerStatusRedraw
   beq :+
     lda #ForegroundBG + 25*32 + 23

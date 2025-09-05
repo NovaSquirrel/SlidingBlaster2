@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="16" nextobjectid="274">
+ <tileset firstgid="1" source="tiles/level.tsx"/>
+ <tileset firstgid="129" source="tiles/actors.tsx"/>
+ <tileset firstgid="161" source="tiles/background.tsx"/>
+ <layer id="4" name="Background" width="16" height="12">
+  <data encoding="csv">
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161
+</data>
+ </layer>
+ <layer id="1" name="Foreground" width="16" height="12">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,83,83,83,83,83,
+0,0,0,0,0,0,0,0,113,113,113,0,83,83,83,83,
+0,97,0,0,0,0,0,0,0,0,0,0,0,0,83,83,
+0,0,0,0,59,0,0,0,0,0,0,0,0,0,0,83,
+0,0,113,0,75,11,0,0,0,0,0,0,97,0,0,0,
+0,0,113,0,0,11,0,0,0,0,0,0,0,0,97,0,
+0,0,113,0,0,59,0,0,0,82,0,0,0,0,0,0,
+83,0,0,0,0,75,45,46,59,14,0,0,0,0,0,0,
+83,83,0,0,0,0,0,0,75,97,0,0,0,0,0,0,
+83,83,0,0,0,0,0,0,11,0,0,0,0,0,0,113,
+83,83,83,83,0,0,0,0,0,0,0,0,0,0,45,46,
+83,83,83,83,83,98,113,113,113,0,0,0,0,11,11,11
+</data>
+ </layer>
+ <objectgroup id="10" name="Actors3">
+  <object id="263" gid="150" x="96" y="112" width="16" height="16"/>
+  <object id="264" gid="150" x="144" y="80" width="16" height="16"/>
+  <object id="265" gid="150" x="192" y="128" width="16" height="16"/>
+  <object id="266" gid="150" x="240" y="80" width="16" height="16"/>
+  <object id="267" gid="129" x="112" y="96" width="16" height="16"/>
+  <object id="268" gid="129" x="176" y="64" width="16" height="16"/>
+  <object id="269" gid="129" x="224" y="112" width="16" height="16"/>
+  <object id="270" gid="140" x="160" y="16" width="16" height="16"/>
+  <object id="271" gid="160" x="96" y="48" width="16" height="16"/>
+  <object id="272" gid="133" x="176" y="32" width="16" height="16"/>
+  <object id="273" gid="150" x="64" y="96" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="15" name="Actors2">
+  <object id="251" gid="141" x="96" y="112" width="16" height="16"/>
+  <object id="252" gid="141" x="160" y="80" width="16" height="16"/>
+  <object id="253" gid="141" x="208" y="144" width="16" height="16"/>
+  <object id="254" gid="135" x="192" y="112" width="16" height="16"/>
+  <object id="255" gid="135" x="160" y="160" width="16" height="16"/>
+  <object id="256" gid="135" x="128" y="96" width="16" height="16"/>
+  <object id="257" gid="135" x="96" y="64" width="16" height="16"/>
+  <object id="258" gid="135" x="80" y="32" width="16" height="16"/>
+  <object id="259" gid="135" x="32" y="32" width="16" height="16"/>
+  <object id="260" gid="135" x="192" y="64" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="14" name="Actors">
+  <object id="234" gid="160" x="176" y="144" width="16" height="16"/>
+  <object id="235" gid="160" x="192" y="112" width="16" height="16"/>
+  <object id="236" gid="160" x="144" y="80" width="16" height="16"/>
+  <object id="237" gid="160" x="112" y="64" width="16" height="16"/>
+  <object id="238" gid="144" x="96" y="112" width="16" height="16"/>
+  <object id="239" gid="132" x="192" y="48" width="16" height="16"/>
+  <object id="240" gid="132" x="240" y="96" width="16" height="16"/>
+  <object id="261" gid="137" x="208" y="128" width="16" height="16"/>
+  <object id="262" gid="137" x="80" y="32" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="3" name="Meta">
+  <object id="214" name="PlayerStart" x="119" y="153">
+   <point/>
+  </object>
+ </objectgroup>
+</map>

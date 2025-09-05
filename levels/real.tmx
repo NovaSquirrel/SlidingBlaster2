@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="14" nextobjectid="228">
+ <tileset firstgid="1" source="tiles/level.tsx"/>
+ <tileset firstgid="129" source="tiles/actors.tsx"/>
+ <tileset firstgid="161" source="tiles/background.tsx"/>
+ <layer id="4" name="Background" width="16" height="12">
+  <data encoding="csv">
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,
+161,161,161,161,161,161,161,161,161,161,161,161,161,161,161,161
+</data>
+ </layer>
+ <layer id="1" name="Foreground" width="16" height="12">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,113,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,
+0,0,0,0,0,113,0,0,0,113,113,0,50,0,0,0,
+0,0,0,0,113,0,0,0,0,113,113,0,66,0,0,0,
+0,0,0,2,0,0,0,0,0,0,0,0,50,0,0,113,
+49,0,0,50,2,81,81,81,35,36,35,36,66,0,0,3,
+65,0,0,66,0,0,0,0,0,0,0,0,0,0,0,51,
+4,0,0,0,0,0,0,0,0,0,0,0,0,0,81,67,
+49,113,0,0,0,0,0,0,0,0,0,0,0,81,81,51,
+65,33,34,33,34,33,34,0,0,0,0,0,81,81,113,67,
+1,1,1,1,0,0,0,0,0,113,113,37,38,37,38,6
+</data>
+ </layer>
+ <objectgroup id="9" name="Actors5" visible="0">
+  <object id="204" gid="160" x="80" y="128" width="16" height="16"/>
+  <object id="205" gid="160" x="128" y="160" width="16" height="16"/>
+  <object id="206" gid="160" x="176" y="128" width="16" height="16"/>
+  <object id="207" gid="160" x="224" y="80" width="16" height="16"/>
+  <object id="208" gid="160" x="128" y="192" width="16" height="16"/>
+  <object id="209" gid="159" x="160" y="176" width="16" height="16"/>
+  <object id="210" gid="143" x="64" y="192" width="16" height="16"/>
+  <object id="211" gid="143" x="240" y="64" width="16" height="16"/>
+  <object id="221" gid="136" x="144" y="128" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="13" name="Actors4" visible="0">
+  <object id="194" gid="150" x="144" y="160" width="16" height="16"/>
+  <object id="195" gid="150" x="192" y="144" width="16" height="16"/>
+  <object id="196" gid="150" x="112" y="144" width="16" height="16"/>
+  <object id="197" gid="150" x="160" y="96" width="16" height="16"/>
+  <object id="198" gid="150" x="224" y="80" width="16" height="16"/>
+  <object id="199" gid="150" x="160" y="32" width="16" height="16"/>
+  <object id="200" gid="150" x="64" y="144" width="16" height="16"/>
+  <object id="201" gid="150" x="112" y="192" width="16" height="16"/>
+  <object id="202" gid="136" x="160" y="128" width="16" height="16"/>
+  <object id="203" gid="136" x="240" y="48" width="16" height="16"/>
+  <object id="217" gid="143" x="64" y="192" width="16" height="16"/>
+  <object id="218" gid="143" x="96" y="80" width="16" height="16"/>
+  <object id="219" gid="144" x="208" y="128" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="12" name="Actors3" visible="0">
+  <object id="172" gid="144" x="176" y="144" width="16" height="16"/>
+  <object id="175" gid="144" x="128" y="128" width="16" height="16"/>
+  <object id="176" gid="143" x="224" y="80" width="16" height="16"/>
+  <object id="179" gid="143" x="208" y="32" width="16" height="16"/>
+  <object id="180" gid="137" x="112" y="80" width="16" height="16"/>
+  <object id="181" gid="137" x="144" y="96" width="16" height="16"/>
+  <object id="182" gid="137" x="96" y="144" width="16" height="16"/>
+  <object id="183" gid="141" x="128" y="176" width="16" height="16"/>
+  <object id="215" gid="160" x="160" y="160" width="16" height="16"/>
+  <object id="216" gid="131" x="208" y="128" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="11" name="Actors2" visible="0">
+  <object id="151" gid="135" x="112" y="144" width="16" height="16"/>
+  <object id="152" gid="135" x="176" y="80" width="16" height="16"/>
+  <object id="153" gid="135" x="224" y="64" width="16" height="16"/>
+  <object id="154" gid="135" x="160" y="160" width="16" height="16"/>
+  <object id="155" gid="150" x="192" y="144" width="16" height="16"/>
+  <object id="171" gid="140" x="64" y="192" width="16" height="16"/>
+  <object id="213" gid="135" x="112" y="192" width="16" height="16"/>
+  <object id="220" gid="144" x="160" y="128" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="10" name="Actors">
+  <object id="136" gid="137" x="96" y="80" width="16" height="16"/>
+  <object id="137" gid="141" x="112" y="144" width="16" height="16"/>
+  <object id="138" gid="141" x="224" y="80" width="16" height="16"/>
+  <object id="139" gid="130" x="176" y="144" width="16" height="16"/>
+  <object id="145" gid="137" x="160" y="48" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="3" name="Meta" visible="0">
+  <object id="214" name="PlayerStart" x="39" y="43">
+   <point/>
+  </object>
+ </objectgroup>
+</map>

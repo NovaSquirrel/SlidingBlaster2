@@ -26,10 +26,13 @@
 .segment "C_LevelDecompress"
 
 ; Accumulator = level number
+; Make sure the screen is off before calling this routine!
 .a16
 .i16
 .export StartLevel, StartLevelFromDoor
 .proc StartLevel
+  sta LevelNumber
+
   setaxy16
 ::StartLevelFromDoor:
   ldx #$1ff
@@ -78,6 +81,10 @@
   ldy #LevelZeroWhenLoad_End-LevelZeroWhenLoad_Start
   jsl MemClear
 
+  lda LevelNumber
+  asl
+  adc LevelNumber
+  tax
   seta8
   ; Health
   lda #20
@@ -85,14 +92,19 @@
   sta Player2+PlayerHealth
   sta Player1+PlayerActive
 
-  ; TODO
-  .import level_demo
-  lda #<level_demo
+  ; Set up the level pointer
+  lda f:LevelSequence+0,x
   sta LevelHeaderPointer+0
-  lda #>level_demo
+  lda f:LevelSequence+1,x
   sta LevelHeaderPointer+1
-  lda #^level_demo
+  lda f:LevelSequence+2,x
   sta LevelHeaderPointer+2
+  cmp #$ff
+  bne :+
+    dec LevelNumber
+    lda LevelNumber
+    jmp StartLevel
+  :
 
   ; -----------------------------------
 
@@ -275,12 +287,14 @@ DoneExpanding:
   stz PlayerKeyLast,x
   stz PlayerKeyNew,x
   stz PlayerSpeedupTimer,x
+  stz PlayerHurtTimer,x
   rts
 .endproc
 
 .import ActorClearX, InitActorX
 .a16
 .i16
+.export SpawnLevelActors
 .proc SpawnLevelActors
 	ldy #0
 Loop:
@@ -340,3 +354,13 @@ Loop:
 	iny
 	bra Loop
 .endproc
+
+LevelSequence:
+  .import level_real, level_maze, level_maze2, level_park, level_win
+  .faraddr level_real
+  .faraddr level_maze
+  .faraddr level_maze2
+  .faraddr level_park
+  .faraddr level_win
+  .faraddr $ffffff
+

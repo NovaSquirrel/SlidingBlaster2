@@ -48,7 +48,7 @@
 .import ActorNegIfLeft
 .import ActorTryUpInteraction, ActorTryDownInteraction
 .import ActorCopyPosXY, InitActorX, InitActorY, ActorClearY
-.import SharedEnemyCommon, ActorSafeRemoveX, ActorGetShotTest, ActorLookAtXY
+.import SharedEnemyCommon, SharedEnemyCommon_CustomDamage, ActorSafeRemoveX, ActorGetShotTest, ActorLookAtXY
 .import PathfindTowardPlayer, ActorIsNextToSolid, TryForSpecificDistanceFromPlayer, GetDijkstraMapValueAtActor
 
 .import CalculateActorVelocityFromAngleAndSpeed, DivideActorVelocityBy16, ActorMoveAndBumpAgainstWalls
@@ -93,6 +93,7 @@
 		stz ActorType,x
 	NoWall:
 
+	lda #1
 	jml PlayerActorCollisionHurt
 .endproc
 
@@ -186,7 +187,7 @@ AimAtPlayer2:
 .proc RunEnemyPortal
 	inc ActorTimer,x
 	lda ActorTimer,x
-	cmp #30 ;120
+	cmp #120 ; 30
 	bcc No
 		lda ActorVarB,x
 		sta ActorType,x
@@ -297,6 +298,12 @@ PowerupSpeed:
 	sta PlayerSpeedupTimer,y
 	rtl
 PowerupBomb:
+	phx
+	tyx
+	lda #5
+    .import HurtPlayer
+    jsl HurtPlayer
+	plx
 	rtl
 .endproc
 
@@ -421,7 +428,8 @@ PowerupBomb:
 	.endif
 
 Nothing:
-	jml SharedEnemyCommon
+	lda #4
+	jml SharedEnemyCommon_CustomDamage
 .endproc
 
 .a16
@@ -480,14 +488,24 @@ FrameWalk2:
 .i16
 .export RunEnemyPumpkin
 .proc RunEnemyPumpkin
-	jml SharedEnemyCommon
+	jsl PathfindTowardPlayer
+	jsl GetDijkstraMapValueAtActor
+	jsr SetActorSpeedAndVelocity
+	jsl ActorMoveAndBumpAgainstWalls
+
+	lda #4
+	jml SharedEnemyCommon_CustomDamage
 .endproc
 
 .a16
 .i16
 .export DrawEnemyPumpkin
 .proc DrawEnemyPumpkin
-	lda #12|OAM_PRIORITY_2
+	lda framecount
+	lsr
+	lsr
+	and #2
+	add #12|OAM_PRIORITY_2
 	jml DispActor16x16
 .endproc
 
@@ -533,6 +551,26 @@ DontStopPathfinding:
 		lda #100
 		sta ActorTimer,x
 	:
+
+	lda framecount
+	and #127
+	bne NoShoot
+	jsl FindFreeActorY
+	bcc NoShoot
+		jsl ActorClearY
+		lda #Actor::EnemySnowball*2
+		sta ActorType,y
+		jsl InitActorY
+
+		lda ActorPX,x
+		sta ActorPX,y
+		lda ActorPY,x
+		sta ActorPY,y
+		stx ActorVarA,y
+
+		lda #60
+		sta ActorTimer,y
+	NoShoot:
 
 	jml SharedEnemyCommon
 .endproc
@@ -629,6 +667,7 @@ Bounce:
 	jsr FlipBasedOnAngle
 
 	; Become board-less snowman
+	lda #2
 	jsl PlayerActorCollisionHurt
 	jsl ActorGetShotTest
 	bcc :+
@@ -687,14 +726,71 @@ Frames:
 .i16
 .export RunEnemySnowball
 .proc RunEnemySnowball
+	lda ActorVarB,x
+	bne ThrownAlready
+	dec ActorTimer,x
+
+	lda framecount
+	lsr
+	and #%1110
+	tay
+	lda Bounce,y
+	sta 0
+
+	ldy ActorVarA,x
+	lda ActorType,y
+	cmp #Actor::EnemySnowman*2
+	bne Throw ; Immediately throw if the snowman is gone
+
+	lda ActorPX,y
+	sta ActorPX,x
+	lda ActorPY,y
+	add 0
+	sta ActorPY,x
+
+	; When it reaches zero, aim at player
+	lda ActorTimer,x
+	bne Exit
+Throw:
+	jsl ActorLookAtPlayer
+	lda #4
+	sta ActorVarB,x
+	jsr SetActorSpeedAndVelocity
+	lda #100
+	sta ActorTimer,x
+
+Exit:
 	rtl
+
+ThrownAlready:
+	jmp RunEnemyBullet
+
+Bounce:
+	.word .loword((-$080)-1*16)
+	.word .loword((-$080)-3*16)
+	.word .loword((-$080)-5*16)
+	.word .loword((-$080)-6*16)
+	.word .loword((-$080)-5*16)
+	.word .loword((-$080)-3*16)
+	.word .loword((-$080)-0*16)
+	.word .loword((-$080)-0*16)
+
+;	.word .loword((-$080)-1*16)
+;	.word .loword((-$080)-2*16)
+;	.word .loword((-$080)-3*16)
+;	.word .loword((-$080)-2*16)
+;	.word .loword((-$080)-1*16)
+;	.word .loword((-$080)-0*16)
+;	.word .loword((-$080)-0*16)
+;	.word .loword((-$080)-0*16)
 .endproc
 
 .a16
 .i16
 .export DrawEnemySnowball
 .proc DrawEnemySnowball
-	rtl
+	lda #9|OAM_PRIORITY_2
+	jml DispActor8x8
 .endproc
 
 .a16
@@ -767,7 +863,16 @@ FrameDiagonal2:
 .i16
 .export RunEnemyGreenPirate
 .proc RunEnemyGreenPirate
-	lda #4
+	lda framecount
+	and #$1FF
+	bne :+
+		jsl RandomByte
+		and #3
+		sta ActorVarC,x
+	:
+
+	lda ActorVarC,x
+	add #3
 	jsl TryForSpecificDistanceFromPlayer
 
 	jsl GetDijkstraMapValueAtActor
@@ -1016,6 +1121,59 @@ WarningCircle:
 .i16
 .export RunEnemySaladBowl
 .proc RunEnemySaladBowl
+	lda #1
+	jsr SetActorSpeedAndVelocity
+
+	lda ActorAngle,x
+	pha
+	jsl ActorMoveAndBumpAgainstWalls
+	pla
+	cmp ActorAngle,x
+	beq NoBump
+		jsl RandomByte
+		and #63*2
+		sub #32*2
+		add ActorAngle,x
+		and #510
+		sta ActorAngle,x
+
+		lda ActorTimer,x
+		bne NoDrop
+			jsl FindFreeActorY
+			bcc NoDrop
+				jsl ActorClearY
+				lda #Actor::EnemySaladProjectile*2
+				sta ActorType,y
+
+				; Gradually have more razors in the salad
+				lda ActorVarC,x
+				add #4
+				sta ActorVarC,x
+
+				jsl RandomByte
+				add ActorVarC,x
+				cmp #200
+				bcc :+
+					lda #Actor::EnemySaladRazor*2
+					sta ActorType,y
+				:
+				jsl InitActorY
+
+				lda ActorPX,x
+				sta ActorPX,y
+				lda ActorPY,x
+				sta ActorPY,y
+
+				lda #100
+				sta ActorTimer,x
+		NoDrop:
+	NoBump:
+
+	lda ActorTimer,x
+	beq :+
+		dec ActorTimer,x
+	:
+
 	jml SharedEnemyCommon
 .endproc
 
@@ -1023,7 +1181,11 @@ WarningCircle:
 .i16
 .export DrawEnemySaladBowl
 .proc DrawEnemySaladBowl
+	lda ActorTimer,x
+	bne :+
 	lda #$08|OAM_PRIORITY_2
+	jml DispActor16x16
+:	lda #$0A|OAM_PRIORITY_2
 	jml DispActor16x16
 .endproc
 
@@ -1031,6 +1193,22 @@ WarningCircle:
 .i16
 .export RunEnemySaladProjectile
 .proc RunEnemySaladProjectile
+	inc ActorTimer,x
+	lda ActorTimer,x
+	cmp #60*10
+	bcc :+
+		stz ActorType,x
+	:
+
+	jsl PlayerActorCollision
+	bcc :+
+		stz ActorType,x
+
+		lda PlayerMoveAngle,y
+		add #256
+		and #510
+		sta PlayerMoveAngle,y
+	:
 	rtl
 .endproc
 
@@ -1046,6 +1224,23 @@ WarningCircle:
 .i16
 .export RunEnemySaladRazor
 .proc RunEnemySaladRazor
+	inc ActorTimer,x
+	lda ActorTimer,x
+	cmp #60*15
+	bcc :+
+		stz ActorType,x
+	:
+
+	lda #5
+	jsl PlayerActorCollisionHurt
+	bcc :+
+		stz ActorType,x
+
+		lda PlayerMoveAngle,y
+		add #256
+		and #510
+		sta PlayerMoveAngle,y
+	:
 	rtl
 .endproc
 
@@ -1057,10 +1252,20 @@ WarningCircle:
 	jml DispActor16x16
 .endproc
 
+; Big circles
 .a16
 .i16
 .export RunEnemyBalloon1
 .proc RunEnemyBalloon1
+	lda ActorAngle,x
+	add #2
+	and #511
+	sta ActorAngle,x
+
+	lda #8
+	jsr SetActorSpeedAndVelocity
+	lda ActorAngle,x
+	jsl ActorMoveAndBumpAgainstWalls
 	jml SharedEnemyCommon
 .endproc
 
@@ -1072,10 +1277,24 @@ WarningCircle:
 	jml DispActor16x16
 .endproc
 
+; Bigger circles?
 .a16
 .i16
 .export RunEnemyBalloon2
 .proc RunEnemyBalloon2
+	lda framecount
+	and #3
+	bne :+
+		lda ActorAngle,x
+		add #2
+		and #511
+		sta ActorAngle,x
+	:
+
+	lda #4
+	jsr SetActorSpeedAndVelocity
+	lda ActorAngle,x
+	jsl ActorMoveAndBumpAgainstWalls
 	jml SharedEnemyCommon
 .endproc
 
@@ -1087,10 +1306,35 @@ WarningCircle:
 	jml DispActor16x16
 .endproc
 
+; Aim towards player
 .a16
 .i16
 .export RunEnemyBalloon3
 .proc RunEnemyBalloon3
+	lda framecount
+	and #1
+	bne No
+		lda ActorAngle,x
+		pha
+		jsl ActorLookAtPlayer
+		sta 0
+		pla
+		sta ActorAngle,x
+		cmp 0
+		bcs :+
+			add #8
+			bra :++
+		:
+			sub #8
+		:
+		and #511
+		sta ActorAngle,x
+	No:
+
+	lda #7
+	jsr SetActorSpeedAndVelocity
+	lda ActorAngle,x
+	jsl ActorMoveAndBumpAgainstWalls
 	jml SharedEnemyCommon
 .endproc
 
@@ -1102,10 +1346,26 @@ WarningCircle:
 	jml DispActor16x16
 .endproc
 
+; Bounce
 .a16
 .i16
 .export RunEnemyBalloon4
 .proc RunEnemyBalloon4
+	jsl RandomByte
+	and #3
+	bne :+
+		jsl RandomByte
+		and #15*2
+		sub #4*2
+		add ActorAngle,x
+		and #511
+		sta ActorAngle,x
+	:
+
+	lda #4
+	jsr SetActorSpeedAndVelocity
+	lda ActorAngle,x
+	jsl ActorMoveAndBumpAgainstWalls
 	jml SharedEnemyCommon
 .endproc
 
@@ -1121,6 +1381,62 @@ WarningCircle:
 .i16
 .export RunEnemyHotWheel
 .proc RunEnemyHotWheel
+	lda ActorVarA,x ; Waiting state
+	beq NotBoosting
+		dec ActorTimer,x
+		bne Nothing
+		stz ActorVarA,x
+		lda #18
+		sta ActorSpeed,x
+		jsl ActorLookAtPlayer
+	NotBoosting:
+
+	lda framecount
+	and #63
+	bne NoBoost
+		lda ActorSpeed,x
+		cmp #3
+		bne NoBoost
+		jsl RandomByte
+		and #3
+		bne NoBoost
+			lda #60
+			sta ActorVarA,x  ; In the waiting state
+			sta ActorTimer,x
+	NoBoost:
+
+	lda ActorSpeed,x
+	bne :+
+		lda #3
+		sta ActorSpeed,x
+	:
+	cmp #4
+	bcc :+
+		lda framecount
+		and #31
+		bne :+
+			dec ActorSpeed,x
+	:
+	
+	lda ActorSpeed,x
+	jsr SetActorSpeedAndVelocity
+
+	lda ActorAngle,x
+	pha
+	jsl ActorMoveAndBumpAgainstWalls
+	pla
+	cmp ActorAngle,x
+	beq :+
+		jsl RandomByte
+		and #63*2
+		sub #32*2
+		add ActorAngle,x
+		and #510
+		sta ActorAngle,x
+	:
+
+	jsr FlipBasedOnAngle
+Nothing:
 	jml SharedEnemyCommon
 .endproc
 
@@ -1196,7 +1512,8 @@ WarningCircle:
 
 	jsr FlipBasedOnAngle
 Nothing:
-	jml SharedEnemyCommon
+	lda #3
+	jml SharedEnemyCommon_CustomDamage
 .endproc
 
 .a16
@@ -1379,7 +1696,16 @@ ChargingUp:
 .i16
 .export RunEnemyDarkPirate
 .proc RunEnemyDarkPirate
-	lda #8
+	lda framecount
+	and #$1FF
+	bne :+
+		jsl RandomByte
+		and #3
+		sta ActorVarC,x
+	:
+
+	lda ActorVarC,x
+	add #7
 	jsl TryForSpecificDistanceFromPlayer
 
 	jsl GetDijkstraMapValueAtActor

@@ -9,7 +9,7 @@ size 16x16
 +EnemyBullet
 run RunEnemyBullet
 draw DrawEnemyBullet
-size 8x8
+size 12x12
 
 +PlayerProjectile
 run RunPlayerProjectile
@@ -67,6 +67,7 @@ palette EnemyBurger
 run RunEnemyPumpkin
 draw DrawEnemyPumpkin
 flag enemy
+health $40
 
 +EnemySnowman
 tileset EnemySnowman
@@ -75,13 +76,13 @@ run RunEnemySnowman
 draw DrawEnemySnowman
 flag enemy
 
-
 +EnemySnowball
 tileset EnemySnowman
 palette EnemyPoochi
 run RunEnemySnowball
 draw DrawEnemySnowball
 flag enemy
+size 12x12
 
 +EnemyProSnowman
 tileset EnemySnowman
@@ -109,12 +110,15 @@ palette Icons
 run RunEnemySaladBowl
 draw DrawEnemySaladBowl
 flag enemy
+init_type RandomAngle
+health $60
 
 +EnemySaladProjectile
 tileset EnemyPirateSalad
 palette Icons
 run RunEnemySaladProjectile
 draw DrawEnemySaladProjectile
+size 24x24
 
 +EnemySaladRazor
 tileset EnemyPirateSalad
@@ -128,6 +132,7 @@ palette Icons
 run RunEnemyBalloon1
 draw DrawEnemyBalloon1
 flag enemy
+health 1
 
 +EnemyBalloon2
 tileset EnemyBalloon
@@ -135,6 +140,7 @@ palette Icons
 run RunEnemyBalloon2
 draw DrawEnemyBalloon2
 flag enemy
+health 1
 
 +EnemyBalloon3
 tileset EnemyBalloon
@@ -142,6 +148,7 @@ palette Icons
 run RunEnemyBalloon3
 draw DrawEnemyBalloon3
 flag enemy
+health 1
 
 +EnemyBalloon4
 tileset EnemyBalloon
@@ -149,6 +156,7 @@ palette Icons
 run RunEnemyBalloon4
 draw DrawEnemyBalloon4
 flag enemy
+health 1
 
 +EnemyHotWheel
 tileset EnemyHotWheel
@@ -156,6 +164,7 @@ palette Icons
 run RunEnemyHotWheel
 draw DrawEnemyHotWheel
 flag enemy
+health 1
 
 +EnemyBunnyROM
 tileset EnemyHotWheel
@@ -169,14 +178,12 @@ tileset EnemyRedCannon
 palette EnemyPoochi
 run RunEnemyRedCannon
 draw DrawEnemyRedCannon
-flag enemy
 
 +EnemyBlueCannon
 tileset EnemyBlueCannon
 palette EnemyPoochi
 run RunEnemyBlueCannon
 draw DrawEnemyBlueCannon
-flag enemy
 
 +EnemyRedCannonBall
 tileset EnemyRedCannon

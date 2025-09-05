@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="6" nextobjectid="55">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="10" nextobjectid="136">
  <tileset firstgid="1" source="tiles/level.tsx"/>
  <tileset firstgid="129" source="tiles/actors.tsx"/>
  <tileset firstgid="161" source="tiles/background.tsx"/>
@@ -35,17 +35,7 @@
 1,1,1,1,0,0,0,0,0,113,113,37,38,37,38,6
 </data>
  </layer>
- <objectgroup id="5" name="Actors2">
-  <object id="30" gid="137" x="112" y="128" width="16" height="16"/>
-  <object id="33" gid="137" x="96" y="128" width="16" height="16"/>
-  <object id="34" gid="137" x="96" y="144" width="16" height="16"/>
-  <object id="35" gid="137" x="112" y="144" width="16" height="16"/>
-  <object id="40" gid="137" x="112" y="80" width="16" height="16"/>
-  <object id="41" gid="137" x="96" y="80" width="16" height="16"/>
-  <object id="42" gid="137" x="96" y="96" width="16" height="16"/>
-  <object id="43" gid="137" x="112" y="96" width="16" height="16"/>
- </objectgroup>
- <objectgroup id="2" name="Actors">
+ <objectgroup id="2" name="Actors4" visible="0">
   <object id="25" gid="129" x="160" y="160" width="16" height="16"/>
   <object id="26" gid="137" x="160" y="32" width="16" height="16"/>
   <object id="27" gid="141" x="64" y="128" width="16" height="16"/>
@@ -60,6 +50,47 @@
   <object id="52" gid="160" x="192" y="144" width="16" height="16"/>
   <object id="53" gid="135" x="224" y="112" width="16" height="16"/>
   <object id="54" gid="135" x="112" y="192" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="6" name="Actors3" visible="0">
+  <object id="69" gid="129" x="128" y="144" width="16" height="16"/>
+  <object id="70" gid="129" x="176" y="160" width="16" height="16"/>
+  <object id="71" gid="129" x="192" y="144" width="16" height="16"/>
+  <object id="74" gid="134" x="112" y="176" width="16" height="16"/>
+  <object id="75" gid="134" x="128" y="176" width="16" height="16"/>
+  <object id="76" gid="134" x="144" y="176" width="16" height="16"/>
+  <object id="77" gid="134" x="160" y="160" width="16" height="16"/>
+  <object id="78" gid="134" x="176" y="176" width="16" height="16"/>
+  <object id="79" gid="134" x="224" y="80" width="16" height="16"/>
+  <object id="80" gid="134" x="64" y="192" width="16" height="16"/>
+  <object id="81" gid="134" x="176" y="96" width="16" height="16"/>
+  <object id="82" gid="134" x="240" y="32" width="16" height="16"/>
+  <object id="83" gid="134" x="64" y="128" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="5" name="Actors2" visible="0">
+  <object id="30" gid="137" x="112" y="128" width="16" height="16"/>
+  <object id="33" gid="137" x="96" y="128" width="16" height="16"/>
+  <object id="34" gid="137" x="96" y="144" width="16" height="16"/>
+  <object id="35" gid="137" x="112" y="144" width="16" height="16"/>
+  <object id="40" gid="137" x="112" y="80" width="16" height="16"/>
+  <object id="41" gid="137" x="96" y="80" width="16" height="16"/>
+  <object id="42" gid="137" x="96" y="96" width="16" height="16"/>
+  <object id="43" gid="137" x="112" y="96" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="7" name="Actors5" visible="0">
+  <object id="87" gid="144" x="208" y="48" width="16" height="16"/>
+  <object id="90" gid="143" x="64" y="192" width="16" height="16"/>
+  <object id="94" gid="143" x="224" y="80" width="16" height="16"/>
+  <object id="95" gid="129" x="80" y="128" width="16" height="16"/>
+  <object id="104" gid="140" x="96" y="144" width="16" height="16"/>
+  <object id="105" gid="159" x="208" y="112" width="16" height="16"/>
+  <object id="106" gid="136" x="224" y="64" width="16" height="16"/>
+  <object id="107" gid="139" x="128" y="96" width="16" height="16"/>
+  <object id="108" gid="134" x="128" y="128" width="16" height="16"/>
+  <object id="109" gid="134" x="160" y="96" width="16" height="16"/>
+  <object id="110" gid="134" x="144" y="32" width="16" height="16"/>
+ </objectgroup>
+ <objectgroup id="9" name="Actors">
+  <object id="133" gid="137" x="96" y="80" width="16" height="16"/>
  </objectgroup>
  <objectgroup id="3" name="Meta">
   <object id="20" name="PlayerStart" x="40" y="43">

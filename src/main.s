@@ -118,7 +118,7 @@
 
   lda #0
  .import StartLevel
-
+::ReloadLevel:
   jml StartLevel
 .endproc
 
@@ -194,6 +194,43 @@ DelayedBlockLoop:
 
   .import UpdateDijkstraMaps
   jsl UpdateDijkstraMaps
+
+
+  lda Player1+PlayerKeyNew
+  and #KEY_SELECT
+  bne NextLevel
+
+  lda ActorWaveNextTimer
+  cmp #60
+  bcc NotNextWave
+    stz ActorWaveNextTimer
+    inc ActorWaveNumber
+    lda ActorWaveNumber
+    cmp ActorWaveCount
+    bcc NotNextLevel
+  NextLevel:
+      seta8
+      lda #$0e
+      sta 0
+    : jsl WaitVblank
+      lda 0
+      sta PPUBRIGHT
+      dec 0
+      bpl :-
+      lda #128
+      sta PPUBRIGHT
+      seta16
+
+      lda LevelNumber
+      ina
+      jmp ReloadLevel
+    NotNextLevel:
+
+    .import UpdateWaveNumber, SpawnLevelActors
+    jsl SpawnLevelActors
+
+    jsl UpdateWaveNumber
+  NotNextWave:
 
   ; Include code for handling the vblank
   ; and updating PPU memory.

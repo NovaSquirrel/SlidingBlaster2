@@ -46,7 +46,7 @@ PlayerCount = 2
 .globalzp ActorType, ActorPXSub, ActorPX, ActorPYSub, ActorPY, ActorVXSub, ActorVX, ActorVYSub, ActorVY, ActorTimer, ActorVarA, ActorVarB, ActorVarC, ActorVarD, ActorAngle, ActorWidth, ActorHeight, ActorHealth, ActorSpeed, ActorHitShake, ActorTileBase
 .globalzp ActorStructSize
 .globalzp ActorProjectileType
-.globalzp PlayerActive, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerSpeedupTimer, PlayerCursorVX, PlayerCursorVY
+.globalzp PlayerActive, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerSpeedupTimer, PlayerCursorVX, PlayerCursorVY, PlayerHurtTimer
 .globalzp PlayerStructSize
 
 ; Storage
@@ -70,7 +70,7 @@ PlayerCount = 2
 .globalzp ParticleIterationLimit
 .global LastNonEmpty
 
-.global NeedLevelReload
+.global LevelNumber
 .global NeedLevelRerender
 
 .global LevelZeroWhenLoad_Start
@@ -104,6 +104,7 @@ ACTOR_PALETTE_SLOT_COUNT = 4
 .global ActorPaletteSlots
 .global ActorWaveCount
 .global ActorWaveNumber
+.global ActorWaveNextTimer
 
 ; HDMA variables
 .global CloudScrollX, ZeroSource

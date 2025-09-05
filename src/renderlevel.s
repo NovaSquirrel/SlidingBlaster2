@@ -59,8 +59,11 @@ CLOUD_TILE = RUG_BASE + 16
 	sta PPUDATA
 	ina
 	sta PPUDATA
+	ina
 	sta PPUDATA
+	ina
 	sta PPUDATA
+	ina
 	sta PPUDATA
 	ina
 	sta PPUDATA
@@ -70,8 +73,11 @@ CLOUD_TILE = RUG_BASE + 16
 	sta PPUDATA
 	ina
 	sta PPUDATA
+	ina
 	sta PPUDATA
+	ina
 	sta PPUDATA
+	ina
 	sta PPUDATA
 	ina
 	sta PPUDATA
@@ -178,6 +184,8 @@ BackgroundRenderLoop:
 	phk
 	plb
 
+	jsl UpdateWaveNumber
+
 	rtl
 
 CloudPositions:
@@ -202,3 +210,29 @@ RepeatPPUWrite:
 	dex
 	bne :-
 	rts
+
+.a16
+.i16
+.export UpdateWaveNumber
+.proc UpdateWaveNumber
+ADDRESS = 0 ; Offset for scatter buffer
+DATA    = 2 ; Offset for scatter buffer 
+	ldx ScatterUpdateLength
+
+	lda #ForegroundBG + 25*32 + 17
+	sta ScatterUpdateBuffer+(4*0)+ADDRESS,x
+	lda ActorWaveNumber
+	add #COMMON_BASE + 6*16 + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	sta ScatterUpdateBuffer+(4*0)+DATA,x
+
+	lda #ForegroundBG + 26*32 + 17
+	sta ScatterUpdateBuffer+(4*1)+ADDRESS,x
+	lda ActorWaveNumber
+	add #COMMON_BASE + 7*16 + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	sta ScatterUpdateBuffer+(4*1)+DATA,x
+
+	txa
+	add #8
+	sta ScatterUpdateLength
+	rtl
+.endproc

@@ -20,7 +20,7 @@
 .include "snes.inc"
 .include "global.inc"
 .include "blockenum.s"
-.import ActorRun, ActorDraw, ActorAfterRun, ActorFlags, ActorWidthTable, ActorHeightTable, ActorBank, ActorTilesetPaletteTable, ActorInitTable
+.import ActorRun, ActorDraw, ActorAfterRun, ActorFlagsTable, ActorWidthTable, ActorHeightTable, ActorBank, ActorTilesetPaletteTable, ActorInitTable
 .import ActorGetShot
 .import GetAngle512
 .smart
@@ -30,6 +30,8 @@
 .export RunAllActors
 .proc RunAllActors
   setaxy16
+
+  inc ActorWaveNextTimer
 
   ldx #ActorStart
   stx LastNonEmpty
@@ -116,6 +118,14 @@ ProcessOneActor:
 CallRun:
   phx
   tax
+
+  ; Reset counter whenever an enemy is processed
+  lda f:ActorFlagsTable,x
+  lsr ; Enemy flag
+  bcc :+
+    stz ActorWaveNextTimer
+  :
+
   seta8
   lda f:ActorBank+0,x
   pha
@@ -148,10 +158,12 @@ CallDraw:
   jml [0]
 .endproc
 
-.export SharedEnemyCommon
+.export SharedEnemyCommon, SharedEnemyCommon_CustomDamage
 .a16
 .i16
 SharedEnemyCommon:
+  lda #2
+SharedEnemyCommon_CustomDamage:
   jsl PlayerActorCollisionHurt
   jsl ActorGetShot
   rtl
@@ -929,13 +941,30 @@ _rtl:
 .a16
 .i16
 .proc PlayerActorCollisionHurt
+  sta TouchTemp+2
+
   ; If touching the player, hurt them
   jsl PlayerActorCollision
   bcc :+
+    lda PlayerHurtTimer,y
+    bne DidTouch
+	lda #60
+	sta PlayerHurtTimer,y
+	phx
+	phy
+	tyx
+
+    lda TouchTemp+2
     .import HurtPlayer
-    jml HurtPlayer
+    jsl HurtPlayer
+	ply
+	plx
+DidTouch:
+    sec
+    rtl
   :
 Exit:
+  clc
   rtl
 .endproc
 
@@ -953,7 +982,7 @@ Exit:
   stz ActorVYSub,x ; 24-bit variable
   stz ActorTimer,x
   stz ActorHitShake,x
-  stz SpriteTileBase,x
+  stz ActorTileBase,x
   rtl
 .endproc
 

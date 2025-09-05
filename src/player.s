@@ -318,6 +318,11 @@ ControlMethodEnd:
   jsl GetLevelIndexXY
   jsl BlockRunInteractionInside
 
+  lda PlayerHurtTimer,x
+  beq :+
+    dec PlayerHurtTimer,x
+  :
+
   rtl
 
 TargetAngleTable:
@@ -342,21 +347,27 @@ TargetAngleTable:
 ; Damages the player
 .export HurtPlayer
 .proc HurtPlayer
+  pha
   php
-  seta8
-  lda PlayerHealth
-  beq :+
-;  lda PlayerInvincible
-;  bne :+
-    dec PlayerHealth
-;    lda #160
-;    sta PlayerInvincible
+  lda PlayerHealth,x
+  beq NoHealth
+	; 1,s = flags
+	; 2,s = saved damage
+	sub 2,s
+	bcs :+
+		tdc
+	:
+	sta PlayerHealth,x
 
     ; Play the sound effect
     lda #SFX::player_hurt
     jsl PlaySoundEffect
-  :
+
+	.import UpdatePlayerHealthTiles
+	jsl UpdatePlayerHealthTiles
+  NoHealth:
   plp
+  pla
   rtl
 .endproc
 

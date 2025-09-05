@@ -218,6 +218,15 @@ CannonX = 16
   sta OAMHI+1+(4*2),y ; Edge
   seta16_clc
 
+  lda PlayerHurtTimer,x
+  and #%10
+  beq :+
+    lda #$F0
+    sta OAM_YPOS+(4*0),y ; Player
+    sta OAM_YPOS+(4*2),y ; Edge
+  :
+
+
   tya
   adc #3*4 ; Carry cleared above
   sta OamPtr

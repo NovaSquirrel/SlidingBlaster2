@@ -136,6 +136,7 @@ PlayerTileBase   = ActorTileBase
 	PlayerKeyLast      .word
 	PlayerKeyNew       .word
 	PlayerSpeedupTimer .word
+	PlayerHurtTimer    .word
 	PlayerCursorVX     .word
 	PlayerCursorVY     .word
 .endstruct
@@ -155,7 +156,7 @@ PlayerStructSize = PlayerCursorVY+.sizeof(PlayerCursorVY)
   LastNonEmpty:          .res 2 ; For actor iteration
 ; ---------------------------------------------------------
 
-  NeedLevelReload:       .res 1 ; If set, decode LevelNumber again
+  LevelNumber:           .res 2
   NeedLevelRerender:     .res 1 ; If set, rerender the level again
   OAM:   .res 512
   OAMHI: .res 512
@@ -208,12 +209,14 @@ LevelZeroWhenLoad_Start:
   DijkstraMapQueueWriteIndex: .res 2
   DijkstraMapStatus: .res 2
 
+  ActorWaveNextTimer: .res 2
+
 LevelZeroWhenLoad_End:
 
   ActorTilesetSlots:    .res ACTOR_TILESET_SLOT_COUNT
   ActorPaletteSlots:    .res ACTOR_PALETTE_SLOT_COUNT ; Last one is always the icon palette
-  ActorWaveCount:       .res 1
-  ActorWaveNumber:      .res 1
+  ActorWaveCount:       .res 2
+  ActorWaveNumber:      .res 2
 
   CursorX:       .res 2
   CursorY:       .res 2

@@ -230,6 +230,19 @@ DelayedBlockLoop:
     jsl SpawnLevelActors
 
     jsl UpdateWaveNumber
+
+    .import ApplyHealthPickup
+    lda Player1+PlayerActive
+    beq :+
+      ldy #Player1
+      jsl ApplyHealthPickup
+    :
+    lda Player2+PlayerActive
+    beq :+
+	  ldy #Player2
+      jsl ApplyHealthPickup
+    :
+
   NotNextWave:
 
   ; Include code for handling the vblank

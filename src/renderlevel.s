@@ -99,10 +99,16 @@ CLOUD_TILE = RUG_BASE + 16
 	bra :-
 :
 
-	ldx #Player1
-	jsl UpdatePlayerStatusTiles
-	ldx #Player2
-	jsl UpdatePlayerStatusTiles
+	lda Player1+PlayerActive
+	beq :+
+		ldx #Player1
+		jsl UpdatePlayerStatusTiles
+	:
+	lda Player2+PlayerActive
+	beq :+
+		ldx #Player2
+		jsl UpdatePlayerStatusTiles
+	:
 
 	ph2banks LevelBuf, LevelBuf
 	plb

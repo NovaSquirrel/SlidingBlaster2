@@ -189,7 +189,7 @@ AimAtPlayer2:
 .proc RunEnemyPortal
 	inc ActorTimer,x
 	lda ActorTimer,x
-	cmp #120 ; 30
+	cmp #180 ; 30
 	bcc No
 		lda ActorVarB,x
 		sta ActorType,x
@@ -284,6 +284,8 @@ PowerupAmmo:
 	jsl UpdatePlayerAmmoTiles
 	plx
 	rtl
+.export ApplyHealthPickup
+::ApplyHealthPickup:
 PowerupHealth:
 	phx
 	tyx

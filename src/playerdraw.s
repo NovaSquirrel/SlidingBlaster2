@@ -395,6 +395,8 @@ BCD100Table:
 
   ; ---------------------------------------------------------------------------
   ; Player 1 active
+  lda Player1+PlayerActive
+  beq Player1NotActive
   lda #$0200  ; Use 16x16 sprites
   sta OAMHI+(4*0),y
   sta OAMHI+(4*1),y
@@ -431,8 +433,11 @@ BCD100Table:
   add #4*4
   sta OamPtr
   tay
+Player1NotActive:
   ; ---------------------------------------------------------------------------
   ; Player 2 active
+  lda Player2+PlayerActive
+  beq Player2NotActive
   lda #$0200  ; Use 16x16 sprites
   sta OAMHI+(4*0),y
   sta OAMHI+(4*1),y
@@ -468,6 +473,7 @@ BCD100Table:
   tya
   add #4*4
   sta OamPtr
+Player2NotActive:
   ; ---------------------------------------------------------------------------
   rtl
 .endproc

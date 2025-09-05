@@ -513,7 +513,7 @@ UploadActorTilesetLoop:
   jsl DoPaletteUpload
 
   ; Player palettes
-  lda #Palette::PlayerToy
+  lda #Palette::PlayerToy2
   ldy #8
   jsl DoPaletteUpload
   lda #Palette::PlayerToy

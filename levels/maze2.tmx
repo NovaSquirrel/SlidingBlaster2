@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="6" nextobjectid="60">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="6" nextobjectid="62">
  <tileset firstgid="1" source="tiles/level.tsx"/>
  <tileset firstgid="129" source="tiles/actors.tsx"/>
  <tileset firstgid="161" source="tiles/background.tsx"/>
@@ -32,7 +32,7 @@
 4,0,0,0,35,36,0,35,36,0,51,37,38,0,66,0,
 49,0,0,0,2,0,0,0,0,0,67,0,0,0,50,2,
 65,0,0,0,5,2,35,36,2,0,0,0,50,2,66,50,
-1,0,0,0,2,0,0,0,0,0,0,0,66,35,36,66
+1,0,0,0,2,0,0,0,0,0,0,83,66,35,36,66
 </data>
  </layer>
  <objectgroup id="5" name="Actors2"/>

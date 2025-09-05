@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="16" nextobjectid="288">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="16" height="12" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#80b8ff" nextlayerid="16" nextobjectid="306">
  <tileset firstgid="1" source="tiles/level.tsx"/>
  <tileset firstgid="129" source="tiles/actors.tsx"/>
  <tileset firstgid="161" source="tiles/background.tsx"/>
@@ -32,24 +32,24 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,113,113,113,113,113,113,113,113,113,113,113,113,113,113,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+83,83,83,83,83,83,83,83,83,83,83,83,83,83,83,83
 </data>
  </layer>
  <objectgroup id="14" name="Actors">
-  <object id="274" gid="137" x="224" y="16" width="16" height="16"/>
-  <object id="275" gid="137" x="208" y="16" width="16" height="16"/>
-  <object id="276" gid="137" x="192" y="16" width="16" height="16"/>
-  <object id="277" gid="137" x="176" y="16" width="16" height="16"/>
-  <object id="278" gid="137" x="160" y="16" width="16" height="16"/>
-  <object id="279" gid="137" x="144" y="16" width="16" height="16"/>
-  <object id="280" gid="137" x="128" y="16" width="16" height="16"/>
-  <object id="281" gid="137" x="112" y="16" width="16" height="16"/>
-  <object id="282" gid="137" x="96" y="16" width="16" height="16"/>
-  <object id="283" gid="137" x="80" y="16" width="16" height="16"/>
-  <object id="284" gid="137" x="64" y="16" width="16" height="16"/>
-  <object id="285" gid="137" x="48" y="16" width="16" height="16"/>
-  <object id="286" gid="137" x="32" y="16" width="16" height="16"/>
-  <object id="287" gid="137" x="16" y="16" width="16" height="16"/>
+  <object id="288" gid="150" x="16" y="16" width="16" height="16"/>
+  <object id="289" gid="150" x="48" y="16" width="16" height="16"/>
+  <object id="290" gid="150" x="80" y="16" width="16" height="16"/>
+  <object id="291" gid="150" x="112" y="16" width="16" height="16"/>
+  <object id="292" gid="150" x="144" y="16" width="16" height="16"/>
+  <object id="293" gid="150" x="176" y="16" width="16" height="16"/>
+  <object id="294" gid="150" x="208" y="16" width="16" height="16"/>
+  <object id="299" gid="137" x="32" y="16" width="16" height="16"/>
+  <object id="300" gid="137" x="64" y="16" width="16" height="16"/>
+  <object id="301" gid="137" x="96" y="16" width="16" height="16"/>
+  <object id="302" gid="137" x="128" y="16" width="16" height="16"/>
+  <object id="303" gid="137" x="160" y="16" width="16" height="16"/>
+  <object id="304" gid="137" x="192" y="16" width="16" height="16"/>
+  <object id="305" gid="137" x="224" y="16" width="16" height="16"/>
  </objectgroup>
  <objectgroup id="3" name="Meta">
   <object id="214" name="PlayerStart" x="119" y="153">

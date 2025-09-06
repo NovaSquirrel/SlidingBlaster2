@@ -191,7 +191,8 @@
 
 	Bright = TouchTemp
 	Player1Cursor = TouchTemp+2
-	Player2Cursor = TouchTemp+4
+	Player2Cursor = TouchTemp+3
+	seta8
 	stz Bright
 	stz Player1Cursor
 	lda #1
@@ -479,17 +480,20 @@ ControllerMode:
 	lda PlayerKeyNew,x
 	and #KEY_UP
 	beq @NotUp
+		seta8
 		lda ShowMainMenu::Player1Cursor,y
 		dec
 		bpl :+
 			lda #2
 		:
 		sta ShowMainMenu::Player1Cursor,y
+		seta16
 	@NotUp:
 
 	lda PlayerKeyNew,x
 	and #KEY_DOWN
 	beq @NotDown
+		seta8
 		lda ShowMainMenu::Player1Cursor,y
 		ina
 		cmp #3
@@ -497,12 +501,14 @@ ControllerMode:
 			tdc
 		:
 		sta ShowMainMenu::Player1Cursor,y
+		seta16
 	@NotDown:
 
 	lda PlayerKeyNew,x
 	and #KEY_A | KEY_B | KEY_START
 	beq @NotA
 		lda ShowMainMenu::Player1Cursor,y
+		and #3
 		phy
 		asl
 		tay
@@ -574,14 +580,16 @@ MouseMode:
 	bcs NotInRange
 		sub #(13*8+4) * 16
 		xba
-		and #255
+		seta8
 		sta ShowMainMenu::Player1Cursor,y
+		seta16
 	NotInRange:
 
 	lda PlayerKeyNew+1,x
 	and #$40
 	beq NotLeftClick
 		lda ShowMainMenu::Player1Cursor,y
+		and #3
 		phy
 		asl
 		tay
@@ -616,6 +624,9 @@ Start2Player:
 	jml StartNewGame
 .a16
 ChangeCharacter:
+	tya
+	asl
+	tay
 	lda Player1Critter,y
 	ina
 	cmp #3
@@ -623,6 +634,9 @@ ChangeCharacter:
 		tdc
 	:
 	sta Player1Critter,y
+	tya
+	lsr
+	tay
 	rts
 ChangeSensitivity:
 	seta8

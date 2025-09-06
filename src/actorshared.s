@@ -180,9 +180,11 @@ assert_same_banks RunAllParticles, ParticleDraw
   plb
 
   ldx #ParticleStart
+  stx LastNonEmpty
 Loop:
   lda ParticleType,x
   beq SkipEntity   ; Skip if empty
+  stx LastNonEmpty
 
   ; Call the run and draw routines
   asl

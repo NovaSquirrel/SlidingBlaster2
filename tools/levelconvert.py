@@ -34,7 +34,22 @@ for i in define_lines:
 	elif in_enum:
 		id_for_fg_block[i.strip().split(' ')[0]] = block_count
 		block_count += 1
-id_for_bg_block = {"Grass": 1} # TODO
+
+# Read the background block enum to translate names to IDs
+define_file = open("src/backgroundblockenum.s")
+define_lines = [x.strip() for x in define_file.readlines()]
+define_file.close()
+id_for_bg_block = {}
+block_count = 0
+in_enum = False
+for i in define_lines:
+	if i.strip() == '.enum BackgroundBlock':
+		in_enum = True
+	elif i.strip() == '.endenum':
+		in_enum = False
+	elif in_enum:
+		id_for_bg_block[i.strip().split(' ')[0]] = block_count
+		block_count += 1
 
 if len(sys.argv) != 3:
 	print("levelconvert.py input.tmx output.bin")

@@ -46,3 +46,5 @@ audio/audio_common.bin
 audio/songs/*.bin
 src/audio_enum.inc
 src/audio_incbins.s
+src/backgroundblockenum.s
+src/backgroundblockdata.s

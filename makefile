@@ -17,7 +17,7 @@ version = 0.01
 # (use a backslash to continue on the next line)
 objlist = \
   snesheader init main player memory common renderlevel \
-  uploadppu graphics blockdata tad-audio_config audio_incbins audio_misc \
+  uploadppu graphics blockdata backgroundblockdata tad-audio_config audio_incbins audio_misc \
   blockinteraction palettedata pathfinding mainmenu \
   actordata actorcode actorshared levelload leveldata \
   sincos_data math lz4 playerdraw playerprojectile characters
@@ -131,6 +131,7 @@ $(objdir)/renderlevel.o: $(srcdir)/actorenum.s
 
 $(objdir)/main.o: $(srcdir)/vblank.s $(srcdir)/audio_enum.inc
 $(objdir)/blockdata.o: $(srcdir)/blockenum.s
+$(objdir)/backgroundblockdata.o: $(srcdir)/backgroundblockenum.s
 $(objdir)/common.o: $(srcdir)/blockenum.s
 $(objdir)/player.o: $(srcdir)/blockenum.s $(srcdir)/actorenum.s $(srcdir)/audio_enum.inc
 $(objdir)/actorshared.o: $(srcdir)/blockenum.s
@@ -152,6 +153,8 @@ $(srcdir)/graphicsenum.s: $(chr2all) $(chr4all) $(chrXall) $(chr4allbackground) 
 $(srcdir)/blockdata.s: tools/blocks.txt tools/makeblocks.py
 $(srcdir)/blockenum.s: tools/blocks.txt tools/makeblocks.py
 	$(PY) tools/makeblocks.py
+$(srcdir)/backgroundblockenum.s: tools/backgroundblocks.txt tools/makebackgroundblocks.py
+	$(PY) tools/makebackgroundblocks.py
 
 
 $(srcdir)/palettedata.s: $(palettes) $(variable_palettes)
@@ -166,7 +169,7 @@ $(objdir)/leveldata.o: $(levels_lz4) $(levels_bin) $(srcdir)/leveldata.s $(srcdi
 levels/%.lz4: levels/%.bin
 	$(lz4_compress) $(lz4_flags) $< $@
 	@touch $@
-levels/%.bin: levels/%.tmx tools/levelconvert.py tools/blocks.txt
+levels/%.bin: levels/%.tmx tools/levelconvert.py tools/blocks.txt tools/backgroundblocks.txt $(srcdir)/blockenum.s $(srcdir)/backgroundblockenum.s
 	$(PY) tools/levelconvert.py $< $@
 
 $(objdir)/characters.o: $(chrXall) $(srcdir)/paletteenum.s

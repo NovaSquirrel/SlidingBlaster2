@@ -1,0 +1,53 @@
+alias common_gfx $2000
+
+alias red_blue_yellow_palette 2
+alias green_gray_brown_palette 3
+alias icon_palette 7
+
+base common_gfx
+
+palette green_gray_brown_palette
+
++Empty
+t 0:0 0:0
+t 0:0 0:0
+
++Grass
+w 4,1
+
++Dirt
+w 12,1
+
+palette red_blue_yellow_palette
+
++Water
+w 8,2
+
+palette green_gray_brown_palette
+
++Sand
+w 12,2
+
++RoadVertical
+t 0,2 1,2
+t 0,2 1,2
+
++RoadHorizontal
+t 2,2 2,2
+t 3,2 3,2
+
++RoadDR
+t 5,2h 2,2h
+t 1,2h 4,2h
+
++RoadDL
+t 2,2 5,2
+t 4,2 1,2
+
++RoadUR
+t 1,2hv 4,2hv
+t 5,2hv 2,2hv
+
++RoadUL
+t 4,2v 1,2v
+t 2,2v 5,2v

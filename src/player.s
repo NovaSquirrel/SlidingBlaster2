@@ -122,11 +122,6 @@ NoTarget:
   jmp ControlMethodEnd
 
 MouseMode:
-  seta8
-  lda #0 << 4
-  sta PlayerMouseSensitivity,x
-  seta16
-
   ldy PlayerNumber
   jsl ReadMouseForPlayerY
 
@@ -288,6 +283,13 @@ ControlMethodEnd:
       lda #1
       sta ActorSpeed,y
 
+      cpx #Player2
+      bcc :+
+        lda ActorTileBase,y
+        ora #(SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT)
+        sta ActorTileBase,y
+      :
+
       phx
       phy
       tyx
@@ -400,6 +402,7 @@ Found:
 
 ; Y = 0 or 1 for first or second player
 ; X = pointer to player struct
+.export ReadMouseForPlayerY
 .proc ReadMouseForPlayerY
   php
   seta8
@@ -434,8 +437,6 @@ Found:
 WasHyperkinMouse:
   ; Hyperkin mouse doesn't let game change the sensitivity
   ; but trying anyway should be good in the case where the Hyperkin mouse gets detected by mistake?
-  lda #%100000
-  sta PlayerMouseSensitivity,x
 
   ; If the sensitivity reported isn't the right one, cycle to the next sensitivity
   lda PlayerKeyDown,x

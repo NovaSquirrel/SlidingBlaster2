@@ -46,6 +46,15 @@
 	stz BGSCROLLY
 	
 	setaxy16
+	; Init variables
+	lda #2 * 256
+	sta Player1+PlayerCursorPX
+	lda #13 * 256
+	sta Player2+PlayerCursorPX
+	lda #7 * 256 + $40
+	sta Player1+PlayerCursorPY
+	lda #8 * 256 + $40
+	sta Player2+PlayerCursorPY
 
 	; Upload graphics
 	lda #GraphicsUpload::MainMenu
@@ -185,7 +194,8 @@
 	Player2Cursor = TouchTemp+4
 	stz Bright
 	stz Player1Cursor
-	stz Player2Cursor
+	lda #1
+	sta Player2Cursor
 Loop:
 	jsl WaitVblank
 	seta8
@@ -238,6 +248,33 @@ Loop:
 	ina
 	sta PPUDATA
 
+	bit8 Player1+PlayerUsingAMouse
+	bpl NoDrawPlayer1Sensitivity
+		lda #ForegroundBG + (14) + (7*32)
+		sta PPUADDR
+		lda Player1+PlayerMouseSensitivity
+		and #255
+		lsr
+		lsr
+		lsr
+		lsr
+		add #11
+		sta PPUDATA
+	NoDrawPlayer1Sensitivity:
+	bit8 Player2+PlayerUsingAMouse
+	bpl NoDrawPlayer2Sensitivity
+		lda #ForegroundBG + (14) + (10*32)
+		sta PPUADDR
+		lda Player2+PlayerMouseSensitivity
+		and #255
+		lsr
+		lsr
+		lsr
+		lsr
+		add #11
+		sta PPUDATA
+	NoDrawPlayer2Sensitivity:
+
 	; -------------------------------------------
 	; - Controls
 
@@ -257,7 +294,7 @@ Loop:
     sta OAM_TILE+(4*1)
 	lda #32 | (SP_PLAYER1_PALETTE << OAM_COLOR_SHIFT) | OAM_PRIORITY_2
     sta OAM_TILE+(4*2)
-	lda #32 | (SP_PLAYER1_PALETTE << OAM_COLOR_SHIFT) | OAM_PRIORITY_2
+	lda #32 | (SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT) | OAM_PRIORITY_2
     sta OAM_TILE+(4*3)
 
 	seta8
@@ -272,7 +309,7 @@ Loop:
 	asl
 	asl
 	adc #14*8
-    sta OAM_YPOS + (4*0)
+    sta OAM_YPOS + (4*0) ; Player 1 options cursor
 
 	lda Player2Cursor
 	asl
@@ -280,7 +317,11 @@ Loop:
 	asl
 	asl
 	adc #14*8
-    sta OAM_YPOS + (4*1)
+    sta OAM_YPOS + (4*1) ; Player 2 options cursor
+
+	lda #$f0
+	sta OAM_YPOS + (4*2) ; Player 1 mouse cursor
+	sta OAM_YPOS + (4*3) ; Player 2 mouse cursor
 	seta16
 
     stz OAMHI+1 + (4*0)
@@ -289,6 +330,14 @@ Loop:
     stz OAMHI+1 + (4*2)
     stz OAMHI+1 + (4*3)
 
+	ldy #8
+	ldx #Player1
+	jsr DrawMouseCursor
+	ldy #12
+	ldx #Player2
+	jsr DrawMouseCursor
+
+	; Set a minimum amount of sprites so that the partial OAM copy works correctly
 	lda #16
 	sta OamPtr
 
@@ -305,6 +354,42 @@ Loop:
 	.a8 ; (does seta8)
 	jsl prepare_ppu_copy_oam_partial
 	jmp Loop
+
+.a16
+DrawMouseCursor:
+	bit8 PlayerUsingAMouse,x
+	bpl @NoCursor
+		lda #32 | OAM_PRIORITY_2
+		cpx #Player2
+		bcc :+
+			ora #(SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT)
+		:
+		sta OAM_TILE,y
+		lda PlayerCursorPX,x
+		lsr
+		lsr
+		lsr
+		lsr
+		sta 0
+		lda PlayerCursorPY,x
+		lsr
+		lsr
+		lsr
+		lsr
+		sta 2
+		seta8
+		lda 0
+		sta OAM_XPOS,y
+		lda 2
+		sta OAM_YPOS,y
+	
+		lsr 1
+		lda #1
+		rol
+		sta OAMHI+1,y
+		seta16
+	@NoCursor:
+	rts
 
 .a16
 TopBottomBorder:
@@ -429,7 +514,82 @@ ControllerMode:
 
 	rts
 MouseMode:
+	.import ReadMouseForPlayerY
+	jsl ReadMouseForPlayerY
 
+	; Convert to two's complement
+	lda 0
+	and #255
+	bit #128
+	beq :+
+		eor #$FF7F
+		sec
+		adc #0
+	:
+	asl
+	asl
+	add PlayerCursorPY,x
+	sta PlayerCursorPY,x
+	adc #$8000         ; Apply an offset so that I don't need a separate check for being too close to the left edge and going past it
+	cmp #$8000 + $080
+	bcs :+
+		lda #$0040
+		sta PlayerCursorPY,x
+	:
+	cmp #$8000 + $D80
+	bcc :+
+		lda #$0D80
+		sta PlayerCursorPY,x
+	:
+	
+	lda 1
+	and #255
+	bit #128
+	beq :+
+		eor #$FF7F
+		sec
+		adc #0
+	:
+	asl
+	asl
+	add PlayerCursorPX,x
+	sta PlayerCursorPX,x
+	adc #$8000
+	cmp #$8000 + $080
+	bcs :+
+		lda #$0040
+		sta PlayerCursorPX,x
+	:
+	cmp #$8000 + $F80
+	bcc :+
+		lda #$0FC0
+		sta PlayerCursorPX,x
+	:
+
+	; Move the options cursor to match the mouse cursor
+	lda PlayerCursorPY,x
+	cmp #(13*8+4) * 16
+	bcc NotInRange
+	cmp #(21*8+4) * 16
+	bcs NotInRange
+		sub #(13*8+4) * 16
+		xba
+		and #255
+		sta ShowMainMenu::Player1Cursor,y
+	NotInRange:
+
+	lda PlayerKeyNew+1,x
+	and #$40
+	beq NotLeftClick
+		lda ShowMainMenu::Player1Cursor,y
+		phy
+		asl
+		tay
+		lda CommandPointers,y
+		ply
+		pha
+		rts
+	NotLeftClick:
 	rts
 
 ; ---------------------------------------------------------
@@ -465,13 +625,15 @@ ChangeCharacter:
 	sta Player1Critter,y
 	rts
 ChangeSensitivity:
+	seta8
 	lda PlayerMouseSensitivity,x
 	add #16
 	cmp #16*3
-	bne :+
+	bcc :+
 		tdc
 	:
 	sta PlayerMouseSensitivity,x
+	seta16
 	rts
 
 FadeOut:

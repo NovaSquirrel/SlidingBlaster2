@@ -116,6 +116,17 @@
   dec
   sta random2
 
+  .import ShowMainMenu
+  jml ShowMainMenu
+
+.endproc
+
+.export StartNewGame
+.proc StartNewGame
+  setaxy16
+  ldx #$1ff
+  txs ; Reset the stack pointer so no cleanup is needed
+
   lda #0
  .import StartLevel
 ::ReloadLevel:
@@ -180,17 +191,25 @@ DelayedBlockLoop:
 
   jsl DrawStatusSprites
 
-  ldx #Player1
-  jsl RunPlayer
-  ldx #Player1
-  jsl DrawPlayer
+  lda Player1+PlayerActive
+  beq :+
+    ldx #Player1
+    jsl RunPlayer
+    ldx #Player1
+    jsl DrawPlayer
+  :
+
+  lda Player2+PlayerActive
+  beq :+
+    ldx #Player2
+    jsl RunPlayer
+    ldx #Player2
+    jsl DrawPlayer
+  :
 
   jsl RunAllActors
 
-  lda OamPtr
   setaxy16
-  .a16
-  .i16
 
   .import UpdateDijkstraMaps
   jsl UpdateDijkstraMaps
@@ -217,7 +236,7 @@ DelayedBlockLoop:
       sta PPUBRIGHT
       dec 0
       bpl :-
-      lda #128
+      lda #FORCEBLANK
       sta PPUBRIGHT
       seta16
 

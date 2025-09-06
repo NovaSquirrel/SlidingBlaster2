@@ -199,6 +199,29 @@ Die:
 		jsl RandomByte
 		and #%110
 		sta ActorVarA,y
+
+		; When either player is low on health
+		lda Player1+PlayerActive
+		beq :+
+			lda Player1+PlayerHealth
+			cmp #10
+			bcc @PrioritizeHealth
+		:
+		lda Player2+PlayerActive
+		beq :+
+			lda Player2+PlayerHealth
+			cmp #10
+			bcc @PrioritizeHealth
+		:
+		bra @NoOverride
+	@PrioritizeHealth:
+		jsl RandomByte
+		lsr
+		bcc @NoOverride
+		lda #%010 ; Health
+		sta ActorVarA,y
+	@NoOverride:
+
 	NoPowerup:
 
 	jml ActorBecomePoof

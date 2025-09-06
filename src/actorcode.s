@@ -1871,8 +1871,7 @@ NotMakingCookiesNow:
 		ldy #0
 		ldx #ActorStart
 	:	lda ActorType,x
-		cmp #Actor::EnemyCookie*2
-		bne :+
+		beq :+
 			iny
 		:
 		txa
@@ -1881,7 +1880,7 @@ NotMakingCookiesNow:
 		cpx ActorIterationLimit
 		bne :--
 		plx
-		cpy #10
+		cpy #18
 		bcs DontMakeCookies
 	
 		lda #60

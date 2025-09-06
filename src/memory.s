@@ -153,6 +153,9 @@ PlayerStructSize = PlayerCursorVY+.sizeof(PlayerCursorVY)
   ParticleStart: .res ParticleCount*ParticleStructSize
   ParticleEnd:
 
+  Player1Critter: .res 2
+  Player2Critter: .res 2
+
   LastNonEmpty:          .res 2 ; For actor iteration
 ; ---------------------------------------------------------
 

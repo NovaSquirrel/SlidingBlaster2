@@ -90,7 +90,6 @@
   lda #20
   sta Player1+PlayerHealth
   sta Player2+PlayerHealth
-  sta Player1+PlayerActive
 
   ; Set up the level pointer
   lda f:LevelSequence+0,x
@@ -101,8 +100,7 @@
   sta LevelHeaderPointer+2
   cmp #$ff
   bne :+
-    dec LevelNumber
-    lda LevelNumber
+    lda #0
     jmp StartLevel
   :
 
@@ -117,17 +115,23 @@
   ; Starting X position
   lda [LevelHeaderPointer],y
   sta Player1+PlayerPX+1
+  sta Player2+PlayerPX+1
   lda #$80
   sta Player1+PlayerPX+0
+  sta Player2+PlayerPX+0
   stz Player1+PlayerPXSub
+  stz Player2+PlayerPXSub
 
   iny ; Y = 2
   ; Starting Y position
   lda [LevelHeaderPointer],y
   sta Player1+PlayerPY+1
+  sta Player2+PlayerPY+1
   lda #$80
   sta Player1+PlayerPY+0
+  sta Player2+PlayerPY+0
   stz Player1+PlayerPYSub
+  stz Player2+PlayerPYSub
 
   ; Unused, a good place to put flags
   iny ; Y = 3

@@ -579,10 +579,10 @@ UploadActorTilesetLoop:
   setaxy16
 
   .import SetupAnimatedCharacter
-  lda #1
+  lda Player1Critter
   ldy #0
   jsl SetupAnimatedCharacter
-  lda #0
+  lda Player2Critter
   ldy #1
   jsl SetupAnimatedCharacter
   ; Force the frames to be copied

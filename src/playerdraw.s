@@ -51,6 +51,10 @@ CannonX = 16
   bpl NoCursor
     ldy OamPtr
     lda #SHOOT_CURSOR_TILE_ID | OAM_PRIORITY_2
+    cpx #Player2
+    bcc :+
+      ora #(SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT)
+    :
     sta OAM_TILE,y
     lda PlayerCursorPX,x
     lsr
@@ -110,8 +114,16 @@ CannonX = 16
   and #%1110
   tay
   lda PlayerAngleTiles,y
+  cpx #Player2
+  bcc :+
+    ora #(SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT)
+  :
   sta PlayerTile
   lda PlayerEdgeTiles,y
+  cpx #Player2
+  bcc :+
+    ora #(SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT)
+  :
   sta EdgeTile
   lda PlayerEdgeOffsets,y
   add BaseX
@@ -154,6 +166,10 @@ CannonX = 16
   pha
   and #3
   add #CANNON_TILE_ID | OAM_PRIORITY_2
+  cpx #Player2
+  bcc :+
+    ora #(SP_PLAYER2_PALETTE << OAM_COLOR_SHIFT)
+  :
   sta CannonTile
   pla
   and #4

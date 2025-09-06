@@ -18,7 +18,7 @@ version = 0.01
 objlist = \
   snesheader init main player memory common renderlevel \
   uploadppu graphics blockdata tad-audio_config audio_incbins audio_misc \
-  blockinteraction palettedata pathfinding \
+  blockinteraction palettedata pathfinding mainmenu \
   actordata actorcode actorshared levelload leveldata \
   sincos_data math lz4 playerdraw playerprojectile characters
 
@@ -137,6 +137,7 @@ $(objdir)/actorshared.o: $(srcdir)/blockenum.s
 $(objdir)/levelload.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s $(srcdir)/actorenum.s $(srcdir)/blockenum.s
 $(objdir)/leveldata.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s $(srcdir)/actorenum.s $(srcdir)/blockenum.s
 $(objdir)/actordata.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s
+$(objdir)/mainmenu.o: $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s
 $(objdir)/uploadppu.o: $(palettes) $(srcdir)/paletteenum.s $(srcdir)/graphicsenum.s
 $(objdir)/blockinteraction.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
 $(srcdir)/actordata.s: $(srcdir)/actorenum.s

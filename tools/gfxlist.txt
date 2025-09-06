@@ -12,3 +12,4 @@
 7000 EnemyPirateSalad
 7000 EnemyPoochiPirate
 7000 EnemySnowman
+0000 MainMenu

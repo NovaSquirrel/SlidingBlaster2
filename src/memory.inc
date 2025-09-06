@@ -37,7 +37,7 @@ OAM_ATTR = OAM+3
 ; ---------------------------------------------------------
 
 ActorCount = 32
-ProjectileCount = 8
+ProjectileCount = 12
 ParticleCount = 20
 PlayerCount = 2
 
@@ -48,6 +48,8 @@ PlayerCount = 2
 .globalzp ActorProjectileType
 .globalzp PlayerActive, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerSpeedupTimer, PlayerCursorVX, PlayerCursorVY, PlayerHurtTimer
 .globalzp PlayerStructSize
+
+.global Player1Critter, Player2Critter
 
 ; Storage
 .global ActorStart

@@ -40,7 +40,7 @@ PlayerNumber = TouchTemp
   plb
 
   tdc
-  cpy #.loword(Player2)
+  cpx #.loword(Player2)
   rol
   sta PlayerNumber
 
@@ -255,7 +255,7 @@ ControlMethodEnd:
   DontResetNoAmmoPity:
 
   lda PlayerKeyNew,x
-  and #KEY_Y
+  and #KEY_Y | KEY_A
   beq NoShoot
     lda PlayerAmmo,x
     bne HaveAmmo

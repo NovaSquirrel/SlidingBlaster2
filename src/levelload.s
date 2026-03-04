@@ -116,6 +116,10 @@
   lda [LevelHeaderPointer],y
   sta Player1+PlayerPX+1
   sta Player2+PlayerPX+1
+  sta Player1+PlayerLastGoodX+1
+  sta Player2+PlayerLastGoodX+1
+  stz Player1+PlayerLastGoodX
+  stz Player2+PlayerLastGoodX
   lda #$80
   sta Player1+PlayerPX+0
   sta Player2+PlayerPX+0
@@ -127,6 +131,10 @@
   lda [LevelHeaderPointer],y
   sta Player1+PlayerPY+1
   sta Player2+PlayerPY+1
+  sta Player1+PlayerLastGoodY+1
+  sta Player2+PlayerLastGoodY+1
+  stz Player1+PlayerLastGoodY
+  stz Player2+PlayerLastGoodY
   lda #$80
   sta Player1+PlayerPY+0
   sta Player2+PlayerPY+0
@@ -327,6 +335,7 @@ Loop:
 	xba
 	ora #$80
 	sta ActorPX,x
+	sta ActorLastGoodX,x
 	pla
 	and #$f0
 	lsr
@@ -336,6 +345,7 @@ Loop:
 	xba
 	ora #$80
 	sta ActorPY,x
+	sta ActorLastGoodY,x
 
 	jsl ActorClearX
 

@@ -94,6 +94,8 @@ ActorVarA = ParticleVariable
 	ActorHealth .word
 	ActorSpeed  .word
 	ActorHitShake .word
+	ActorLastGoodX .word
+	ActorLastGoodY .word
 	ActorTileBase .word ; Base tile number for OAM, including the palette picked. Can also set the OAM_XFLIP or OAM_YFLIP bits
 .endstruct
 ActorStructSize = ActorTileBase+.sizeof(ActorTileBase)
@@ -118,6 +120,8 @@ PlayerWidth      = ActorWidth
 PlayerHeight     = ActorHeight
 PlayerHealth     = ActorHealth
 PlayerSpeed      = ActorSpeed
+PlayerLastGoodX  = ActorLastGoodX
+PlayerLastGoodY  = ActorLastGoodY
 PlayerTileBase   = ActorTileBase
 .struct
 	.res ActorStructSize

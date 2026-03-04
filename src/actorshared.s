@@ -1070,10 +1070,12 @@ Loop:
   sta ActorPXSub,y
   lda ActorPX,x
   sta ActorPX,y
+  sta ActorLastGoodX,y
   lda ActorPYSub,x
   sta ActorPYSub,y
   lda ActorPY,x
   sta ActorPY,y
+  sta ActorLastGoodY,y
   rtl
 .endproc
 
@@ -1424,9 +1426,12 @@ RandomAngle:
 .i16
 .export ActorMoveAndBumpAgainstWalls
 .proc ActorMoveAndBumpAgainstWalls
-HITBOX_RADIUS = 6
-HITBOX_LINE_LENGTH = 4
-
+; Constants
+HITBOX_CORNER_OFFSET = 10
+HITBOX_CORNER_OFFSET_FAR = 16
+; Variables
+SolidCorners = 0
+SaveX        = 2
   ; -------------------------------------------------------
   ; Bounce off of the left and right of the playfield
   lda ActorVX,x
@@ -1439,7 +1444,7 @@ HITBOX_LINE_LENGTH = 4
     sub ActorAngle,x
     and #510
     sta ActorAngle,x
-    bra NoHorizontalMovement
+    bra NotOffRight
   NotOffLeft:
 
   lda ActorVX,x
@@ -1448,37 +1453,6 @@ HITBOX_LINE_LENGTH = 4
   cmp #$0F80
   bcs FlipFromScreenEdgeLR
   NotOffRight:
-
-  ; -------------------------------------------------------
-  ; Bounce horizontally off of solid blocks
-  lda ActorVX,x
-  beq NoHorizontalMovement
-  lda #HITBOX_RADIUS*16
-  sta 0
-  lda ActorVX,x
-  bpl :+
-    lda #.loword(-HITBOX_RADIUS*16)
-    sta 0
-  :
-  lda ActorPY,x
-  sub #HITBOX_LINE_LENGTH/2*16
-  tay
-  lda ActorPX,x
-  add 0
-  pha
-  phy
-  jsr TrySideInteraction
-  bcc :+
-    pla
-    pla
-    bra NoHorizontalMovement
-  :
-  pla
-  add #HITBOX_LINE_LENGTH*16
-  tay
-  pla
-  jsr TrySideInteraction
-NoHorizontalMovement:
 
   ; -------------------------------------------------------
   ; Bounce off of the top and bottom of playfield
@@ -1493,7 +1467,7 @@ NoHorizontalMovement:
     ina
     and #510
     sta ActorAngle,x
-    bra NoVerticalMovement
+    bra NotOffBottom
   NotOffTop:
 
   lda ActorVY,x
@@ -1504,75 +1478,197 @@ NoHorizontalMovement:
   NotOffBottom:
 
   ; -------------------------------------------------------
-  ; Bounce vertically off of solid blocks
-  lda ActorVY,x
-  beq NoVerticalMovement
-  lda #HITBOX_RADIUS*16
-  sta 0
-  lda ActorVY,x
-  bpl :+
-    lda #.loword(-HITBOX_RADIUS*16)
-    sta 0
-  :
-  lda ActorPY,x
-  add 0
-  tay
-  lda ActorPX,x
-  sub #HITBOX_LINE_LENGTH/2*16
-  phy
-  pha
-  jsr TryVertInteraction
-  bcc :+
-    pla
-    pla
-    bra NoVerticalMovement
-  :
-  pla
-  add #HITBOX_LINE_LENGTH*16
-  ply
-  bcs NoVerticalMovement
-  jsr TryVertInteraction
-NoVerticalMovement:
+  ; Bounce into walls
 
+  stz SolidCorners
+
+  lda ActorPY,x
+  sub #HITBOX_CORNER_OFFSET
+  tay
+  phy
+  lda ActorPX,x
+  sub #HITBOX_CORNER_OFFSET
+  jsr GetOneCorner ; Top left
+  ply
+  lda ActorPX,x
+  add #HITBOX_CORNER_OFFSET
+  jsr GetOneCorner ; Top right
+
+  lda ActorPY,x
+  add #HITBOX_CORNER_OFFSET
+  tay
+  phy
+  lda ActorPX,x
+  sub #HITBOX_CORNER_OFFSET
+  jsr GetOneCorner ; Bottom left
+  ply
+  lda ActorPX,x
+  add #HITBOX_CORNER_OFFSET
+  jsr GetOneCorner ; Bottom right
+
+  stx SaveX
+  asl SolidCorners
+  ldx SolidCorners
+  jmp (.loword(CornerReactions), x)
+
+End:
   jml ActorApplyVelocity
 
 ; -------------------------------------------------------
 
-TrySideInteraction:
-  jsl GetLevelIndexXY
-  phx
-  tax
-  lda f:BlockFlags,x
-  plx
-  asl
-  bcc NoBumpHoriz
-    lda #256
-    sub ActorAngle,x
-    and #510
-    sta ActorAngle,x
-    sec
-    rts
-  NoBumpHoriz:
-  clc
+Corner_______BL___:
+Corner____TR_BL_BR:
+  ldx SaveX
+  jsr WallRight
+  jsr WallBottom
+  bra End
+Corner__________BR:
+Corner_TL____BL_BR:
+  ldx SaveX
+  jsr WallLeft
+  jsr WallBottom
+  bra End
+Corner____TR______:
+Corner_TL_TR____BR:
+  ldx SaveX
+  jsr WallRight
+  jsr WallTop
+  bra End
+Corner_TL_________:
+Corner_TL_TR_BL___:
+  ldx SaveX
+  jsr WallLeft
+  jsr WallTop
+  bra End
+
+Corner_______BL_BR:
+  ldx SaveX
+  jsr WallBottom
+  bra End
+Corner_TL_TR______:
+  ldx SaveX
+  jsr WallTop
+  bra End
+Corner____TR____BR:
+  ldx SaveX
+  jsr WallRight
+  bra End
+Corner_TL____BL___:
+  ldx SaveX
+  jsr WallLeft
+  bra End
+
+; Nothing
+Corner____________:
+  ldx SaveX
+  lda ActorPX,x
+  sta ActorLastGoodX,x
+  lda ActorPY,x
+  sta ActorLastGoodY,x
+  jmp End
+
+Corner____TR_BL___:
+Corner_TL_______BR:
+Corner_TL_TR_BL_BR:
+  ldx SaveX
+
+  ; Is the character deeper into the wall horizontally or vertically?
+  lda ActorLastGoodX,x
+  sub ActorPX,x
+  abs
+  sta 0
+  lda ActorLastGoodY,x
+  sub ActorPY,x
+  abs
+  sta 2
+
+  lda 0
+  cmp 2
+  bcs @Horiz
+@Vert:
+  lda ActorLastGoodY,x
+  cmp ActorPY,x
+  ;beq :+
+  bcc :+
+    jsr WallTop
+    jmp End
+  :
+  jsr WallBottom
+  jmp End
+@Horiz:
+  lda ActorLastGoodX,x
+  cmp ActorPX,x
+  bcc :+
+    jsr WallLeft
+    jmp End
+  :
+  jsr WallRight
+  jmp End
+
+WallLeft:
+  lda ActorAngle,x
+  sub #128
+  and #511
+  cmp #256
+  bcs _rts
+BounceHoriz:
+  lda #256
+  sub ActorAngle,x
+  and #510
+  sta ActorAngle,x
+_rts:
+  rts
+WallRight:
+  lda ActorAngle,x
+  add #128
+  and #511
+  cmp #256
+  bcc BounceHoriz
   rts
 
-TryVertInteraction:
+WallTop:
+  lda ActorAngle,x
+  cmp #256
+  bcc _rts
+BounceVert:
+  lda ActorAngle,x
+  eor #$FFFF
+  ina
+  and #510
+  sta ActorAngle,x
+  rts
+WallBottom:
+  lda ActorAngle,x
+  cmp #256
+  bcc BounceVert
+  rts
+
+CornerReactions:
+  .addr Corner____________
+  .addr Corner__________BR
+  .addr Corner_______BL___
+  .addr Corner_______BL_BR
+  .addr Corner____TR______
+  .addr Corner____TR____BR
+  .addr Corner____TR_BL___
+  .addr Corner____TR_BL_BR
+  .addr Corner_TL_________
+  .addr Corner_TL_______BR
+  .addr Corner_TL____BL___
+  .addr Corner_TL____BL_BR
+  .addr Corner_TL_TR______
+  .addr Corner_TL_TR____BR
+  .addr Corner_TL_TR_BL___
+  .addr Corner_TL_TR_BL_BR
+
+GetOneCorner:
   jsl GetLevelIndexXY
   phx
   tax
   lda f:BlockFlags,x
-  plx
   asl
-  bcc NoBumpVert
-    lda ActorAngle,x
-    eor #$FFFF
-    ina
-    and #510
-    sta ActorAngle,x
-    sec
-    rts
-  NoBumpVert:
-  clc
+  plx
+  rol SolidCorners
   rts
 .endproc
 

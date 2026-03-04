@@ -1427,8 +1427,7 @@ RandomAngle:
 .export ActorMoveAndBumpAgainstWalls
 .proc ActorMoveAndBumpAgainstWalls
 ; Constants
-HITBOX_CORNER_OFFSET = 10
-HITBOX_CORNER_OFFSET_FAR = 16
+HITBOX_CORNER_OFFSET = 4
 ; Variables
 SolidCorners = 0
 SaveX        = 2
@@ -1483,27 +1482,27 @@ SaveX        = 2
   stz SolidCorners
 
   lda ActorPY,x
-  sub #HITBOX_CORNER_OFFSET
+  sub #HITBOX_CORNER_OFFSET*16
   tay
   phy
   lda ActorPX,x
-  sub #HITBOX_CORNER_OFFSET
+  sub #HITBOX_CORNER_OFFSET*16
   jsr GetOneCorner ; Top left
   ply
   lda ActorPX,x
-  add #HITBOX_CORNER_OFFSET
+  add #HITBOX_CORNER_OFFSET*16
   jsr GetOneCorner ; Top right
 
   lda ActorPY,x
-  add #HITBOX_CORNER_OFFSET
+  add #HITBOX_CORNER_OFFSET*16
   tay
   phy
   lda ActorPX,x
-  sub #HITBOX_CORNER_OFFSET
+  sub #HITBOX_CORNER_OFFSET*16
   jsr GetOneCorner ; Bottom left
   ply
   lda ActorPX,x
-  add #HITBOX_CORNER_OFFSET
+  add #HITBOX_CORNER_OFFSET*16
   jsr GetOneCorner ; Bottom right
 
   stx SaveX
@@ -1516,25 +1515,21 @@ End:
 
 ; -------------------------------------------------------
 
-Corner_______BL___:
 Corner____TR_BL_BR:
   ldx SaveX
   jsr WallRight
   jsr WallBottom
   bra End
-Corner__________BR:
 Corner_TL____BL_BR:
   ldx SaveX
   jsr WallLeft
   jsr WallBottom
   bra End
-Corner____TR______:
 Corner_TL_TR____BR:
   ldx SaveX
   jsr WallRight
   jsr WallTop
   bra End
-Corner_TL_________:
 Corner_TL_TR_BL___:
   ldx SaveX
   jsr WallLeft
@@ -1557,6 +1552,54 @@ Corner_TL____BL___:
   ldx SaveX
   jsr WallLeft
   bra End
+
+GetAbsoluteVelocity:
+  lda ActorVX,x
+  abs
+  sta 0
+  lda ActorVY,x
+  abs
+  sta 2
+  lda 0 ; Horizontal
+  cmp 2 ; Vertical
+  rts
+
+Corner_______BL___:
+  ldx SaveX
+  jsr GetAbsoluteVelocity
+  bcs :+
+    jsr WallBottom
+    jmp End
+  :
+  jsr WallLeft
+  jmp End
+Corner__________BR:
+  ldx SaveX
+  jsr GetAbsoluteVelocity
+  bcs :+
+    jsr WallBottom
+    jmp End
+  :
+  jsr WallRight
+  jmp End
+Corner____TR______:
+  ldx SaveX
+  jsr GetAbsoluteVelocity
+  bcs :+
+    jsr WallTop
+    jmp End
+  :
+  jsr WallRight
+  jmp End
+Corner_TL_________:
+  ldx SaveX
+  jsr GetAbsoluteVelocity
+  bcs :+
+    jsr WallTop
+    jmp End
+  :
+  jsr WallLeft
+  jmp End
 
 ; Nothing
 Corner____________:

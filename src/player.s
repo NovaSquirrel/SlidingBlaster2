@@ -189,49 +189,113 @@ ControlMethodEnd:
   ; -------------------------------------------------------
   ; Boosting
 
-  lda PlayerSpeedupTimer,x
-  beq :+
-    dec PlayerSpeedupTimer,x
-  :
-
-  lda PlayerKeyDown,x
+  lda PlayerKeyNew,x
   and #KEY_B
   beq :+
-    lda PlayerBoostTimer,x
-    bne :+
-      lda PlayerShootAngle,x
-      sta PlayerMoveAngle,x
-      lda #5
-      sta PlayerSpeed,x
-      asl
-      sta PlayerBoostTimer,x
-
-      lda PlayerSpeedupTimer,x
-      beq @NoSpeedup
-         lda #7
-         sta PlayerSpeed,x
-         lsr PlayerBoostTimer,x
-      @NoSpeedup:
+    inc PlayerTapCount,x
+    stz PlayerTimeSinceTap,x
   :
+  inc PlayerTimeSinceTap,x
+  lda PlayerTimeSinceTap,x
+  cmp #20
+  bcc :+
+    lda PlayerTapCount,x
+    cmp #3
+    bcs :+
+      stz PlayerTapCount,x
+      stz PlayerTimeSinceTap,x
+  :
+  .if 0
+  lda PlayerKeyDown,x
+  and #KEY_A
+  beq :+
+    lda PlayerKeyDown,x
+    ora #KEY_B
+    sta PlayerKeyDown,x
+  :
+  lda PlayerKeyNew,x
+  and #KEY_A
+  beq :+
+    lda #3
+    sta PlayerTapCount,x
+    lda PlayerKeyNew,x
+    ora #KEY_B
+    sta PlayerKeyNew,x
+  :
+  .endif
+  lda PlayerKeyDown,x
+  and #KEY_B
+  beq NoBoostButton
+    lda PlayerBoostTimer,x
+    bne NoBoostButton
+    lda PlayerShootAngle,x
+    sta PlayerMoveAngle,x
+    lda #6 ; Slightly faster than Sliding Blaster 1
+    sta PlayerSpeed,x
+    lda #10
+    sta PlayerBoostTimer,x
+    sta PlayerSlowdownRate,x
+  NoBoostButton:
   lda PlayerBoostTimer,x
-  bne :+
+  bne @DecreaseBoostTimer
     lda PlayerSpeed,x
     cmp #3
-    bcs @SlowDown
+    bcs @SlowDown ; Slow down if speed > 2
     bra NoBoostSlowDown
-  :
+@DecreaseBoostTimer:
     dec PlayerBoostTimer,x
     bne NoBoostSlowDown
 @SlowDown:
       dec PlayerSpeed,x
       lda PlayerSpeed,x
       cmp #2
-      beq NoBoostSlowDown
-        lda PlayerSpeedupTimer,x
-        bne NoBoostSlowDown
-        lda #10
+      bne NotSlowedTo2
+        lda PlayerTapCount,x
+        cmp #3
+        bcc :+
+          stz PlayerTapCount,x
+
+          lda PlayerShootAngle,x
+          sta PlayerMoveAngle,x
+          lda #11 ;9
+          sta PlayerSpeed,x
+          asl
+          ;lda #10
+          sta PlayerBoostTimer,x
+          lda #3 ;5
+          sta PlayerSlowdownRate,x
+        :
+        bra NoBoostSlowDown
+      NotSlowedTo2:
+        lda PlayerSlowdownRate,x
         sta PlayerBoostTimer,x
   NoBoostSlowDown:
+
+  lda framecount
+  and #3
+  bne NoBoostParticle
+  lda PlayerBoostTimer,x
+  beq NoBoostParticle
+  jsl FindFreeParticleY
+  bcc NoBoostParticle
+    lda #Particle::BoostParticle
+    sta ParticleType,y
+
+    lda ActorPX,x
+    sta ParticlePX,y
+
+	lda ActorPY,x
+    sta ParticlePY,y
+
+    lda #32
+    sta ParticleTimer,y
+    tdc
+    cpx #Player2
+    bne :+
+      lda #OAM_COLOR_1
+    :
+    sta ParticleVariable,y
+  NoBoostParticle:
 
   ; -------------------------------------------------------
   ; Shooting
@@ -250,7 +314,7 @@ ControlMethodEnd:
   DontResetNoAmmoPity:
 
   lda PlayerKeyNew,x
-  and #KEY_Y | KEY_A
+  and #KEY_Y
   beq NoShoot
     lda PlayerAmmo,x
     bne HaveAmmo

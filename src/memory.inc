@@ -46,7 +46,8 @@ PlayerCount = 2
 .globalzp ActorType, ActorPXSub, ActorPX, ActorPYSub, ActorPY, ActorVXSub, ActorVX, ActorVYSub, ActorVY, ActorTimer, ActorVarA, ActorVarB, ActorVarC, ActorVarD, ActorAngle, ActorWidth, ActorHeight, ActorHealth, ActorSpeed, ActorHitShake, ActorLastGoodX, ActorLastGoodY, ActorTileBase
 .globalzp ActorStructSize
 .globalzp ActorProjectileType
-.globalzp PlayerActive, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerSpeedupTimer, PlayerCursorVX, PlayerCursorVY, PlayerHurtTimer, PlayerLastGoodX, PlayerLastGoodY
+.globalzp PlayerActive, PlayerPXSub, PlayerPX, PlayerPYSub, PlayerPY, PlayerVXSub, PlayerVX, PlayerVYSub, PlayerVY, PlayerBoostTimer, PlayerAmmo, PlayerCursorPX, PlayerCursorPY, PlayerShootAngle, PlayerMoveAngle, PlayerWidth, PlayerHeight, PlayerHealth, PlayerSpeed, PlayerTileBase, PlayerUsingAMouse, PlayerMouseSensitivity, PlayerControlStyle, PlayerStatusTop, PlayerStatusBottom, PlayerStatusRedraw, PlayerFrameID, PlayerFrameIDLast, PlayerFrameAddress, PlayerNoAmmoMessage, PlayerNoAmmoPity, PlayerKeyDown, PlayerKeyLast, PlayerKeyNew, PlayerSpeedupTimer, PlayerCursorVX, PlayerCursorVY, PlayerHurtTimer, PlayerLastGoodX, PlayerLastGoodY, PlayerTapCount, PlayerTimeSinceTap, PlayerSlowdownRate
+
 .globalzp PlayerStructSize
 
 .global Player1Critter, Player2Critter

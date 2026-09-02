@@ -300,6 +300,8 @@ DoneExpanding:
   stz PlayerKeyNew,x
   stz PlayerSpeedupTimer,x
   stz PlayerHurtTimer,x
+  stz PlayerTapCount,x
+  stz PlayerTimeSinceTap,x
   rts
 .endproc
 

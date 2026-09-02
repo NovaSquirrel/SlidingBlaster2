@@ -141,6 +141,9 @@ PlayerTileBase   = ActorTileBase
 	PlayerKeyNew       .word
 	PlayerSpeedupTimer .word
 	PlayerHurtTimer    .word
+	PlayerTapCount     .word
+	PlayerTimeSinceTap .word
+	PlayerSlowdownRate .word
 	PlayerCursorVX     .word
 	PlayerCursorVY     .word
 .endstruct

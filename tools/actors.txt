@@ -270,3 +270,8 @@ draw DrawPoofParticle
 particle
 run RunPrizeParticle
 draw DrawPrizeParticle
+
++BoostParticle
+particle
+run RunBoostParticle
+draw DrawBoostParticle

@@ -2021,6 +2021,24 @@ DontMakeCookies:
 
 .a16
 .i16
+.export DrawBoostParticle
+.proc DrawBoostParticle
+  lda ParticleTimer,x
+  lsr
+  lsr
+  lsr
+  add #$26|OAM_PRIORITY_2|OAM_COLOR_0
+  ora ParticleVariable,x
+  jsl DispParticle8x8
+  rts
+.endproc
+
+.a16
+.i16
+.export RunBoostParticle
+RunBoostParticle:
+.a16
+.i16
 .export RunParticleDisappear
 .proc RunParticleDisappear
   dec ParticleTimer,x

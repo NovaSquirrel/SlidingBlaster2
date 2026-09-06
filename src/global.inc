@@ -1,18 +1,20 @@
 LEVEL_TILE_SIZE = 2
 
-ForegroundBG  = $5c00
+BG1CHRBase    = $0000 ; to $3BFF
+BG2CHRBase    = $0000 ; to $3BFF
+PhotoBG       = $3c00 ; Used for layer 3
+BG3CHRBase    = $4000 ; to $57FF
 BackgroundBG  = $5800
-ExtraBG       = $5400 ; Used for layer 3
+ForegroundBG  = $5c00
 SpriteCHRBase = $6000
-BG1CHRBase    = $0000
-BG2CHRBase    = $2000
-BG3CHRBase    = $4000
 
 ; ------------------------------------
 ; Background palettes
-BG_MISC_PALETTE    = 0
+; Photo background uses palettes 0 and 1
 BG_RED_BLUE_YELLOW = 2
 BG_GREEN_GRAY_BROWN = 3
+; 4 and 5 unused
+BG_MISC_PALETTE    = 6
 BG_ICON_PALETTE    = 7
 
 ; Sprite palettes
@@ -29,6 +31,7 @@ SP_ICON_PALETTE     = 7
 ; What tile number points to the first tile in a given tileset, for a given layer
 
 FG_TILE_BASE_COMMON = $000
+BG_TILE_BASE_COMMON = $3800 / 16 ; Rug, probably won't actually use
 
 SP_TILE_BASE_COMMON = $000
 SP_TILE_BASE_PLAYER = $080

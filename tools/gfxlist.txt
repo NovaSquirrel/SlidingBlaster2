@@ -1,6 +1,6 @@
 0000 CommonBackground
 0800 LevelForeground
-4000 CityRug
+3800 CityRug
 6000 CommonSprites
 7000 EnemyBadGuy
 7000 EnemyBalloon

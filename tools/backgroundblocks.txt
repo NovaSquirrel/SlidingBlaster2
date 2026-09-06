@@ -1,4 +1,4 @@
-alias common_gfx $2000
+alias common_gfx $3800
 
 alias red_blue_yellow_palette 2
 alias green_gray_brown_palette 3
@@ -13,20 +13,28 @@ t 0:0 0:0
 t 0:0 0:0
 
 +Grass
-w 4,1
+t 0:0 0:0
+t 0:0 0:0
+#w 4,1
 
 +Dirt
-w 12,1
+t 0:0 0:0
+t 0:0 0:0
+#w 12,1
 
 palette red_blue_yellow_palette
 
 +Water
-w 8,2
+t 0:0 0:0
+t 0:0 0:0
+#w 8,2
 
 palette green_gray_brown_palette
 
 +Sand
-w 12,2
+t 0:0 0:0
+t 0:0 0:0
+#w 12,2
 
 +RoadVertical
 t 0,2 1,2

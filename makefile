@@ -20,7 +20,8 @@ objlist = \
   uploadppu graphics blockdata backgroundblockdata tad-audio_config audio_incbins audio_misc \
   blockinteraction palettedata pathfinding mainmenu \
   actordata actorcode actorshared levelload leveldata \
-  sincos_data math lz4 playerdraw playerprojectile characters
+  sincos_data math lz4 playerdraw playerprojectile characters \
+  backgrounddata
 
 CC := gcc
 AS65 := ca65
@@ -105,13 +106,8 @@ variable_palettes := $(wildcard palettes/variable/*.png)
 levels_lz4 := $(patsubst %.tmx,%.lz4,$(wildcard levels/*.tmx))
 levels_bin := $(patsubst %.tmx,%.bin,$(wildcard levels/*.tmx))
 
-# Background conversion
-# (nametable conversion is implied)
-backgrounds := $(wildcard backgrounds/*.png)
-chr4allbackground := $(patsubst %.png,%.chrsfc,$(wildcard backgrounds/*.png))
-
 auto_linker.cfg: linker_template.cfg $(objlisto)
-	$(PY) tools/uncle_fill.py lorom:8 auto_linker.cfg $^
+	$(PY) tools/uncle_fill.py hirom:8 auto_linker.cfg $^
 map.txt $(title).sfc: auto_linker.cfg
 	$(LD65) -o $(title).sfc -m map.txt --dbgfile $(title).dbg -C auto_linker.cfg $(objlisto)
 	$(PY) tools/fixchecksum.py $(title).sfc
@@ -146,7 +142,7 @@ $(objdir)/actorcode.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/aud
 $(objdir)/playerprojectile.o: $(srcdir)/actorenum.s $(srcdir)/blockenum.s $(srcdir)/audio_enum.inc
 
 # Automatically insert graphics into the ROM
-$(srcdir)/graphicsenum.s: $(chr2all) $(chr4all) $(chrXall) $(chr4allbackground) $(chr4_lz4) $(chr2_lz4) $(chrX_lz4) tools/gfxlist.txt tools/insertthegfx.py
+$(srcdir)/graphicsenum.s: $(chr2all) $(chr4all) $(chrXall) $(chr4_lz4) $(chr2_lz4) $(chrX_lz4) tools/gfxlist.txt tools/insertthegfx.py
 	$(PY) tools/insertthegfx.py
 
 # Automatically create the list of blocks from a description
@@ -207,6 +203,9 @@ $(imgdirX)/lz4/%.chr: $(imgdirX)/%.txt $(imgdirX)/%.png
 $(imgdirX)/lz4/%.chr.lz4: tilesetsX/lz4/%.chr
 	$(lz4_compress) $(lz4_flags) $< $@
 	@touch $@
+
+$(srcdir)/backgrounddata.s: tools/convert_photo_backgrounds.py tools/photo_backgrounds.txt $(wildcard backgrounds/*.bmp)
+	$(PY) tools/convert_photo_backgrounds.py
 
 # Rules for audio
 

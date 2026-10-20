@@ -48,3 +48,5 @@ src/audio_enum.inc
 src/audio_incbins.s
 src/backgroundblockenum.s
 src/backgroundblockdata.s
+src/backgrounddata.s
+src/backgroundenum.inc

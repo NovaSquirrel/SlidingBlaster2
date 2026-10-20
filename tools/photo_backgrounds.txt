@@ -1,0 +1,111 @@
++blue
+pic blue_texture_2-8x8-8p4c-s.bmp
+pal blue_texture_2-8x8-8p4c-s-palette.png
+
++blue2
+pic blue_texture_3-8x8-8p4c-s.bmp
+pal blue_texture_3-8x8-8p4c-s-palette.png
+
++bricks
+pic brick_wall-8x8-8p4c-s.bmp
+pal brick_wall-8x8-8p4c-s-palette.png
+
++cobblestone
+pic cobblestone_2-8x8-8p4c-s.bmp
+pal cobblestone_2-8x8-8p4c-s-palette.png
+
+#+cobblestone2
+#pic cobblestone-8x8-8p4c-s.bmp
+#pal cobblestone-8x8-8p4c-s-palette.png
+
++corn
+pic corn-8x8-8p4c-s.bmp
+pal corn-8x8-8p4c-s-palette.png
+
++red
+pic dirty_red_3-8x8-8p4c-s.bmp
+pal dirty_red_3-8x8-8p4c-s-palette.png
+
++grass
+pic grass_from_above_lighter-8x8-8p4c-s.bmp
+pal grass_from_above_lighter-8x8-8p4c-s-palette.png
+
++green
+pic green_grunge-8x8-8p4c-s.bmp
+pal green_grunge-8x8-8p4c-s-palette.png
+
++green2
+pic green_grunge_2-8x8-8p4c-s.bmp
+pal green_grunge_2-8x8-8p4c-s-palette.png
+
++green3
+pic green_grunge_3-8x8-8p4c-s.bmp
+pal green_grunge_3-8x8-8p4c-s-palette.png
+
++sand
+pic lake_mead_2-8x8-8p4c-s.bmp
+pal lake_mead_2-8x8-8p4c-s-palette.png
+
++lavendar
+pic lavendar-8x8-8p4c-s.bmp
+pal lavendar-8x8-8p4c-s-palette.png
+
++lime
+pic lime_2-8x8-8p4c-s.bmp
+pal lime_2-8x8-8p4c-s-palette.png
+
++red_mist
+pic litchback_free_texture_2-8x8-8p4c-s.bmp
+pal litchback_free_texture_2-8x8-8p4c-s-palette.png
+
++moon
+pic moon-8x8-8p4c-s.bmp
+pal moon-8x8-8p4c-s-palette.png
+
++oak
+pic Oak_Texture_-_5106733699_c1d5b0df29_b_2-8x8-8p4c-s.bmp
+pal Oak_Texture_-_5106733699_c1d5b0df29_b_2-8x8-8p4c-s-palette.png
+
++oak2
+pic Oak_Texture_-_5106733699_c1d5b0df29_b_3-8x8-8p4c-s.bmp
+pal Oak_Texture_-_5106733699_c1d5b0df29_b_3-8x8-8p4c-s-palette.png
+
++paper
+pic paper-8x8-8p4c-s.bmp
+pal paper-8x8-8p4c-s-palette.png
+
++pink
+pic pink-8x8-8p4c-s.bmp
+pal pink-8x8-8p4c-s-palette.png
+
++pink2
+pic pink_2-8x8-8p4c-s.bmp
+pal pink_2-8x8-8p4c-s-palette.png
+
++pink_fabric
+pic pink_fabric-8x8-8p4c-s.bmp
+pal pink_fabric-8x8-8p4c-s-palette.png
+
++pink_fabric2
+pic pink_fabric_2-8x8-8p4c-s.bmp
+pal pink_fabric_2-8x8-8p4c-s-palette.png
+
++teal_wood
+pic private_house-8x8-8p4c-s.bmp
+pal private_house-8x8-8p4c-s-palette.png
+
++stone_and_grass
+pic stone_and_grass-8x8-8p4c-s.bmp
+pal stone_and_grass-8x8-8p4c-s-palette.png
+
++rectangle_stones
+pic Texture_-_P7220247_2-8x8-8p4c-s.bmp
+pal Texture_-_P7220247_2-8x8-8p4c-s-palette.png
+
++diagonal_stones
+pic Texture_-_P7250366_2-8x8-8p4c-s.bmp
+pal Texture_-_P7250366_2-8x8-8p4c-s-palette.png
+
++woven
+pic Woven_(7272806050)-8x8-8p4c-s.bmp
+pal Woven_(7272806050)-8x8-8p4c-s-palette.png

@@ -31,21 +31,20 @@
 .segment "C_Player"
 
 COMMON_BASE = 0
-RUG_BASE = 512
-CLOUD_TILE = RUG_BASE + 16
+CLOUD_TILE = $1C
 
 .a16
 .i16
 .proc RenderLevelScreen
 	; Clear out the status bars
 	ldy #BackgroundBG
-	lda #RUG_BASE + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	lda #COMMON_BASE + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
 	jsr RepeatPPUWrite32
 	ldy #ForegroundBG
 	lda #0
 	jsr RepeatPPUWrite32
 	ldy #BackgroundBG + 25*32
-	lda #RUG_BASE + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	lda #COMMON_BASE + 1 + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
 	ldx #3*32
 	jsr RepeatPPUWrite
 	ldy #ForegroundBG + 25*32
@@ -86,19 +85,22 @@ CLOUD_TILE = RUG_BASE + 16
 	; Clouds
 	ldx #0
 	lda #CLOUD_TILE + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
-	sta PPUDATA
-:	ldy CloudPositions,x
-	bmi :+
+PutClouds:
+ 	ldy CloudPositions,x
+	bmi CloudEnd
 	sty PPUADDR
 	sta PPUDATA
 	ina
 	sta PPUDATA
 	ina
-	and #$ffff ^ 4
+	cmp #CLOUD_TILE + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT) + 4
+	bne :+
+		lda #CLOUD_TILE + BG_PRIORITY + (BG_MISC_PALETTE << BG_COLOR_SHIFT)
+	:
 	inx
 	inx
-	bra :-
-:
+	bra PutClouds
+CloudEnd:
 
 	lda Player1+PlayerActive
 	beq :+
@@ -191,6 +193,7 @@ BackgroundRenderLoop:
 	phk
 	plb
 
+	jsl UploadPhotoBackground
 	jsl UpdateWaveNumber
 
 	rtl
@@ -242,4 +245,85 @@ DATA    = 2 ; Offset for scatter buffer
 	add #8
 	sta ScatterUpdateLength
 	rtl
+.endproc
+
+.include "backgroundenum.inc"
+.import BackgroundDirectory
+.a16
+.i16
+.proc UploadPhotoBackground
+	;lda #4 ; Corn
+	lda #Background::corn
+
+	; Load palette
+	sta 0
+	asl
+	adc 0
+	tax
+	lda f:BackgroundDirectory+0,x
+	sta DMAADDR
+	lda f:BackgroundDirectory+2,x
+	sta DMAADDRBANK
+	lda #DMAMODE_CGDATA
+	sta DMAMODE
+	lda #16*2*2
+	sta DMALEN
+	seta8
+	stz CGADDR
+	lda #1
+	sta COPYSTART
+	seta16
+
+	; Load palette map (high bytes of layer 3 map)
+	lda #DMAMODE_PPUHIDATA
+	sta DMAMODE
+	lda #32*24
+	sta DMALEN
+	lda #PhotoBG
+	sta PPUADDR
+	seta8
+	lda #1
+	sta COPYSTART
+	seta16
+
+	; Load graphics
+	lda #DMAMODE_PPUDATA
+	sta DMAMODE
+	lda #32*24*16
+	sta DMALEN
+	lda #BG3CHRBase
+	sta PPUADDR
+	seta8
+	lda #1
+	sta COPYSTART
+	seta16
+
+	; Load low bytes of layer 3 map
+	
+	lda #DMAMODE_PPULODATA
+	sta DMAMODE
+	lda #.loword(PhotoBackgroundLowBytes)
+	sta DMAADDR
+	lda #$80 ;^PhotoBackgroundLowBytes
+	sta DMAADDRBANK
+	lda #PhotoBG
+	sta PPUADDR
+	lda #32*24
+	sta DMALEN
+	seta8
+	stz PPUCTRL
+	lda #1
+	sta COPYSTART
+	lda #INC_DATAHI
+	sta PPUCTRL
+	seta16
+
+	rtl
+.endproc
+
+.segment "Tilemaps"
+.proc PhotoBackgroundLowBytes
+	.repeat 768, I
+		.byt <I
+	.endrep
 .endproc

@@ -453,11 +453,16 @@ Compressed:
   stz BGSCROLLX
   stz BGSCROLLX + 2
   stz BGSCROLLX + 2
+  stz BGSCROLLX + 4
+  stz BGSCROLLX + 4
   lda #<-1
   sta BGSCROLLY
   stz BGSCROLLY
   sta BGSCROLLY + 2
   stz BGSCROLLY + 2
+  lda #<-1-8
+  sta BGSCROLLY + 4
+  stz BGSCROLLY + 4
 
   setaxy16
   lda #.loword(ColorChangeHDMATable)
@@ -500,24 +505,24 @@ UploadActorTilesetLoop:
 
   ; Upload palettes
   lda #Palette::Miscellaneous
-  ldy #0
+  ldy #BG_MISC_PALETTE
   jsl DoPaletteUpload
   lda #Palette::RedBlueYellow
-  ldy #2
+  ldy #BG_RED_BLUE_YELLOW
   jsl DoPaletteUpload
   lda #Palette::GreenGrayBrown
-  ldy #3
+  ldy #BG_GREEN_GRAY_BROWN
   jsl DoPaletteUpload
   lda #Palette::Icons
-  ldy #7
+  ldy #BG_ICON_PALETTE
   jsl DoPaletteUpload
 
   ; Player palettes
   lda #Palette::PlayerToy2
-  ldy #8
+  ldy #SP_PLAYER1_PALETTE
   jsl DoPaletteUpload
   lda #Palette::PlayerToy
-  ldy #9
+  ldy #SP_PLAYER2_PALETTE
   jsl DoPaletteUpload
   ; 10 and 11 are character sprite graphics
 
@@ -559,12 +564,12 @@ UploadActorTilesetLoop:
   lda #0 | ((BackgroundBG >> 10)<<2)
   sta NTADDR+1   ; plane 1 nametable, 1 screen
 
-  lda #0 | ((ExtraBG >> 10)<<2)
+  lda #0 | ((PhotoBG >> 10)<<2)
   sta NTADDR+2   ; plane 2 nametable, 1 screen
 
   stz PPURES
 
-  lda #%00010011  ; enable sprites, plane 0 and 1
+  lda #%00010111  ; enable sprites and all background layers
   sta BLENDMAIN
   stz BLENDSUB    ; disable subscreen
 
@@ -594,7 +599,7 @@ UploadActorTilesetLoop:
 .endproc
 
 .proc ColorChangeHDMATable
-INDEX = $0101
+INDEX = BG_MISC_PALETTE*16+1 | (BG_MISC_PALETTE*16+1) << 8
   .byt $80 | 8,  <Top, >Top
   .byt 128,      <Middle, >Middle
   .byt 64,       <Middle, >Middle

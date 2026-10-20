@@ -27,7 +27,7 @@ Planemap opcodes:
     hflip = 7 if hflip else 0
     if (tile.size != (8, 8)):
         return None
-    pixels = list(tile.getdata())
+    pixels = list(tile.get_flattened_data())
     pixelrows = [pixels[i:i + 8] for i in range(0, 64, 8)]
     if hflip:
         for row in pixelrows:
